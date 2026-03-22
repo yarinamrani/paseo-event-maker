@@ -15,6 +15,7 @@
     @media print {
       body, html { margin: 0 !important; padding: 0 !important; }
       @page { size: A4; margin: 0; }
+      #print-area { pointer-events: none; }
       #print-area > div { page-break-after: always; }
       #print-area > div:last-child { page-break-after: avoid; }
     }
@@ -703,7 +704,7 @@ function App() {
       const el = document.getElementById("print-area");
       if (el) {
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        const opt = { margin: 0, filename: fname, image: { type: "jpeg", quality: isMobile ? 0.85 : 0.98 }, html2canvas: { scale: isMobile ? 1.5 : 2, useCORS: true, logging: false, scrollY: 0, windowWidth: 794 }, jsPDF: { unit: "mm", format: "a4", orientation: "portrait" } };
+        const opt = { margin: 0, filename: fname, image: { type: "jpeg", quality: isMobile ? 0.85 : 0.98 }, html2canvas: { scale: isMobile ? 1.5 : 2, useCORS: true, logging: false, scrollX: 0, scrollY: 0, width: 794 }, jsPDF: { unit: "mm", format: "a4", orientation: "portrait" } };
         pdfBlob = await window.html2pdf().set(opt).from(el).toPdf().output("blob");
       }
     } catch (e) { console.warn("PDF gen error:", e); }
@@ -871,7 +872,7 @@ function App() {
 
       {/* Print mode - all 3 pages stacked for PDF */}
       {printing && (
-        <div id="print-area" style={{ background: "#fff", width: 794 }}>
+        <div id="print-area" style={{ position: "absolute", left: -9999, top: 0, width: 794, background: "#fff", zIndex: -1 }}>
           <MenuPage menuTitle={menuTitle} menuType={menuType} categories={byCat} supplementPrice={supplementPrice} />
           <PricingPage clientName={clientName} eventType={eventType} eventDate={eventDate} eventTime={eventTime} guestCount={guestCount} pricePerGuest={pricePerGuest} menuTitle={menuTitle} menuType={menuType} services={services} cocktailUpgrade={cocktailUpgrade} foodTotal={foodT} totalBeforeVat={tot} totalWithVat={totV} servicePct={servicePct} />
           <TermsPage validDays={validDays} menuType={menuType} />
