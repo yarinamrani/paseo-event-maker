@@ -21,7 +21,7 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Heebo', sans-serif; -webkit-font-smoothing: antialiased; }
-    #print-area { position: absolute; left: -9999px; top: 0; }
+    #print-area { overflow: hidden; height: 0; }
   </style>
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
@@ -403,35 +403,46 @@ function App() {
     const el = document.getElementById("print-area");
     if (!el || !window.html2canvas || !window.jspdf) { alert("טוען... נסה שוב בעוד שנייה"); return; }
     setPdfBusy(true);
-    // Show for capture
-    el.style.position = "fixed";
-    el.style.left = "0";
-    el.style.top = "0";
-    el.style.zIndex = "99999";
-    el.style.background = "#fff";
-    el.style.overflow = "visible";
-    
-    const name = clientName ? `הצעת_מחיר_${clientName.replace(/\s/g,"_")}` : "הצעת_מחיר_פסאו";
-    const pages = el.children;
-    let pdf = null;
-    
-    for (let i = 0; i < pages.length; i++) {
-      const canvas = await html2canvas(pages[i], { scale: 2, useCORS: true, letterRendering: true, width: 794, height: 1123, scrollY: 0 });
-      const imgData = canvas.toDataURL("image/jpeg", 0.92);
-      if (i === 0) {
-        pdf = new jspdf.jsPDF({ unit: "px", format: [794, 1123], orientation: "portrait", hotfixes: ["px_scaling"] });
-      } else {
-        pdf.addPage([794, 1123], "portrait");
+    try {
+      // Show for capture
+      el.style.overflow = "visible";
+      el.style.height = "auto";
+      el.style.position = "fixed";
+      el.style.left = "0";
+      el.style.top = "0";
+      el.style.zIndex = "99999";
+      el.style.background = "#fff";
+
+      const name = clientName ? `הצעת_מחיר_${clientName.replace(/\s/g,"_")}` : "הצעת_מחיר_פסאו";
+      const pages = el.children;
+      let pdf = null;
+
+      for (let i = 0; i < pages.length; i++) {
+        const canvas = await html2canvas(pages[i], { scale: 2, useCORS: true, letterRendering: true, width: 794, height: 1123, scrollY: 0 });
+        const imgData = canvas.toDataURL("image/jpeg", 0.92);
+        if (i === 0) {
+          pdf = new jspdf.jsPDF({ unit: "px", format: [794, 1123], orientation: "portrait", hotfixes: ["px_scaling"] });
+        } else {
+          pdf.addPage([794, 1123], "portrait");
+        }
+        pdf.addImage(imgData, "JPEG", 0, 0, 794, 1123);
       }
-      pdf.addImage(imgData, "JPEG", 0, 0, 794, 1123);
+
+      pdf.save(name + ".pdf");
+    } catch (err) {
+      alert("שגיאה ביצירת PDF – נסה שוב");
+      console.error("PDF generation error:", err);
+    } finally {
+      // Hide again
+      el.style.position = "";
+      el.style.left = "";
+      el.style.top = "";
+      el.style.zIndex = "";
+      el.style.background = "";
+      el.style.overflow = "hidden";
+      el.style.height = "0";
+      setPdfBusy(false);
     }
-    
-    pdf.save(name + ".pdf");
-    // Hide again
-    el.style.position = "absolute";
-    el.style.left = "-9999px";
-    el.style.zIndex = "auto";
-    setPdfBusy(false);
   }, [clientName]);
 
   const foodT = useMemo(() => (parseInt(guestCount)||0)*(parseInt(pricePerGuest)||0), [guestCount,pricePerGuest]);
