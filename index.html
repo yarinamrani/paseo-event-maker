@@ -693,26 +693,37 @@ function App() {
     const fmtDate = eventDate ? eventDate.split("-").reverse().join("-") : "";
     const msg = `*הצעת מחיר - PASEO*\n\nלקוח: ${clientName}\nסוג: ${eventType}\nתאריך: ${fmtDate}\nאורחים: ${guestCount}`;
 
-    // Try Web Share API with PDF (works on mobile)
-    if (navigator.share && navigator.canShare) {
-      try {
-        setPrinting(true);
-        // Wait for React to render print-area
-        await new Promise(r => setTimeout(r, 600));
-        const el = document.getElementById("print-area");
-        if (!el) throw new Error("print-area not ready");
+    // Generate PDF first
+    let pdfBlob = null;
+    try {
+      setPrinting(true);
+      await new Promise(r => setTimeout(r, 600));
+      const el = document.getElementById("print-area");
+      if (el) {
         const { default: html2pdf } = await import("https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js");
-        const blob = await html2pdf().set({ margin: 0, filename: `הצעה-${clientName}.pdf`, image: { type: "jpeg", quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: "mm", format: "a4", orientation: "portrait" } }).from(el).outputPdf("blob");
-        const file = new File([blob], `הצעה-${clientName || "PASEO"}.pdf`, { type: "application/pdf" });
-        setPrinting(false);
+        pdfBlob = await html2pdf().set({ margin: 0, filename: `הצעה-${clientName}.pdf`, image: { type: "jpeg", quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: "mm", format: "a4", orientation: "portrait" } }).from(el).outputPdf("blob");
+      }
+      setPrinting(false);
+    } catch (e) { setPrinting(false); }
+
+    // Try Web Share API with PDF (mobile - sends PDF directly to WhatsApp)
+    if (pdfBlob && navigator.share && navigator.canShare) {
+      try {
+        const file = new File([pdfBlob], `הצעה-${clientName || "PASEO"}.pdf`, { type: "application/pdf" });
         if (navigator.canShare({ files: [file] })) {
           await navigator.share({ text: msg, files: [file] });
           return;
         }
-      } catch (e) { setPrinting(false); console.log("share fallback", e); }
+      } catch (e) { /* user cancelled or unsupported, continue to fallback */ }
     }
-    // Fallback: open WhatsApp with text only
-    window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(msg + "\n\n📎 יש להוריד את ה-PDF ולצרף ידנית"), "_blank");
+
+    // Desktop fallback: auto-download PDF + open WhatsApp with clean message
+    if (pdfBlob) {
+      const url = URL.createObjectURL(pdfBlob);
+      const a = document.createElement("a"); a.href = url; a.download = `הצעה-${clientName || "PASEO"}.pdf`; a.click();
+      URL.revokeObjectURL(url);
+    }
+    window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(msg), "_blank");
   }, [clientName, eventType, eventDate, guestCount]);
 
   const foodT = useMemo(() => (parseInt(guestCount)||0)*(parseInt(pricePerGuest)||0), [guestCount,pricePerGuest]);
