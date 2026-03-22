@@ -676,32 +676,6 @@ function App() {
   const [eventType, setEventType] = useState("");
   const [eventDate, setEventDate] = useState("");
 
-  // Load proposal from shared URL
-  useEffect(() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const q = params.get("q");
-      if (q) {
-        const d = JSON.parse(decodeURIComponent(escape(atob(q))));
-        if (d.c) setClientName(d.c);
-        if (d.t) setEventType(d.t);
-        if (d.d) setEventDate(d.d);
-        if (d.g) setGuestCount(d.g);
-        if (d.p) setPricePerGuest(d.p);
-        if (d.m) setMenuTitle(d.m);
-        if (d.mt) setMenuType(d.mt);
-        if (d.s) setSel(new Set(d.s.split(",")));
-        if (d.sv) setServices(JSON.parse(d.sv));
-        if (d.sp) setSupplementPrice(d.sp);
-        if (d.cu) setCocktailUpgrade(d.cu);
-        if (d.vd) setValidDays(d.vd);
-        if (d.et) setEventTime(d.et);
-        if (d.spc) setServicePct(d.spc);
-        setTab("preview");
-        window.history.replaceState({}, "", window.location.pathname);
-      }
-    } catch(e) {}
-  }, []);
   const [eventTime, setEventTime] = useState("");
   const [guestCount, setGuestCount] = useState("100");
   const [pricePerGuest, setPricePerGuest] = useState("350");
@@ -745,13 +719,6 @@ function App() {
     setTimeout(() => setCrmSaved(false), 3000);
   }, [clientName, eventType, eventDate, guestCount, pricePerGuest]);
 
-  const [linkCopied, setLinkCopied] = useState(false);
-  const shareClientLink = useCallback(() => {
-    const data = { c: clientName, t: eventType, d: eventDate, g: guestCount, p: pricePerGuest, m: menuTitle, mt: menuType, s: sel.size > 0 ? [...sel].join(",") : "", sv: JSON.stringify(services), sp: supplementPrice, cu: cocktailUpgrade, vd: validDays, et: eventTime, spc: servicePct };
-    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
-    const url = window.location.origin + window.location.pathname + "?q=" + encoded;
-    navigator.clipboard.writeText(url).then(() => { setLinkCopied(true); setTimeout(() => setLinkCopied(false), 3000); });
-  }, [clientName, eventType, eventDate, guestCount, pricePerGuest, menuTitle, menuType, sel, services, supplementPrice, cocktailUpgrade, validDays, eventTime, servicePct]);
 
   const shareWhatsApp = useCallback(async () => {
     const fmtDate = eventDate ? eventDate.split("-").reverse().join("-") : "";
@@ -959,9 +926,7 @@ function App() {
               <button onClick={handlePrint} style={{ flex: 1, background: F.gold, color: "#1e1e1e", border: "none", borderRadius: 8, padding: 12, fontFamily: FN.body, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>שמור PDF</button>
               <button onClick={shareWhatsApp} style={{ flex: 1, background: "#25D366", color: "#fff", border: "none", borderRadius: 8, padding: 12, fontFamily: FN.body, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>שלח בוואטסאפ</button>
               <button onClick={saveToCrm} style={{ flex: 1, background: crmSaved ? "#4ade80" : "#232323", color: crmSaved ? "#1a1a1a" : F.gold, border: crmSaved ? "none" : `1px solid ${F.gold}`, borderRadius: 8, padding: 12, fontFamily: FN.body, fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "all 0.3s" }}>{crmSaved ? "נשמר ✓" : "שמור CRM"}</button>
-            </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button onClick={shareClientLink} style={{ flex: 1, background: linkCopied ? "#4ade80" : "#1a1a5e", color: linkCopied ? "#1a1a1a" : "#fff", border: "none", borderRadius: 8, padding: 12, fontFamily: FN.body, fontSize: 13, fontWeight: 700, cursor: "pointer", transition: "all 0.3s" }}>{linkCopied ? "הקישור הועתק ✓" : "🔗 העתק קישור להצעה"}</button>
+
             </div>
             <button onClick={()=>setTab("form")} style={{ width: "100%", background: "none", color: F.dm, border: `1px solid ${F.br}`, borderRadius: 8, padding: 10, fontFamily: FN.body, fontSize: 13, fontWeight: 400, cursor: "pointer" }}>← חזרה לעריכה</button>
           </div>
