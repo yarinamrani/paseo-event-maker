@@ -680,11 +680,28 @@ function App() {
     setTimeout(() => setCrmSaved(false), 3000);
   }, [clientName, eventType, eventDate, guestCount, pricePerGuest]);
 
-  const shareWhatsApp = useCallback(() => {
-    const total = (parseInt(guestCount)||0) * (parseInt(pricePerGuest)||0);
-    const msg = `*הצעת מחיר - PASEO*\n\nלקוח: ${clientName}\nסוג: ${eventType}\nתאריך: ${eventDate}\nאורחים: ${guestCount}\nסה"כ כולל מע״מ: ₪${Math.round(total*1.18).toLocaleString("he-IL")}\n\n📎 ה-PDF מצורף`;
-    window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(msg), "_blank");
-  }, [clientName, eventType, eventDate, guestCount, pricePerGuest]);
+  const shareWhatsApp = useCallback(async () => {
+    const fmtDate = eventDate ? eventDate.split("-").reverse().join("-") : "";
+    const msg = `*הצעת מחיר - PASEO*\n\nלקוח: ${clientName}\nסוג: ${eventType}\nתאריך: ${fmtDate}\nאורחים: ${guestCount}`;
+
+    // Try Web Share API with PDF (works on mobile)
+    if (navigator.share && navigator.canShare) {
+      try {
+        setPrinting(true);
+        const { default: html2pdf } = await import("https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js");
+        const el = document.getElementById("print-area");
+        const blob = await html2pdf().set({ margin: 0, filename: `הצעה-${clientName}.pdf`, image: { type: "jpeg", quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: "mm", format: "a4", orientation: "portrait" } }).from(el).outputPdf("blob");
+        const file = new File([blob], `הצעה-${clientName || "PASEO"}.pdf`, { type: "application/pdf" });
+        setPrinting(false);
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({ text: msg, files: [file] });
+          return;
+        }
+      } catch (e) { setPrinting(false); console.log("share fallback", e); }
+    }
+    // Fallback: open WhatsApp with text only
+    window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(msg + "\n\n📎 יש להוריד את ה-PDF ולצרף ידנית"), "_blank");
+  }, [clientName, eventType, eventDate, guestCount]);
 
   const foodT = useMemo(() => (parseInt(guestCount)||0)*(parseInt(pricePerGuest)||0), [guestCount,pricePerGuest]);
   const svcT = useMemo(() => services.reduce((s,v)=>v.included?s:s+(parseInt(v.qty)||0)*(parseInt(v.price)||0),0), [services]);
