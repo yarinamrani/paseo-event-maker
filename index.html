@@ -185,9 +185,9 @@ function MenuPage({ menuTitle, menuType, categories, supplementPrice }) {
   const totalItems = Object.values(categories).reduce((sum, items) => sum + items.length, 0);
   const dense = totalItems > 14;
   const vdense = totalItems > 18;
-  const nameSize = vdense ? 11 : dense ? 12 : 13;
-  const descSize = vdense ? 8 : dense ? 8.5 : 9.5;
-  const catSize = vdense ? 11.5 : dense ? 12.5 : 14;
+  const nameSize = vdense ? 13 : dense ? 14.5 : 16;
+  const descSize = vdense ? 9.5 : dense ? 10 : 11;
+  const catSize = vdense ? 13.5 : dense ? 15 : 17;
   const itemMb = vdense ? 3 : dense ? 5 : 7;
   const catMt = vdense ? 7 : dense ? 10 : 14;
   const logoSize = dense ? "md" : "lg";
@@ -220,7 +220,7 @@ function MenuPage({ menuTitle, menuType, categories, supplementPrice }) {
           {hasPremium && (
             <>
               <div style={{ width: 40, height: 1, background: S.line, margin: `${catMt - 4}px auto` }} />
-              <div style={{ fontFamily: FN.body, fontSize: dense ? 9.5 : 11, color: S.title, textAlign: "center", margin: "4px 0" }}>בתוספת של {supplementPrice} ש"ח לסועד</div>
+              <div style={{ fontFamily: FN.body, fontSize: dense ? 11 : 13, color: S.title, textAlign: "center", margin: "4px 0" }}>בתוספת של {supplementPrice} ש"ח לסועד</div>
               {categories["תוספת פרימיום"].map((item) => (
                 <div key={item.id} style={{ textAlign: "center", marginBottom: itemMb }}>
                   <div style={{ fontFamily: FN.title, fontSize: nameSize, fontWeight: 700, color: S.titleBold }}>{item.name}</div>
@@ -403,12 +403,19 @@ function App() {
     const el = document.getElementById("print-area");
     if (!el || !window.html2canvas || !window.jspdf) { alert("טוען... נסה שוב בעוד שנייה"); return; }
     setPdfBusy(true);
+    const savedScrollY = window.scrollY;
     try {
+      // Lock body scroll to prevent iPhone viewport jump
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${savedScrollY}px`;
+      document.body.style.width = "100%";
+      document.body.style.overflow = "hidden";
+
       // Show for capture
       el.style.overflow = "visible";
       el.style.height = "auto";
       el.style.position = "fixed";
-      el.style.left = "0";
+      el.style.left = "-9999px";
       el.style.top = "0";
       el.style.zIndex = "99999";
       el.style.background = "#fff";
@@ -441,6 +448,13 @@ function App() {
       el.style.background = "";
       el.style.overflow = "hidden";
       el.style.height = "0";
+
+      // Restore body scroll
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.width = "";
+      document.body.style.overflow = "";
+      window.scrollTo(0, savedScrollY);
       setPdfBusy(false);
     }
   }, [clientName]);

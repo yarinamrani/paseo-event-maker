@@ -190,11 +190,11 @@ function MenuPage({ menuTitle, menuType, categories, supplementPrice }) {
             if (cat === "תוספת פרימיום") return null;
             return (
               <div key={cat}>
-                <div style={{ fontFamily: FN.title, fontSize: 14, fontWeight: 700, color: S.text, textAlign: "center", margin: "14px 0 6px", textDecoration: "underline", textUnderlineOffset: 5, textDecorationColor: S.line }}>{cat}</div>
+                <div style={{ fontFamily: FN.title, fontSize: 17, fontWeight: 700, color: S.text, textAlign: "center", margin: "14px 0 6px", textDecoration: "underline", textUnderlineOffset: 5, textDecorationColor: S.line }}>{cat}</div>
                 {items.map((item) => (
                   <div key={item.id} style={{ textAlign: "center", marginBottom: 7 }}>
-                    <div style={{ fontFamily: FN.title, fontSize: 13, fontWeight: 700, color: S.titleBold }}>{item.name}</div>
-                    {item.desc && <div style={{ fontFamily: FN.body, fontSize: 9.5, fontWeight: 300, color: S.desc, lineHeight: 1.5, maxWidth: 400, margin: "0 auto" }}>{item.desc}</div>}
+                    <div style={{ fontFamily: FN.title, fontSize: 16, fontWeight: 700, color: S.titleBold }}>{item.name}</div>
+                    {item.desc && <div style={{ fontFamily: FN.body, fontSize: 11, fontWeight: 300, color: S.desc, lineHeight: 1.5, maxWidth: 400, margin: "0 auto" }}>{item.desc}</div>}
                   </div>
                 ))}
               </div>
@@ -203,11 +203,11 @@ function MenuPage({ menuTitle, menuType, categories, supplementPrice }) {
           {hasPremium && (
             <>
               <div style={{ width: 40, height: 1, background: S.line, margin: "12px auto" }} />
-              <div style={{ fontFamily: FN.body, fontSize: 11, color: S.title, textAlign: "center", margin: "6px 0" }}>בתוספת של {supplementPrice} ש"ח לסועד</div>
+              <div style={{ fontFamily: FN.body, fontSize: 13, color: S.title, textAlign: "center", margin: "6px 0" }}>בתוספת של {supplementPrice} ש"ח לסועד</div>
               {categories["תוספת פרימיום"].map((item) => (
                 <div key={item.id} style={{ textAlign: "center", marginBottom: 7 }}>
-                  <div style={{ fontFamily: FN.title, fontSize: 13, fontWeight: 700, color: S.titleBold }}>{item.name}</div>
-                  {item.desc && <div style={{ fontFamily: FN.body, fontSize: 9.5, fontWeight: 300, color: S.desc, lineHeight: 1.5, maxWidth: 400, margin: "0 auto" }}>{item.desc}</div>}
+                  <div style={{ fontFamily: FN.title, fontSize: 16, fontWeight: 700, color: S.titleBold }}>{item.name}</div>
+                  {item.desc && <div style={{ fontFamily: FN.body, fontSize: 11, fontWeight: 300, color: S.desc, lineHeight: 1.5, maxWidth: 400, margin: "0 auto" }}>{item.desc}</div>}
                 </div>
               ))}
             </>
