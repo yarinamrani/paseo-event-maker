@@ -21,7 +21,7 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Heebo', sans-serif; -webkit-font-smoothing: antialiased; }
-    #print-area { overflow: hidden; height: 0; }
+    #print-area { display: none; }
   </style>
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
@@ -411,13 +411,13 @@ function App() {
       document.body.style.width = "100%";
       document.body.style.overflow = "hidden";
 
-      // Show for capture
-      el.style.overflow = "visible";
-      el.style.height = "auto";
+      // Show for capture (off-screen so it doesn't affect viewport)
+      el.style.display = "block";
       el.style.position = "fixed";
       el.style.left = "-9999px";
       el.style.top = "0";
-      el.style.zIndex = "99999";
+      el.style.width = "794px";
+      el.style.zIndex = "-1";
       el.style.background = "#fff";
 
       const name = clientName ? `הצעת_מחיר_${clientName.replace(/\s/g,"_")}` : "הצעת_מחיר_פסאו";
@@ -441,13 +441,13 @@ function App() {
       console.error("PDF generation error:", err);
     } finally {
       // Hide again
+      el.style.display = "none";
       el.style.position = "";
       el.style.left = "";
       el.style.top = "";
+      el.style.width = "";
       el.style.zIndex = "";
       el.style.background = "";
-      el.style.overflow = "hidden";
-      el.style.height = "0";
 
       // Restore body scroll
       document.body.style.position = "";
@@ -482,7 +482,7 @@ function App() {
       <div id="app-ui" style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
       <div style={{ display: "flex", background: F.sf, borderBottom: `1px solid ${F.br}`, position: "sticky", top: 0, zIndex: 20 }}>
         {["form","preview"].map(t => (
-          <button key={t} onClick={()=>setTab(t)} style={{ flex: 1, padding: "14px 0", background: "none", border: "none", cursor: "pointer", fontFamily: FN.body, fontSize: 14, fontWeight: tab===t?700:400, color: tab===t?F.gold:F.dm, borderBottom: tab===t?`2px solid ${F.gold}`:"2px solid transparent" }}>
+          <button key={t} onClick={()=>{setTab(t);window.scrollTo(0,0);}} style={{ flex: 1, padding: "14px 0", background: "none", border: "none", cursor: "pointer", fontFamily: FN.body, fontSize: 14, fontWeight: tab===t?700:400, color: tab===t?F.gold:F.dm, borderBottom: tab===t?`2px solid ${F.gold}`:"2px solid transparent" }}>
             {t==="form" ? "עריכה" : "תצוגה מקדימה"}
           </button>
         ))}
@@ -583,7 +583,7 @@ function App() {
       )}
 
       {tab === "preview" && (
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", maxHeight: "calc(100vh - 110px)" }}>
           <div style={{ display: "flex", background: F.sf, borderBottom: `1px solid ${F.br}` }}>
             {pages.map((n,i) => (
               <button key={i} onClick={()=>setPg(i)} style={{ flex: 1, padding: "10px 0", background: "none", border: "none", cursor: "pointer", fontFamily: FN.body, fontSize: 13, fontWeight: pg===i?700:400, color: pg===i?F.gold:F.dm, borderBottom: pg===i?`2px solid ${F.gold}`:"2px solid transparent" }}>{n}</button>
@@ -600,10 +600,10 @@ function App() {
       {/* Hidden print area - always rendered, hidden on screen via CSS, shown only in print */}
       <div style={{ position: "sticky", bottom: 0, padding: "12px 20px", background: F.sf, borderTop: `1px solid ${F.br}`, zIndex: 20 }}>
         {tab === "form" ? (
-          <button onClick={()=>setTab("preview")} style={{ width: "100%", background: F.gold, color: "#1e1e1e", border: "none", borderRadius: 8, padding: 13, fontFamily: FN.body, fontSize: 14, fontWeight: 700, cursor: "pointer" }}>תצוגה מקדימה</button>
+          <button onClick={()=>{setTab("preview");window.scrollTo(0,0);}} style={{ width: "100%", background: F.gold, color: "#1e1e1e", border: "none", borderRadius: 8, padding: 13, fontFamily: FN.body, fontSize: 14, fontWeight: 700, cursor: "pointer" }}>תצוגה מקדימה</button>
         ) : (
           <div style={{ display: "flex", gap: 10 }}>
-            <button onClick={()=>setTab("form")} style={{ flex: 1, background: "none", color: F.gold, border: `1px solid ${F.gold}`, borderRadius: 8, padding: 13, fontFamily: FN.body, fontSize: 14, fontWeight: 500, cursor: "pointer" }}>← עריכה</button>
+            <button onClick={()=>{setTab("form");window.scrollTo(0,0);}} style={{ flex: 1, background: "none", color: F.gold, border: `1px solid ${F.gold}`, borderRadius: 8, padding: 13, fontFamily: FN.body, fontSize: 14, fontWeight: 500, cursor: "pointer" }}>← עריכה</button>
             <button onClick={handlePrint} disabled={pdfBusy} style={{ flex: 1, background: pdfBusy ? "#8a7560" : F.gold, color: "#1e1e1e", border: "none", borderRadius: 8, padding: 13, fontFamily: FN.body, fontSize: 14, fontWeight: 700, cursor: pdfBusy ? "wait" : "pointer", opacity: pdfBusy ? 0.7 : 1 }}>{pdfBusy ? "מייצר PDF..." : "שמור PDF"}</button>
           </div>
         )}
