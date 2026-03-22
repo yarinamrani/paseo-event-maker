@@ -73,6 +73,7 @@
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
   <div id="root"></div>
@@ -438,9 +439,16 @@ const CRM_STATUSES = [
 ];
 const CRM_SOURCES = ["אינסטגרם", "המלצה", "גוגל", "פייסבוק", "אתר", "טלפון", "אחר"];
 const CRM_CANCEL = ["מחיר גבוה", "בחרו מתחרה", "ביטול האירוע", "תאריך לא פנוי", "לא חזרו", "אחר"];
+/* ── Supabase Config ── */
+const SUPABASE_URL = localStorage.getItem("paseo_sb_url") || "";
+const SUPABASE_ANON_KEY = localStorage.getItem("paseo_sb_key") || "";
+const supabase = (SUPABASE_URL && SUPABASE_ANON_KEY) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
 const CRM_KEY = "paseo_crm_leads";
 const crmLoad = () => { try { return JSON.parse(localStorage.getItem(CRM_KEY)) || []; } catch { return []; } };
-const crmSave = (l) => localStorage.setItem(CRM_KEY, JSON.stringify(l));
+const crmSave = (l) => { localStorage.setItem(CRM_KEY, JSON.stringify(l)); if (supabase) crmSyncUp(l); };
+const crmSyncUp = async (leads) => { try { await supabase.from("leads").upsert(leads.map(l => ({ ...l, user_id: SUPABASE_URL })), { onConflict: "id" }); } catch(e) { console.warn("sync up err", e); } };
+const crmSyncDown = async () => { if (!supabase) return null; try { const { data } = await supabase.from("leads").select("*").eq("user_id", SUPABASE_URL).order("createdAt", { ascending: false }); return data; } catch(e) { console.warn("sync down err", e); return null; } };
 const crmId = () => "L" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 const crmFmtDate = (d) => d ? new Date(d).toLocaleDateString("he-IL") : "—";
 const crmIsOverdue = (d) => d && new Date(d) < new Date(new Date().toDateString());
@@ -536,6 +544,11 @@ function CrmView() {
   const [modal, setModal] = useState(null);
 
   useEffect(() => { crmSave(leads); }, [leads]);
+  const [showSettings, setShowSettings] = useState(false);
+  const [sbUrl, setSbUrl] = useState(localStorage.getItem("paseo_sb_url") || "");
+  const [sbKey, setSbKey] = useState(localStorage.getItem("paseo_sb_key") || "");
+  useEffect(() => { crmSyncDown().then(data => { if (data && data.length) { const local = crmLoad(); const merged = [...data]; local.forEach(l => { if (!merged.find(m => m.id === l.id)) merged.push(l); }); merged.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)); setLeads(merged); } }); }, []);
+  const saveSbConfig = () => { localStorage.setItem("paseo_sb_url", sbUrl); localStorage.setItem("paseo_sb_key", sbKey); window.location.reload(); };
 
   const stats = useMemo(() => {
     const now = new Date(); now.setDate(1); now.setHours(0,0,0,0);
@@ -575,8 +588,21 @@ function CrmView() {
       <div className="crm-toolbar">
         <input className="crm-search" placeholder="חיפוש..." value={q} onChange={e=>setQ(e.target.value)} />
         <button className="crm-btn" onClick={() => setModal(crmEmpty())}>+ חדש</button>
+        <button className="crm-btn" onClick={() => setShowSettings(!showSettings)} style={{background:"none",border:"1px solid #555",minWidth:36,fontSize:16}} title="הגדרות סנכרון">⚙</button>
       </div>
 
+      {showSettings && (
+        <div style={{background:"#1e1e1e",border:"1px solid #333",borderRadius:8,padding:14,marginBottom:12}}>
+          <div style={{fontFamily:"Heebo",fontSize:13,fontWeight:700,color:"#c8a96e",marginBottom:10}}>סנכרון ענן (Supabase)</div>
+          <div style={{fontSize:11,color:"#999",marginBottom:8}}>הלידים נשמרים גם מקומית. חיבור Supabase מאפשר גיבוי אוטומטי.</div>
+          <input value={sbUrl} onChange={e=>setSbUrl(e.target.value)} placeholder="Supabase URL" style={{width:"100%",padding:8,marginBottom:6,background:"#111",border:"1px solid #333",borderRadius:6,color:"#fff",fontSize:12,boxSizing:"border-box"}} />
+          <input value={sbKey} onChange={e=>setSbKey(e.target.value)} placeholder="Supabase Anon Key" type="password" style={{width:"100%",padding:8,marginBottom:8,background:"#111",border:"1px solid #333",borderRadius:6,color:"#fff",fontSize:12,boxSizing:"border-box"}} />
+          <div style={{display:"flex",gap:8,alignItems:"center"}}>
+            <button onClick={saveSbConfig} style={{padding:"7px 16px",background:"#c8a96e",color:"#1a1a1a",border:"none",borderRadius:6,fontWeight:700,fontSize:12,cursor:"pointer"}}>שמור וסנכרן</button>
+            <span style={{fontSize:11,color:supabase?"#4ade80":"#888"}}>{supabase ? "✓ מחובר" : "לא מחובר"}</span>
+          </div>
+        </div>
+      )}
       {/* Filters */}
       <div className="crm-filters">
         <button className={`crm-fbtn ${filter==="all"?"act":""}`} onClick={()=>setFilter("all")}>הכל ({leads.length})</button>
