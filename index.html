@@ -446,10 +446,10 @@ const supabase = (SUPABASE_URL && SUPABASE_ANON_KEY) ? window.supabase.createCli
 
 const CRM_KEY = "paseo_crm_leads";
 const crmLoad = () => { try { return JSON.parse(localStorage.getItem(CRM_KEY)) || []; } catch { return []; } };
-const crmSave = (l) => { localStorage.setItem(CRM_KEY, JSON.stringify(l)); if (supabase) crmSyncUp(l); };
+const crmSave = (l) => { try { localStorage.setItem(CRM_KEY, JSON.stringify(l)); } catch(e) { console.warn("localStorage full", e); } if (supabase) crmSyncUp(l); };
 const crmSyncUp = async (leads) => { try { await supabase.from("leads").upsert(leads.map(l => ({ ...l, user_id: SUPABASE_URL })), { onConflict: "id" }); } catch(e) { console.warn("sync up err", e); } };
 const crmSyncDown = async () => { if (!supabase) return null; try { const { data } = await supabase.from("leads").select("*").eq("user_id", SUPABASE_URL).order("createdAt", { ascending: false }); return data; } catch(e) { console.warn("sync down err", e); return null; } };
-const crmId = () => "L" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const crmId = () => "L" + Array.from(crypto.getRandomValues(new Uint8Array(8)), b => b.toString(36)).join("").slice(0, 12);
 const crmFmtDate = (d) => d ? new Date(d).toLocaleDateString("he-IL") : "—";
 const crmIsOverdue = (d) => d && new Date(d) < new Date(new Date().toDateString());
 const crmDaysDiff = (d) => { if (!d) return null; return Math.ceil((new Date(d) - new Date(new Date().toDateString())) / 86400000); };
@@ -714,8 +714,11 @@ function App() {
     if (navigator.share && navigator.canShare) {
       try {
         setPrinting(true);
-        const { default: html2pdf } = await import("https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js");
+        // Wait for React to render print-area
+        await new Promise(r => setTimeout(r, 600));
         const el = document.getElementById("print-area");
+        if (!el) throw new Error("print-area not ready");
+        const { default: html2pdf } = await import("https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js");
         const blob = await html2pdf().set({ margin: 0, filename: `הצעה-${clientName}.pdf`, image: { type: "jpeg", quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: "mm", format: "a4", orientation: "portrait" } }).from(el).outputPdf("blob");
         const file = new File([blob], `הצעה-${clientName || "PASEO"}.pdf`, { type: "application/pdf" });
         setPrinting(false);
