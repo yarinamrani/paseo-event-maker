@@ -74,6 +74,7 @@
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
 </head>
 <body>
   <div id="root"></div>
@@ -700,8 +701,7 @@ function App() {
       await new Promise(r => setTimeout(r, 600));
       const el = document.getElementById("print-area");
       if (el) {
-        const { default: html2pdf } = await import("https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js");
-        pdfBlob = await html2pdf().set({ margin: 0, filename: `הצעה-${clientName}.pdf`, image: { type: "jpeg", quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: "mm", format: "a4", orientation: "portrait" } }).from(el).outputPdf("blob");
+        pdfBlob = await window.html2pdf().set({ margin: 0, filename: `הצעה-${clientName}.pdf`, image: { type: "jpeg", quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: "mm", format: "a4", orientation: "portrait" } }).from(el).outputPdf("blob");
       }
       setPrinting(false);
     } catch (e) { setPrinting(false); }
