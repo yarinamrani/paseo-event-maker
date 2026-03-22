@@ -228,24 +228,46 @@ function MenuPage({ menuTitle, menuType, categories, supplementPrice }) {
   const photoSet = MENU_PHOTOS[menuType] || MENU_PHOTOS["בשרי"];
   const photos = photoSet.strip;
   const bottomPhotos = photoSet.bottom;
+
+  // Count total items to auto-scale
+  const totalItems = Object.entries(categories).reduce((s, [cat, items]) => cat === "תוספת פרימיום" ? s : s + items.length, 0) + (hasPremium ? categories["תוספת פרימיום"].length : 0);
+  const totalCats = Object.keys(categories).filter(c => c !== "תוספת פרימיום").length + (hasPremium ? 1 : 0);
+
+  // Dynamic sizing based on content density
+  const dense = totalItems > 18;
+  const veryDense = totalItems > 24;
+  const extreme = totalItems > 30;
+  const logoSize = extreme ? "sm" : dense ? "sm" : "lg";
+  const titleFs = extreme ? 22 : dense ? 26 : 30;
+  const catFs = extreme ? 13 : dense ? 15 : 17;
+  const itemFs = extreme ? 12.5 : dense ? 14 : 16;
+  const descFs = extreme ? 9 : dense ? 10 : 11;
+  const catMargin = extreme ? "6px 0 3px" : dense ? "10px 0 4px" : "14px 0 6px";
+  const itemMb = extreme ? 3 : dense ? 5 : 7;
+  const topPad = extreme ? "12px 20px 0" : dense ? "20px 20px 2px" : "36px 20px 4px";
+  const contentPad = extreme ? "2px 30px 0" : dense ? "4px 35px 0" : "6px 40px 0";
+  const bottomH = extreme ? 80 : dense ? 110 : 140;
+  const stripW = veryDense ? "35%" : "40%";
+  const contentW = veryDense ? "65%" : "60%";
+
   return (
     <div style={page}>
-      <PhotoStrip images={photos} style={{ width: "40%", height: 1123 }} />
-      <div style={{ width: "60%", display: "flex", flexDirection: "column", height: 1123, direction: "rtl" }}>
-        <div style={{ padding: "36px 20px 4px", textAlign: "center" }}>
-          <Logo size="lg" />
-          <div style={{ fontFamily: FN.title, fontSize: 30, fontWeight: 700, color: S.title, margin: "6px 0 0" }}>{menuTitle}</div>
+      <PhotoStrip images={photos} style={{ width: stripW, height: 1123 }} />
+      <div style={{ width: contentW, display: "flex", flexDirection: "column", height: 1123, direction: "rtl" }}>
+        <div style={{ padding: topPad, textAlign: "center" }}>
+          <Logo size={logoSize} />
+          <div style={{ fontFamily: FN.title, fontSize: titleFs, fontWeight: 700, color: S.title, margin: "6px 0 0" }}>{menuTitle}</div>
         </div>
-        <div style={{ padding: "6px 40px 0", flex: 1 }}>
+        <div style={{ padding: contentPad, flex: 1, overflow: "hidden" }}>
           {Object.entries(categories).map(([cat, items]) => {
             if (cat === "תוספת פרימיום") return null;
             return (
               <div key={cat}>
-                <div style={{ fontFamily: FN.title, fontSize: 17, fontWeight: 700, color: S.text, textAlign: "center", margin: "14px 0 6px", textDecoration: "underline", textUnderlineOffset: 5, textDecorationColor: S.line }}>{cat}</div>
+                <div style={{ fontFamily: FN.title, fontSize: catFs, fontWeight: 700, color: S.text, textAlign: "center", margin: catMargin, textDecoration: "underline", textUnderlineOffset: 5, textDecorationColor: S.line }}>{cat}</div>
                 {items.map((item) => (
-                  <div key={item.id} style={{ textAlign: "center", marginBottom: 7 }}>
-                    <div style={{ fontFamily: FN.title, fontSize: 16, fontWeight: 700, color: S.titleBold }}>{item.name}</div>
-                    {item.desc && <div style={{ fontFamily: FN.body, fontSize: 11, fontWeight: 300, color: S.desc, lineHeight: 1.5, maxWidth: 400, margin: "0 auto" }}>{item.desc}</div>}
+                  <div key={item.id} style={{ textAlign: "center", marginBottom: itemMb }}>
+                    <div style={{ fontFamily: FN.title, fontSize: itemFs, fontWeight: 700, color: S.titleBold }}>{item.name}</div>
+                    {item.desc && !extreme && <div style={{ fontFamily: FN.body, fontSize: descFs, fontWeight: 300, color: S.desc, lineHeight: 1.4, maxWidth: 400, margin: "0 auto" }}>{item.desc}</div>}
                   </div>
                 ))}
               </div>
@@ -253,23 +275,23 @@ function MenuPage({ menuTitle, menuType, categories, supplementPrice }) {
           })}
           {hasPremium && (
             <>
-              <div style={{ width: 40, height: 1, background: S.line, margin: "12px auto" }} />
-              <div style={{ fontFamily: FN.body, fontSize: 13, color: S.title, textAlign: "center", margin: "6px 0" }}>בתוספת של {supplementPrice} ש"ח לסועד</div>
+              <div style={{ width: 40, height: 1, background: S.line, margin: `${extreme ? 4 : dense ? 8 : 12}px auto` }} />
+              <div style={{ fontFamily: FN.body, fontSize: extreme ? 10 : 13, color: S.title, textAlign: "center", margin: "4px 0" }}>בתוספת של {supplementPrice} ש"ח לסועד</div>
               {categories["תוספת פרימיום"].map((item) => (
-                <div key={item.id} style={{ textAlign: "center", marginBottom: 7 }}>
-                  <div style={{ fontFamily: FN.title, fontSize: 16, fontWeight: 700, color: S.titleBold }}>{item.name}</div>
-                  {item.desc && <div style={{ fontFamily: FN.body, fontSize: 11, fontWeight: 300, color: S.desc, lineHeight: 1.5, maxWidth: 400, margin: "0 auto" }}>{item.desc}</div>}
+                <div key={item.id} style={{ textAlign: "center", marginBottom: itemMb }}>
+                  <div style={{ fontFamily: FN.title, fontSize: itemFs, fontWeight: 700, color: S.titleBold }}>{item.name}</div>
+                  {item.desc && !extreme && <div style={{ fontFamily: FN.body, fontSize: descFs, fontWeight: 300, color: S.desc, lineHeight: 1.4, maxWidth: 400, margin: "0 auto" }}>{item.desc}</div>}
                 </div>
               ))}
             </>
           )}
         </div>
-        {/* Bottom photos like Stolero */}
-        <div style={{ display: "flex", gap: 3, padding: "8px 10px 0", marginTop: "auto" }}>
-          <img src={bottomPhotos[0]} style={{ width: "50%", height: 140, objectFit: "cover", borderRadius: 2 }} />
-          <img src={bottomPhotos[1]} style={{ width: "50%", height: 140, objectFit: "cover", borderRadius: 2 }} />
+        {/* Bottom photos */}
+        <div style={{ display: "flex", gap: 3, padding: "4px 10px 0", marginTop: "auto", flexShrink: 0 }}>
+          <img src={bottomPhotos[0]} style={{ width: "50%", height: bottomH, objectFit: "cover", borderRadius: 2 }} />
+          <img src={bottomPhotos[1]} style={{ width: "50%", height: bottomH, objectFit: "cover", borderRadius: 2 }} />
         </div>
-        <div style={{ textAlign: "center", padding: "8px 0 16px" }}>
+        <div style={{ textAlign: "center", padding: "6px 0 10px", flexShrink: 0 }}>
           <div style={{ fontFamily: FN.brand, fontSize: 8, letterSpacing: 3, color: S.dim, direction: "ltr" }}>PASEO · Rooftop Lounge & Dining</div>
         </div>
       </div>
@@ -637,13 +659,33 @@ function App() {
   const addC = useCallback((cat) => { if (!cn.trim()) return; const id="c_"+Date.now(); setCustoms(p=>[...p,{id,name:cn,desc:cd,category:cat}]); setSel(p=>new Set([...p,id])); setCn(""); setCd(""); setShowCF(null); }, [cn,cd]);
   const applyPreset = useCallback((type) => { const preset = PRESETS[type]; if (preset) setSel(new Set(preset)); }, []);
 
+  const [showPostPrint, setShowPostPrint] = useState(false);
+
   const handlePrint = useCallback(() => {
     setPrinting(true);
     setTimeout(() => {
       window.print();
       setPrinting(false);
+      setShowPostPrint(true);
     }, 500);
   }, []);
+
+  const saveToCrm = useCallback(() => {
+    if (!clientName.trim()) { alert("נא להזין שם לקוח"); return; }
+    const leads = crmLoad();
+    const existing = leads.find(l => l.clientName === clientName.trim() && l.eventDate === eventDate);
+    const lead = existing ? { ...existing, guestCount, pricePerGuest, eventType, eventDate, status: "sent", updatedAt: new Date().toISOString() } : { ...crmEmpty(), clientName: clientName.trim(), eventType, eventDate, guestCount, pricePerGuest, status: "sent" };
+    if (existing) { const i = leads.indexOf(existing); leads[i] = lead; } else { leads.unshift(lead); }
+    crmSave(leads);
+    alert("נשמר ב-CRM כ\"נשלחה הצעה\"");
+    setShowPostPrint(false);
+  }, [clientName, eventType, eventDate, guestCount, pricePerGuest]);
+
+  const shareWhatsApp = useCallback(() => {
+    const total = (parseInt(guestCount)||0) * (parseInt(pricePerGuest)||0);
+    const msg = `הצעת מחיר - PASEO\n\nלקוח: ${clientName}\nסוג: ${eventType}\nתאריך: ${eventDate}\nאורחים: ${guestCount}\nסה"כ כולל מע"מ: ₪${Math.round(total*1.18).toLocaleString("he-IL")}\n\n📎 ה-PDF נשלח בנפרד`;
+    window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank");
+  }, [clientName, eventType, eventDate, guestCount, pricePerGuest]);
 
   const foodT = useMemo(() => (parseInt(guestCount)||0)*(parseInt(pricePerGuest)||0), [guestCount,pricePerGuest]);
   const svcT = useMemo(() => services.reduce((s,v)=>v.included?s:s+(parseInt(v.qty)||0)*(parseInt(v.price)||0),0), [services]);
@@ -790,6 +832,29 @@ function App() {
           <MenuPage menuTitle={menuTitle} menuType={menuType} categories={byCat} supplementPrice={supplementPrice} />
           <PricingPage clientName={clientName} eventType={eventType} eventDate={eventDate} eventTime={eventTime} guestCount={guestCount} pricePerGuest={pricePerGuest} menuTitle={menuTitle} menuType={menuType} services={services} cocktailUpgrade={cocktailUpgrade} foodTotal={foodT} totalBeforeVat={tot} totalWithVat={totV} servicePct={servicePct} />
           <TermsPage validDays={validDays} menuType={menuType} />
+        </div>
+      )}
+
+      {/* Post-print modal: Save to CRM + WhatsApp */}
+      {showPostPrint && (
+        <div className="crm-modal-bg" onClick={e => e.target === e.currentTarget && setShowPostPrint(false)}>
+          <div className="crm-modal" style={{ maxHeight: "50vh" }}>
+            <div className="crm-mh">
+              <h3>ה-PDF הורד בהצלחה</h3>
+              <button className="crm-mx" onClick={() => setShowPostPrint(false)}>&times;</button>
+            </div>
+            <div className="crm-mb" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <button onClick={saveToCrm} style={{ width: "100%", padding: 14, background: "#c8a96e", color: "#1a1a1a", border: "none", borderRadius: 10, fontFamily: FN.body, fontSize: 15, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                שמור ב-CRM
+              </button>
+              <button onClick={shareWhatsApp} style={{ width: "100%", padding: 14, background: "#25D366", color: "#fff", border: "none", borderRadius: 10, fontFamily: FN.body, fontSize: 15, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                שלח בוואטסאפ
+              </button>
+              <button onClick={() => setShowPostPrint(false)} style={{ width: "100%", padding: 12, background: "none", color: "#888", border: "1px solid #333", borderRadius: 10, fontFamily: FN.body, fontSize: 13, cursor: "pointer" }}>
+                סגור
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
