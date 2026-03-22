@@ -18,6 +18,57 @@
       #print-area > div { page-break-after: always; }
       #print-area > div:last-child { page-break-after: avoid; }
     }
+    /* CRM Styles */
+    .crm-wrap { flex: 1; overflow: auto; padding: 16px; background: #1a1a1a; }
+    .crm-dashboard { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+    .crm-stat { background: #232323; border: 1px solid #333; border-radius: 10px; padding: 14px; }
+    .crm-stat .sv { font-size: 26px; font-weight: 700; line-height: 1; }
+    .crm-stat .sl { font-size: 11px; color: #888; margin-bottom: 6px; }
+    .crm-stat .ss { font-size: 11px; color: #666; margin-top: 4px; }
+    .crm-toolbar { display: flex; gap: 8px; margin-bottom: 10px; }
+    .crm-search { flex: 1; min-width: 100px; background: #232323; border: 1px solid #333; border-radius: 8px; padding: 9px 14px; color: #e0e0e0; font-family: 'Heebo', sans-serif; font-size: 13px; outline: none; }
+    .crm-search:focus { border-color: #c8a96e; }
+    .crm-search::placeholder { color: #666; }
+    .crm-filters { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 12px; -webkit-overflow-scrolling: touch; }
+    .crm-fbtn { background: #232323; border: 1px solid #333; border-radius: 20px; padding: 5px 12px; color: #999; font-family: 'Heebo', sans-serif; font-size: 11px; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+    .crm-fbtn.act { border-color: #c8a96e; color: #c8a96e; background: rgba(200,169,110,0.08); }
+    .crm-btn { background: #c8a96e; color: #1a1a1a; border: none; border-radius: 8px; padding: 9px 16px; font-family: 'Heebo', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .crm-list { display: flex; flex-direction: column; gap: 8px; }
+    .crm-card { background: #232323; border: 1px solid #333; border-radius: 10px; padding: 14px; cursor: pointer; transition: border-color 0.15s; }
+    .crm-card:hover, .crm-card:active { border-color: #555; }
+    .crm-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; }
+    .crm-badge .bd { width: 6px; height: 6px; border-radius: 50%; }
+    .crm-b-new { background: rgba(96,165,250,0.12); color: #60a5fa; }
+    .crm-b-new .bd { background: #60a5fa; }
+    .crm-b-sent { background: rgba(250,204,21,0.12); color: #facc15; }
+    .crm-b-sent .bd { background: #facc15; }
+    .crm-b-followup { background: rgba(251,146,60,0.12); color: #fb923c; }
+    .crm-b-followup .bd { background: #fb923c; }
+    .crm-b-closed { background: rgba(74,222,128,0.12); color: #4ade80; }
+    .crm-b-closed .bd { background: #4ade80; }
+    .crm-b-cancelled { background: rgba(248,113,113,0.12); color: #f87171; }
+    .crm-b-cancelled .bd { background: #f87171; }
+    .crm-b-irrelevant { background: rgba(120,120,120,0.12); color: #888; }
+    .crm-b-irrelevant .bd { background: #888; }
+    .crm-fu { display: inline-flex; font-size: 10px; padding: 2px 8px; border-radius: 10px; }
+    .crm-fu.warn { color: #fb923c; background: rgba(251,146,60,0.1); }
+    .crm-fu.late { color: #f87171; background: rgba(248,113,113,0.1); }
+    .crm-modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: flex; align-items: flex-end; justify-content: center; }
+    .crm-modal { background: #232323; border-top: 2px solid #c8a96e; border-radius: 16px 16px 0 0; width: 100%; max-height: 90vh; overflow-y: auto; animation: crmUp 0.25s ease; }
+    @keyframes crmUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .crm-mh { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid #333; }
+    .crm-mh h3 { font-size: 16px; font-weight: 600; color: #fff; }
+    .crm-mx { background: none; border: none; color: #888; font-size: 22px; cursor: pointer; }
+    .crm-mb { padding: 20px; }
+    .crm-fg { display: flex; flex-direction: column; gap: 12px; }
+    .crm-fg-r { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .crm-fg label { font-size: 11px; color: #888; font-weight: 500; display: block; margin-bottom: 4px; }
+    .crm-fg input, .crm-fg select, .crm-fg textarea { background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 9px 12px; color: #e0e0e0; font-family: 'Heebo', sans-serif; font-size: 13px; outline: none; width: 100%; }
+    .crm-fg input:focus, .crm-fg select:focus, .crm-fg textarea:focus { border-color: #c8a96e; }
+    .crm-fg textarea { resize: vertical; min-height: 60px; }
+    .crm-mf { padding: 14px 20px; border-top: 1px solid #333; display: flex; gap: 8px; }
+    .crm-del { background: none; color: #f87171; border: 1px solid rgba(248,113,113,0.3); border-radius: 6px; padding: 8px 14px; font-family: 'Heebo', sans-serif; font-size: 12px; cursor: pointer; margin-right: auto; }
+    .crm-empty { text-align: center; padding: 40px 20px; color: #666; font-size: 14px; }
   </style>
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
@@ -354,6 +405,210 @@ function Preview({ children }) {
   );
 }
 
+// ====== CRM CONSTANTS & HELPERS ======
+const CRM_STATUSES = [
+  { key: "new", label: "ליד חדש", cls: "crm-b-new" },
+  { key: "sent", label: "נשלחה הצעה", cls: "crm-b-sent" },
+  { key: "followup", label: "במעקב", cls: "crm-b-followup" },
+  { key: "closed", label: "נסגר", cls: "crm-b-closed" },
+  { key: "cancelled", label: "התבטל", cls: "crm-b-cancelled" },
+  { key: "irrelevant", label: "לא רלוונטי", cls: "crm-b-irrelevant" },
+];
+const CRM_SOURCES = ["אינסטגרם", "המלצה", "גוגל", "פייסבוק", "אתר", "טלפון", "אחר"];
+const CRM_CANCEL = ["מחיר גבוה", "בחרו מתחרה", "ביטול האירוע", "תאריך לא פנוי", "לא חזרו", "אחר"];
+const CRM_KEY = "paseo_crm_leads";
+const crmLoad = () => { try { return JSON.parse(localStorage.getItem(CRM_KEY)) || []; } catch { return []; } };
+const crmSave = (l) => localStorage.setItem(CRM_KEY, JSON.stringify(l));
+const crmId = () => "L" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const crmFmtDate = (d) => d ? new Date(d).toLocaleDateString("he-IL") : "—";
+const crmIsOverdue = (d) => d && new Date(d) < new Date(new Date().toDateString());
+const crmDaysDiff = (d) => { if (!d) return null; return Math.ceil((new Date(d) - new Date(new Date().toDateString())) / 86400000); };
+const crmEmpty = () => ({ id: crmId(), clientName: "", clientPhone: "", clientEmail: "", eventType: "", eventDate: "", guestCount: "", pricePerGuest: "", source: "", status: "new", cancelReason: "", notes: "", followUpDate: "", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
+
+function CrmBadge({ status }) {
+  const s = CRM_STATUSES.find(x => x.key === status) || CRM_STATUSES[0];
+  return <span className={`crm-badge ${s.cls}`}><span className="bd"></span>{s.label}</span>;
+}
+
+function CrmModal({ lead, onSave, onDelete, onClose }) {
+  const [f, setF] = useState({ ...lead });
+  const u = (k, v) => setF(p => ({ ...p, [k]: v }));
+  const isNew = !lead.clientName;
+  const save = () => { if (!f.clientName.trim()) { alert("נא להזין שם לקוח"); return; } onSave({ ...f, updatedAt: new Date().toISOString() }); };
+  const total = (Number(f.guestCount)||0) * (Number(f.pricePerGuest)||0);
+
+  return (
+    <div className="crm-modal-bg" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="crm-modal">
+        <div className="crm-mh">
+          <h3>{isNew ? "ליד חדש" : f.clientName}</h3>
+          <button className="crm-mx" onClick={onClose}>&times;</button>
+        </div>
+        <div className="crm-mb">
+          <div className="crm-fg">
+            <div className="crm-fg-r">
+              <div><label>שם הלקוח *</label><input value={f.clientName} onChange={e=>u("clientName",e.target.value)} placeholder="שם מלא" autoFocus /></div>
+              <div><label>טלפון</label><input value={f.clientPhone} onChange={e=>u("clientPhone",e.target.value)} placeholder="050-0000000" type="tel" dir="ltr" style={{textAlign:"right"}} /></div>
+            </div>
+            <div className="crm-fg-r">
+              <div><label>אימייל</label><input value={f.clientEmail} onChange={e=>u("clientEmail",e.target.value)} placeholder="email@example.com" type="email" dir="ltr" style={{textAlign:"right"}} /></div>
+              <div><label>סוג אירוע</label>
+                <select value={f.eventType} onChange={e=>u("eventType",e.target.value)}>
+                  <option value="">בחר</option>
+                  {["חתונה","יום הולדת","בר/בת מצווה","אירוע חברה","ברית/הברית","אירוע פרטי","אחר"].map(t=><option key={t}>{t}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="crm-fg-r">
+              <div><label>תאריך אירוע</label><input value={f.eventDate} onChange={e=>u("eventDate",e.target.value)} type="date" /></div>
+              <div><label>כמות אורחים</label><input value={f.guestCount} onChange={e=>u("guestCount",e.target.value)} type="number" placeholder="100" /></div>
+            </div>
+            <div className="crm-fg-r">
+              <div><label>מחיר לאורח (₪)</label><input value={f.pricePerGuest} onChange={e=>u("pricePerGuest",e.target.value)} type="number" placeholder="350" /></div>
+              <div><label>מקור הפנייה</label>
+                <select value={f.source} onChange={e=>u("source",e.target.value)}>
+                  <option value="">בחר</option>
+                  {CRM_SOURCES.map(s=><option key={s}>{s}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="crm-fg-r">
+              <div><label>סטטוס</label>
+                <select value={f.status} onChange={e=>u("status",e.target.value)}>
+                  {CRM_STATUSES.map(s=><option key={s.key} value={s.key}>{s.label}</option>)}
+                </select>
+              </div>
+              <div><label>תאריך מעקב הבא</label><input value={f.followUpDate} onChange={e=>u("followUpDate",e.target.value)} type="date" /></div>
+            </div>
+            {f.status === "cancelled" && (
+              <div><label>סיבת ביטול</label>
+                <select value={f.cancelReason} onChange={e=>u("cancelReason",e.target.value)}>
+                  <option value="">בחר סיבה</option>
+                  {CRM_CANCEL.map(r=><option key={r}>{r}</option>)}
+                </select>
+              </div>
+            )}
+            <div><label>הערות</label><textarea value={f.notes} onChange={e=>u("notes",e.target.value)} placeholder="הערות חופשיות..." /></div>
+            {total > 0 && (
+              <div style={{ padding: "12px 16px", background: "#1a1a1a", borderRadius: 10, border: "1px solid #333" }}>
+                <div style={{ fontSize: 11, color: "#888", marginBottom: 4 }}>סכום משוער</div>
+                <div style={{ fontSize: 24, fontWeight: 700, color: "#c8a96e" }}>₪{total.toLocaleString("he-IL")}</div>
+                <div style={{ fontSize: 11, color: "#666" }}>{f.guestCount} אורחים × ₪{Number(f.pricePerGuest).toLocaleString("he-IL")}</div>
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="crm-mf">
+          <button className="crm-btn" onClick={save}>{isNew ? "צור ליד" : "שמור"}</button>
+          {!isNew && <button className="crm-del" onClick={() => { if(confirm("למחוק?")) onDelete(f.id); }}>מחק</button>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CrmView() {
+  const [leads, setLeads] = useState(crmLoad);
+  const [q, setQ] = useState("");
+  const [filter, setFilter] = useState("all");
+  const [modal, setModal] = useState(null);
+
+  useEffect(() => { crmSave(leads); }, [leads]);
+
+  const stats = useMemo(() => {
+    const now = new Date(); now.setDate(1); now.setHours(0,0,0,0);
+    const ml = leads.filter(l => new Date(l.createdAt) >= now);
+    const closed = leads.filter(l => l.status === "closed");
+    const rev = closed.reduce((s,l) => s + (Number(l.guestCount)||0)*(Number(l.pricePerGuest)||0), 0);
+    const conv = leads.length > 0 ? Math.round((closed.length / leads.length) * 100) : 0;
+    const overdue = leads.filter(l => l.followUpDate && crmIsOverdue(l.followUpDate) && !["closed","cancelled","irrelevant"].includes(l.status)).length;
+    return { total: leads.length, monthNew: ml.length, closed: closed.length, sent: leads.filter(l=>l.status==="sent"||l.status==="followup").length, rev, conv, overdue, cancelled: leads.filter(l=>l.status==="cancelled").length };
+  }, [leads]);
+
+  const list = useMemo(() => {
+    let r = [...leads];
+    if (filter !== "all") r = r.filter(l => l.status === filter);
+    if (q.trim()) { const s = q.trim().toLowerCase(); r = r.filter(l => l.clientName.toLowerCase().includes(s) || l.clientPhone.includes(s) || l.eventType.includes(s)); }
+    r.sort((a,b) => b.updatedAt.localeCompare(a.updatedAt));
+    return r;
+  }, [leads, filter, q]);
+
+  const onSave = useCallback((lead) => {
+    setLeads(p => { const i = p.findIndex(l => l.id === lead.id); if (i >= 0) { const n=[...p]; n[i]=lead; return n; } return [lead,...p]; });
+    setModal(null);
+  }, []);
+  const onDel = useCallback((id) => { setLeads(p => p.filter(l => l.id !== id)); setModal(null); }, []);
+
+  return (
+    <div className="crm-wrap">
+      {/* Dashboard */}
+      <div className="crm-dashboard">
+        <div className="crm-stat"><div className="sl">סה״כ לידים</div><div className="sv" style={{color:"#60a5fa"}}>{stats.total}</div><div className="ss">{stats.monthNew} החודש</div></div>
+        <div className="crm-stat"><div className="sl">ממתינים</div><div className="sv" style={{color:"#c8a96e"}}>{stats.sent}</div>{stats.overdue > 0 && <div className="ss" style={{color:"#f87171"}}>{stats.overdue} באיחור</div>}</div>
+        <div className="crm-stat"><div className="sl">נסגרו</div><div className="sv" style={{color:"#4ade80"}}>{stats.closed}</div><div className="ss">₪{stats.rev.toLocaleString("he-IL")}</div></div>
+        <div className="crm-stat"><div className="sl">אחוז המרה</div><div className="sv" style={{color: stats.conv>=30?"#4ade80":stats.conv>=15?"#facc15":"#f87171"}}>{stats.conv}%</div><div className="ss">{stats.cancelled} התבטלו</div></div>
+      </div>
+
+      {/* Search + Add */}
+      <div className="crm-toolbar">
+        <input className="crm-search" placeholder="חיפוש..." value={q} onChange={e=>setQ(e.target.value)} />
+        <button className="crm-btn" onClick={() => setModal(crmEmpty())}>+ חדש</button>
+      </div>
+
+      {/* Filters */}
+      <div className="crm-filters">
+        <button className={`crm-fbtn ${filter==="all"?"act":""}`} onClick={()=>setFilter("all")}>הכל ({leads.length})</button>
+        {CRM_STATUSES.map(s => {
+          const c = leads.filter(l=>l.status===s.key).length;
+          return c > 0 ? <button key={s.key} className={`crm-fbtn ${filter===s.key?"act":""}`} onClick={()=>setFilter(s.key)}>{s.label} ({c})</button> : null;
+        })}
+      </div>
+
+      {/* Lead Cards */}
+      {list.length === 0 ? (
+        <div className="crm-empty">{leads.length === 0 ? "אין לידים עדיין · לחץ + חדש" : "אין תוצאות"}</div>
+      ) : (
+        <div className="crm-list">
+          {list.map(lead => {
+            const total = (Number(lead.guestCount)||0)*(Number(lead.pricePerGuest)||0);
+            const dd = crmDaysDiff(lead.followUpDate);
+            const overdue = lead.followUpDate && crmIsOverdue(lead.followUpDate) && !["closed","cancelled","irrelevant"].includes(lead.status);
+            return (
+              <div key={lead.id} className="crm-card" onClick={()=>setModal({...lead})}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+                  <div>
+                    <div style={{fontSize:15,fontWeight:600,color:"#fff"}}>{lead.clientName}</div>
+                    {lead.clientPhone && <div style={{fontSize:12,color:"#888",direction:"ltr",textAlign:"right"}}>{lead.clientPhone}</div>}
+                  </div>
+                  <CrmBadge status={lead.status} />
+                </div>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:6}}>
+                  <div style={{display:"flex",gap:12,fontSize:12,color:"#999"}}>
+                    {lead.eventType && <span>{lead.eventType}</span>}
+                    {lead.eventDate && <span>{crmFmtDate(lead.eventDate)}</span>}
+                    {lead.guestCount && <span>{lead.guestCount} אורחים</span>}
+                    {lead.source && <span style={{background:"#2d2d2d",padding:"1px 8px",borderRadius:10}}>{lead.source}</span>}
+                  </div>
+                  <div style={{display:"flex",alignItems:"center",gap:8}}>
+                    {lead.followUpDate && (
+                      <span className={`crm-fu ${overdue?"late":"warn"}`}>
+                        {overdue ? `איחור ${Math.abs(dd)}י` : dd===0 ? "היום" : `${dd}י`}
+                      </span>
+                    )}
+                    {total > 0 && <span style={{fontSize:14,fontWeight:600,color:"#c8a96e"}}>₪{total.toLocaleString("he-IL")}</span>}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {modal && <CrmModal lead={modal} onSave={onSave} onDelete={onDel} onClose={()=>setModal(null)} />}
+    </div>
+  );
+}
+
 function App() {
   const [tab, setTab] = useState("form");
   const [pg, setPg] = useState(0);
@@ -411,15 +666,17 @@ function App() {
   return (
     <div style={{ fontFamily: FN.body, background: F.bg, color: F.tx, direction: "rtl", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <div style={{ display: "flex", background: F.sf, borderBottom: `1px solid ${F.br}`, position: "sticky", top: 0, zIndex: 20 }}>
-        {["form","preview"].map(t => (
-          <button key={t} onClick={()=>setTab(t)} style={{ flex: 1, padding: "14px 0", background: "none", border: "none", cursor: "pointer", fontFamily: FN.body, fontSize: 14, fontWeight: tab===t?700:400, color: tab===t?F.gold:F.dm, borderBottom: tab===t?`2px solid ${F.gold}`:"2px solid transparent" }}>
-            {t==="form" ? "עריכה" : "תצוגה מקדימה"}
+        {[{k:"crm",l:"לידים"},{k:"form",l:"עריכה"},{k:"preview",l:"תצוגה מקדימה"}].map(t => (
+          <button key={t.k} onClick={()=>{setTab(t.k);if(t.k!=="preview")window.scrollTo(0,0);}} style={{ flex: 1, padding: "14px 0", background: "none", border: "none", cursor: "pointer", fontFamily: FN.body, fontSize: 13, fontWeight: tab===t.k?700:400, color: tab===t.k?F.gold:F.dm, borderBottom: tab===t.k?`2px solid ${F.gold}`:"2px solid transparent" }}>
+            {t.l}
           </button>
         ))}
         <div style={{ padding: "8px 12px", display: "flex", alignItems: "center" }}>
           <span style={{ fontFamily: FN.brand, fontSize: 13, letterSpacing: 3, color: F.gold, direction: "ltr" }}>PASEO</span>
         </div>
       </div>
+
+      {tab === "crm" && <CrmView />}
 
       {tab === "form" && (
         <div style={{ flex: 1, overflow: "auto", paddingBottom: 80 }}>
@@ -536,7 +793,7 @@ function App() {
         </div>
       )}
 
-      {!printing && (
+      {!printing && tab !== "crm" && (
       <div style={{ position: "sticky", bottom: 0, padding: "12px 20px", background: F.sf, borderTop: `1px solid ${F.br}`, zIndex: 20 }}>
         {tab === "form" ? (
           <button onClick={()=>setTab("preview")} style={{ width: "100%", background: F.gold, color: "#1e1e1e", border: "none", borderRadius: 8, padding: 13, fontFamily: FN.body, fontSize: 14, fontWeight: 700, cursor: "pointer" }}>תצוגה מקדימה</button>
