@@ -75,7 +75,8 @@
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 </head>
 <body>
   <div id="root"></div>
@@ -696,16 +697,24 @@ function App() {
     const msg = `*הצעת מחיר - PASEO*\n\nלקוח: ${clientName}\nסוג: ${eventType}\nתאריך: ${fmtDate}\nאורחים: ${guestCount}`;
     const fname = `הצעה-${clientName || "PASEO"}.pdf`;
 
-    // Generate PDF
+    // Generate PDF page by page
     let pdfBlob = null;
     try {
       setPrinting(true);
       await new Promise(r => requestAnimationFrame(() => setTimeout(r, 800)));
       const el = document.getElementById("print-area");
-      if (el) {
+      if (el && el.children.length > 0) {
+        const pdf = new window.jspdf.jsPDF("p", "mm", "a4");
+        const pages = el.children;
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        const opt = { margin: 0, filename: fname, image: { type: "jpeg", quality: isMobile ? 0.85 : 0.98 }, html2canvas: { scale: isMobile ? 1.5 : 2, useCORS: true, logging: false, scrollX: 0, scrollY: 0, width: 794 }, jsPDF: { unit: "mm", format: "a4", orientation: "portrait" } };
-        pdfBlob = await window.html2pdf().set(opt).from(el).toPdf().output("blob");
+        const sc = isMobile ? 1.5 : 2;
+        for (let i = 0; i < pages.length; i++) {
+          const canvas = await window.html2canvas(pages[i], { scale: sc, useCORS: true, logging: false, width: 794, height: 1123, scrollX: 0, scrollY: 0 });
+          const imgData = canvas.toDataURL("image/jpeg", isMobile ? 0.85 : 0.95);
+          if (i > 0) pdf.addPage();
+          pdf.addImage(imgData, "JPEG", 0, 0, 210, 297);
+        }
+        pdfBlob = pdf.output("blob");
       }
     } catch (e) { console.warn("PDF gen error:", e); }
     setPrinting(false);
@@ -872,7 +881,7 @@ function App() {
 
       {/* Print mode - all 3 pages stacked for PDF */}
       {printing && (
-        <div id="print-area" style={{ position: "absolute", left: -9999, top: 0, width: 794, background: "#fff", zIndex: -1 }}>
+        <div id="print-area" style={{ position: "fixed", left: 0, top: 0, width: 794, background: "#fff", zIndex: 9999, overflow: "auto" }}>
           <MenuPage menuTitle={menuTitle} menuType={menuType} categories={byCat} supplementPrice={supplementPrice} />
           <PricingPage clientName={clientName} eventType={eventType} eventDate={eventDate} eventTime={eventTime} guestCount={guestCount} pricePerGuest={pricePerGuest} menuTitle={menuTitle} menuType={menuType} services={services} cocktailUpgrade={cocktailUpgrade} foodTotal={foodT} totalBeforeVat={tot} totalWithVat={totV} servicePct={servicePct} />
           <TermsPage validDays={validDays} menuType={menuType} />
