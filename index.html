@@ -77,6 +77,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
   <div id="root"></div>
@@ -573,6 +574,30 @@ function CrmView() {
   }, []);
   const onDel = useCallback((id) => { setLeads(p => p.filter(l => l.id !== id)); setModal(null); }, []);
 
+  const exportExcel = useCallback(() => {
+    const statusMap = { new: "ליד חדש", sent: "נשלחה הצעה", followup: "פולואפ", closed: "נסגר", cancelled: "בוטל", irrelevant: "לא רלוונטי" };
+    const rows = leads.map(l => ({
+      "שם לקוח": l.clientName,
+      "טלפון": l.clientPhone,
+      "אימייל": l.clientEmail,
+      "סוג אירוע": l.eventType,
+      "תאריך אירוע": l.eventDate ? l.eventDate.split("-").reverse().join("/") : "",
+      "אורחים": l.guestCount,
+      "מחיר לסועד": l.pricePerGuest,
+      "סה״כ": (Number(l.guestCount)||0) * (Number(l.pricePerGuest)||0),
+      "סטטוס": statusMap[l.status] || l.status,
+      "מקור": l.source,
+      "הערות": l.notes,
+      "תאריך יצירה": l.createdAt ? new Date(l.createdAt).toLocaleDateString("he-IL") : "",
+      "פולואפ": l.followUpDate ? l.followUpDate.split("-").reverse().join("/") : "",
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    ws["!cols"] = [{ wch: 18 },{ wch: 14 },{ wch: 22 },{ wch: 14 },{ wch: 12 },{ wch: 8 },{ wch: 10 },{ wch: 10 },{ wch: 14 },{ wch: 12 },{ wch: 25 },{ wch: 12 },{ wch: 12 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "לידים");
+    XLSX.writeFile(wb, "PASEO_לידים_" + new Date().toISOString().slice(0,10) + ".xlsx");
+  }, [leads]);
+
   return (
     <div className="crm-wrap">
       {/* Dashboard */}
@@ -587,6 +612,7 @@ function CrmView() {
       <div className="crm-toolbar">
         <input className="crm-search" placeholder="חיפוש..." value={q} onChange={e=>setQ(e.target.value)} />
         <button className="crm-btn" onClick={() => setModal(crmEmpty())}>+ חדש</button>
+        <button className="crm-btn" onClick={exportExcel} style={{background:"none",border:"1px solid #555",fontSize:12}} title="ייצוא ל-Excel">Excel ↓</button>
       </div>
 
       {/* Filters */}
@@ -649,6 +675,33 @@ function App() {
   const [clientName, setClientName] = useState("");
   const [eventType, setEventType] = useState("");
   const [eventDate, setEventDate] = useState("");
+
+  // Load proposal from shared URL
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get("q");
+      if (q) {
+        const d = JSON.parse(decodeURIComponent(escape(atob(q))));
+        if (d.c) setClientName(d.c);
+        if (d.t) setEventType(d.t);
+        if (d.d) setEventDate(d.d);
+        if (d.g) setGuestCount(d.g);
+        if (d.p) setPricePerGuest(d.p);
+        if (d.m) setMenuTitle(d.m);
+        if (d.mt) setMenuType(d.mt);
+        if (d.s) setSel(new Set(d.s.split(",")));
+        if (d.sv) setServices(JSON.parse(d.sv));
+        if (d.sp) setSupplementPrice(d.sp);
+        if (d.cu) setCocktailUpgrade(d.cu);
+        if (d.vd) setValidDays(d.vd);
+        if (d.et) setEventTime(d.et);
+        if (d.spc) setServicePct(d.spc);
+        setTab("preview");
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+    } catch(e) {}
+  }, []);
   const [eventTime, setEventTime] = useState("");
   const [guestCount, setGuestCount] = useState("100");
   const [pricePerGuest, setPricePerGuest] = useState("350");
@@ -657,7 +710,7 @@ function App() {
   const [supplementPrice, setSupplementPrice] = useState("20");
   const [cocktailUpgrade, setCocktailUpgrade] = useState("2500");
   const [validDays, setValidDays] = useState("7");
-  const [servicePct] = useState("12");
+  const [servicePct, setServicePct] = useState("12");
   const [sel, setSel] = useState(new Set(PRESETS["בשרי"]));
   const [customs, setCustoms] = useState([]);
   const [services, setServices] = useState(DEFAULT_SERVICES);
@@ -691,6 +744,14 @@ function App() {
     setCrmSaved(true);
     setTimeout(() => setCrmSaved(false), 3000);
   }, [clientName, eventType, eventDate, guestCount, pricePerGuest]);
+
+  const [linkCopied, setLinkCopied] = useState(false);
+  const shareClientLink = useCallback(() => {
+    const data = { c: clientName, t: eventType, d: eventDate, g: guestCount, p: pricePerGuest, m: menuTitle, mt: menuType, s: sel.size > 0 ? [...sel].join(",") : "", sv: JSON.stringify(services), sp: supplementPrice, cu: cocktailUpgrade, vd: validDays, et: eventTime, spc: servicePct };
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+    const url = window.location.origin + window.location.pathname + "?q=" + encoded;
+    navigator.clipboard.writeText(url).then(() => { setLinkCopied(true); setTimeout(() => setLinkCopied(false), 3000); });
+  }, [clientName, eventType, eventDate, guestCount, pricePerGuest, menuTitle, menuType, sel, services, supplementPrice, cocktailUpgrade, validDays, eventTime, servicePct]);
 
   const shareWhatsApp = useCallback(async () => {
     const fmtDate = eventDate ? eventDate.split("-").reverse().join("-") : "";
@@ -898,6 +959,9 @@ function App() {
               <button onClick={handlePrint} style={{ flex: 1, background: F.gold, color: "#1e1e1e", border: "none", borderRadius: 8, padding: 12, fontFamily: FN.body, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>שמור PDF</button>
               <button onClick={shareWhatsApp} style={{ flex: 1, background: "#25D366", color: "#fff", border: "none", borderRadius: 8, padding: 12, fontFamily: FN.body, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>שלח בוואטסאפ</button>
               <button onClick={saveToCrm} style={{ flex: 1, background: crmSaved ? "#4ade80" : "#232323", color: crmSaved ? "#1a1a1a" : F.gold, border: crmSaved ? "none" : `1px solid ${F.gold}`, borderRadius: 8, padding: 12, fontFamily: FN.body, fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "all 0.3s" }}>{crmSaved ? "נשמר ✓" : "שמור CRM"}</button>
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={shareClientLink} style={{ flex: 1, background: linkCopied ? "#4ade80" : "#1a1a5e", color: linkCopied ? "#1a1a1a" : "#fff", border: "none", borderRadius: 8, padding: 12, fontFamily: FN.body, fontSize: 13, fontWeight: 700, cursor: "pointer", transition: "all 0.3s" }}>{linkCopied ? "הקישור הועתק ✓" : "🔗 העתק קישור להצעה"}</button>
             </div>
             <button onClick={()=>setTab("form")} style={{ width: "100%", background: "none", color: F.dm, border: `1px solid ${F.br}`, borderRadius: 8, padding: 10, fontFamily: FN.body, fontSize: 13, fontWeight: 400, cursor: "pointer" }}>← חזרה לעריכה</button>
           </div>
