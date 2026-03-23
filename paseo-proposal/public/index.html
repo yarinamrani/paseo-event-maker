@@ -196,8 +196,7 @@ const DEFAULT_SERVICES = [
   { name: "בירות ויינות", included: true, qty: "", price: "", desc: "" },
   { name: "קוקטיילים", included: true, qty: "", price: "", desc: "" },
   { name: "אקום", included: true, qty: "", price: "", desc: "" },
-  { name: "סגירה של המקום", included: true, qty: "", price: "", desc: "" },
-  { name: "שכירות", included: true, qty: "", price: "", desc: "" },
+  { name: "סגירת המקום", included: true, qty: "", price: "", desc: "" },
 ];
 
 const fmt = (n) => n.toLocaleString("he-IL");
@@ -912,14 +911,6 @@ function App() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <div><label style={lbl}>תוספת פרימיום ₪</label><input type="number" style={inp} value={supplementPrice} onChange={e=>setSupplementPrice(e.target.value)} /></div>
                 <div><label style={lbl}>שדרוג קוקטיילים ₪</label><input type="number" style={inp} value={cocktailUpgrade} onChange={e=>setCocktailUpgrade(e.target.value)} /></div>
-              </div>
-              <div><label style={lbl}>חבילת שתייה</label>
-                <select style={{...inp, direction: "ltr", textAlign: "right", textAlignLast: "right", WebkitAppearance: "none", MozAppearance: "none", appearance: "none", backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "left 12px center", paddingLeft: 32}} value={drinkPackage} onChange={e=>setDrinkPackage(e.target.value)}>
-                  <option value="none">ללא חבילת שתייה</option>
-                  <option value="soft">שתייה קלה</option>
-                  <option value="alcohol">אלכוהול (בירות, יין וקוקטיילים)</option>
-                  <option value="both">שתייה קלה + אלכוהול</option>
-                </select>
               </div>
             </div>
           </div>
