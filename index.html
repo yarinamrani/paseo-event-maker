@@ -867,7 +867,7 @@ function App() {
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <div><label style={lbl}>שם הלקוח</label><input style={inp} value={clientName} onChange={e=>setClientName(e.target.value)} placeholder="לדוגמה: אדידס ישראל" /></div>
               <div><label style={lbl}>סוג אירוע</label>
-                <select style={inp} value={eventType} onChange={e=>setEventType(e.target.value)}>
+                <select style={{...inp, direction: "ltr", textAlign: "right"}} value={eventType} onChange={e=>setEventType(e.target.value)}>
                   <option value="">בחר סוג אירוע</option>
                   {["הצעת נישואין","חתונה","יום הולדת","הרמת כוסית","חינה","בר/בת מצווה","אירוע חברה","השקה","אחר"].map(v=><option key={v} value={v}>{v}</option>)}
                 </select>
@@ -882,7 +882,7 @@ function App() {
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <div><label style={lbl}>סוג תפריט</label>
-                  <select style={inp} value={menuType} onChange={e=>{const v=e.target.value;setMenuType(v);setMenuTitle(`תפריט ${v}`);applyPreset(v);}}>
+                  <select style={{...inp, direction: "ltr", textAlign: "right"}} value={menuType} onChange={e=>{const v=e.target.value;setMenuType(v);setMenuTitle(`תפריט ${v}`);applyPreset(v);}}>
                     {["בשרי","חלבי","חלבי-פרימיום","אומינו כשר"].map(v=><option key={v} value={v}>{v}</option>)}
                   </select>
                 </div>
@@ -893,7 +893,7 @@ function App() {
                 <div><label style={lbl}>שדרוג קוקטיילים ₪</label><input type="number" style={inp} value={cocktailUpgrade} onChange={e=>setCocktailUpgrade(e.target.value)} /></div>
               </div>
               <div><label style={lbl}>חבילת שתייה</label>
-                <select style={{...inp, textAlignLast: "right", WebkitAppearance: "none", MozAppearance: "none", appearance: "none", backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "left 12px center", paddingLeft: 32}} value={drinkPackage} onChange={e=>setDrinkPackage(e.target.value)}>
+                <select style={{...inp, direction: "ltr", textAlign: "right", textAlignLast: "right", WebkitAppearance: "none", MozAppearance: "none", appearance: "none", backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "left 12px center", paddingLeft: 32}} value={drinkPackage} onChange={e=>setDrinkPackage(e.target.value)}>
                   <option value="none">ללא חבילת שתייה</option>
                   <option value="soft">שתייה קלה</option>
                   <option value="alcohol">אלכוהול (בירות, יין וקוקטיילים)</option>
