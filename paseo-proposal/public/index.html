@@ -700,13 +700,29 @@ function App() {
 
   const [crmSaved, setCrmSaved] = useState(false);
 
-  const handlePrint = useCallback(() => {
-    setPrinting(true);
-    setTimeout(() => {
-      window.print();
-      setPrinting(false);
-    }, 500);
-  }, []);
+  const handlePrint = useCallback(async () => {
+    const fname = `הצעה-${clientName || "PASEO"}.pdf`;
+    try {
+      setPrinting(true);
+      await new Promise(r => requestAnimationFrame(() => setTimeout(r, 800)));
+      const el = document.getElementById("print-area");
+      if (el && el.children.length > 0) {
+        const pdf = new window.jspdf.jsPDF("p", "mm", "a4");
+        const pages = el.children;
+        const sc = 2;
+        for (let i = 0; i < pages.length; i++) {
+          const canvas = await window.html2canvas(pages[i], { scale: sc, useCORS: true, logging: false, width: 794, height: 1123, scrollX: 0, scrollY: 0 });
+          const imgData = canvas.toDataURL("image/jpeg", 0.95);
+          if (i > 0) pdf.addPage();
+          pdf.addImage(imgData, "JPEG", 0, 0, 210, 297);
+        }
+        const url = URL.createObjectURL(pdf.output("blob"));
+        const a = document.createElement("a"); a.href = url; a.download = fname; a.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch (e) { console.warn("PDF gen error:", e); window.print(); }
+    setPrinting(false);
+  }, [clientName]);
 
   const saveToCrm = useCallback(() => {
     if (!clientName.trim()) { alert("נא להזין שם לקוח"); return; }
@@ -782,9 +798,31 @@ function App() {
     return r;
   }, [sel, customs]);
 
+  // Split menu into multiple pages if too many items
+  const menuPages = useMemo(() => {
+    const entries = Object.entries(byCat);
+    const totalItems = entries.reduce((s, [, items]) => s + items.length, 0);
+    if (totalItems <= 18) return [byCat];
+    const limit = Math.ceil(totalItems / Math.ceil(totalItems / 15));
+    const pages = [];
+    let current = {};
+    let count = 0;
+    for (const [cat, items] of entries) {
+      if (count > 0 && count + items.length > limit && Object.keys(current).length > 0) {
+        pages.push(current);
+        current = {};
+        count = 0;
+      }
+      current[cat] = items;
+      count += items.length;
+    }
+    if (Object.keys(current).length > 0) pages.push(current);
+    return pages;
+  }, [byCat]);
+
   const inp = { background: F.bg, border: `1px solid ${F.br}`, borderRadius: 6, padding: "9px 12px", fontFamily: FN.body, fontSize: 13, color: F.tx, direction: "rtl", outline: "none", width: "100%" };
   const lbl = { fontSize: 11, fontWeight: 500, color: F.dm, display: "block", marginBottom: 4 };
-  const pages = ["תפריט", "תמחור", "תנאים"];
+  const pages = [...menuPages.map((_, i) => menuPages.length === 1 ? "תפריט" : `תפריט ${i+1}`), "תמחור", "תנאים"];
 
   return (
     <div style={{ fontFamily: FN.body, background: F.bg, color: F.tx, direction: "rtl", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
@@ -808,7 +846,7 @@ function App() {
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <div><label style={lbl}>שם הלקוח</label><input style={inp} value={clientName} onChange={e=>setClientName(e.target.value)} placeholder="לדוגמה: אדידס ישראל" /></div>
               <div><label style={lbl}>סוג אירוע</label>
-                <select style={inp} value={eventType} onChange={e=>setEventType(e.target.value)}>
+                <select style={{...inp, textAlignLast: "right", WebkitAppearance: "none", MozAppearance: "none", appearance: "none", backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "left 12px center", paddingLeft: 32 }} value={eventType} onChange={e=>setEventType(e.target.value)}>
                   <option value="">בחר סוג אירוע</option>
                   {["הצעת נישואין","חתונה","יום הולדת","הרמת כוסית","חינה","בר/בת מצווה","אירוע חברה","השקה","אחר"].map(v=><option key={v} value={v}>{v}</option>)}
                 </select>
@@ -900,9 +938,9 @@ function App() {
             ))}
           </div>
           <Preview>
-            {pg === 0 && <MenuPage menuTitle={menuTitle} menuType={menuType} categories={byCat} supplementPrice={supplementPrice} />}
-            {pg === 1 && <PricingPage clientName={clientName} eventType={eventType} eventDate={eventDate} eventTime={eventTime} guestCount={guestCount} pricePerGuest={pricePerGuest} menuTitle={menuTitle} menuType={menuType} services={services} cocktailUpgrade={cocktailUpgrade} foodTotal={foodT} totalBeforeVat={tot} totalWithVat={totV} servicePct={servicePct} />}
-            {pg === 2 && <TermsPage validDays={validDays} menuType={menuType} />}
+            {pg < menuPages.length && <MenuPage menuTitle={menuTitle} menuType={menuType} categories={menuPages[pg]} supplementPrice={supplementPrice} />}
+            {pg === menuPages.length && <PricingPage clientName={clientName} eventType={eventType} eventDate={eventDate} eventTime={eventTime} guestCount={guestCount} pricePerGuest={pricePerGuest} menuTitle={menuTitle} menuType={menuType} services={services} cocktailUpgrade={cocktailUpgrade} foodTotal={foodT} totalBeforeVat={tot} totalWithVat={totV} servicePct={servicePct} />}
+            {pg === menuPages.length + 1 && <TermsPage validDays={validDays} menuType={menuType} />}
           </Preview>
         </div>
       )}
@@ -910,7 +948,7 @@ function App() {
       {/* Print mode - all 3 pages stacked for PDF */}
       {printing && (
         <div id="print-area" style={{ position: "fixed", left: 0, top: 0, width: 794, background: "#fff", zIndex: 9999, overflow: "auto" }}>
-          <MenuPage menuTitle={menuTitle} menuType={menuType} categories={byCat} supplementPrice={supplementPrice} />
+          {menuPages.map((cats, i) => <MenuPage key={i} menuTitle={menuTitle} menuType={menuType} categories={cats} supplementPrice={supplementPrice} />)}
           <PricingPage clientName={clientName} eventType={eventType} eventDate={eventDate} eventTime={eventTime} guestCount={guestCount} pricePerGuest={pricePerGuest} menuTitle={menuTitle} menuType={menuType} services={services} cocktailUpgrade={cocktailUpgrade} foodTotal={foodT} totalBeforeVat={tot} totalWithVat={totV} servicePct={servicePct} />
           <TermsPage validDays={validDays} menuType={menuType} />
         </div>
