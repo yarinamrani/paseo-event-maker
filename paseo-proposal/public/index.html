@@ -991,7 +991,7 @@ function App() {
 
       {/* Print mode - all 3 pages stacked for PDF */}
       {printing && (
-        <div id="print-area" style={{ position: "fixed", left: 0, top: 0, width: 794, background: "#fff", zIndex: 9999, overflow: "auto" }}>
+        <div id="print-area" style={{ position: "absolute", left: 0, top: 0, width: 794, background: "#fff", zIndex: 9999, overflow: "visible" }}>
           {menuPages.map((cats, i) => <MenuPage key={i} menuTitle={menuTitle} menuType={menuType} categories={cats} supplementPrice={supplementPrice} />)}
           <PricingPage clientName={clientName} eventType={eventType} eventDate={eventDate} eventTime={eventTime} guestCount={guestCount} pricePerGuest={pricePerGuest} menuTitle={menuTitle} menuType={menuType} services={services} cocktailUpgrade={cocktailUpgrade} foodTotal={foodT} totalBeforeVat={tot} totalWithVat={totV} servicePct={servicePct} drinkPackage={drinkPackage} />
           <TermsPage validDays={validDays} menuType={menuType} />
