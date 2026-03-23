@@ -129,7 +129,6 @@ const MENU_DB = {
     { id: "p12", name: "סלט קיסר", desc: "לבבות חסה | רוטב קיסר קלאסי | קרוטונים | ביצה רכה | פרמזן" },
   ],
   "עיקריות בשרי": [
-    { id: "m1", name: "מיני בורגרים", desc: "קציצות בקר עסיסיות בלחמניה עם רוטב הבית" },
     { id: "m2", name: "שיפוד פרגית", desc: "נתחי עוף מתובלים וצלויים על הפלאנצ'ה" },
     { id: "m5", name: "באן אסאדו", desc: "חסה לאליק | בצל סגול מוחמץ | כוסברה | פלפל חריף | עגבניות שרי | איולי כוסברה" },
     { id: "m7", name: "אנטריקוט ארגנטינאי 300g", desc: "מניפת אנטריקוט לפי משקל | צ'יפס כרישה | רוטב בצל ויין אדום | אספרגוס" },
@@ -179,7 +178,7 @@ const MENU_DB = {
 };
 
 const PRESETS = {
-  "בשרי": ["p1","p2","p3","p4","p5","p6","m1","m2","m5","d1"],
+  "בשרי": ["p1","p2","p3","p4","p5","p6","m2","m5","d1"],
   "חלבי": ["p1","p4","p5","p6","c1","c2","c4","c5","d1"],
   "חלבי-פרימיום": ["p1","p4","p5","p6","p11","c1","c2","c4","c5","x1","x2","d1"],
   "אומינו כשר": ["p1","p5","p6","u1","u2","u3","u4","u5","d1"],
@@ -190,7 +189,10 @@ const DEFAULT_SERVICES = [
   { name: "תאורה חכמה", included: true, qty: "", price: "", desc: "לנוחיותכם" },
   { name: "מנהל אירוע", included: false, qty: "1", price: "1000", desc: "" },
   { name: "ניקיון", included: false, qty: "1", price: "1000", desc: "" },
-  { name: "בר שתייה קלה / אלכוהול / בירות, יין וקוקטיילים", included: true, qty: "", price: "", desc: "" },
+  { name: "בר שתייה קלה", included: true, qty: "", price: "", desc: "" },
+  { name: "אלכוהול", included: true, qty: "", price: "", desc: "" },
+  { name: "בירות ויינות", included: true, qty: "", price: "", desc: "" },
+  { name: "קוקטיילים", included: true, qty: "", price: "", desc: "" },
   { name: "אקום", included: true, qty: "", price: "", desc: "" },
   { name: "סגירה של המקום", included: true, qty: "", price: "", desc: "" },
   { name: "שכירות", included: true, qty: "", price: "", desc: "" },
