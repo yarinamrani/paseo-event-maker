@@ -122,20 +122,28 @@ const MENU_DB = {
     { id: "p5", name: "סלט שרי מוצרלה", desc: "שרי צבעוני | בצל סגול | קלמטה | שום קונפי | בזיליקום טרי | שמן זית | בלסמי מצומצם" },
     { id: "p6", name: "סלט אנדיב", desc: "מיקס אנדיב סלנובה ולליק | מקלות תפוח עץ | אגוזי לוז וקשיו | ויניגרט" },
     { id: "p11", name: "סביצ'ה דג לבן", desc: "דג לבן | לימון | כוסברה | בצל סגול | צ'ילי" },
+    { id: "p7", name: "צלחת חריפים", desc: "פלפל פדרון מטוגן | חריף ביתי | שמן זית | פלפל ירוק" },
+    { id: "p8", name: "פלאפל כרובית וכמהין", desc: "*חלבי* פלאפל כרובית במילוי גבינות וכמהין | גבינת קרם פרש | שמן ירוק | סלסה עגבניות | בלסמיקו" },
+    { id: "p9", name: "קרפצ'יו סלק וגבינת עזים", desc: "בצל ירוק | שמן זית ולימון | סילאן | גבינת עזים | מיקס אגוזים קלויים" },
+    { id: "p10", name: "צ'יפס אמריקאי", desc: "" },
+    { id: "p12", name: "סלט קיסר", desc: "לבבות חסה | רוטב קיסר קלאסי | קרוטונים | ביצה רכה | פרמזן" },
   ],
   "עיקריות בשרי": [
     { id: "m1", name: "מיני בורגרים", desc: "קציצות בקר עסיסיות בלחמניה עם רוטב הבית" },
     { id: "m2", name: "שיפוד פרגית", desc: "נתחי עוף מתובלים וצלויים על הפלאנצ'ה" },
-    { id: "m3", name: "מרגז", desc: "נקניקיה ביתית חריפה" },
-    { id: "m4", name: "עראיס", desc: "צנוברים ועשבי תיבול | בצל סומק | סלסה עגבניות | טחינה" },
     { id: "m5", name: "באן אסאדו", desc: "חסה לאליק | בצל סגול מוחמץ | כוסברה | פלפל חריף | עגבניות שרי | איולי כוסברה" },
-    { id: "m7", name: "סטייק אנטריקוט", desc: "אנטריקוט על הגריל | צ'ימיצ'ורי" },
+    { id: "m7", name: "אנטריקוט ארגנטינאי 300g", desc: "מניפת אנטריקוט לפי משקל | צ'יפס כרישה | רוטב בצל ויין אדום | אספרגוס" },
+    { id: "m8", name: "המבורגר פסאו", desc: "ריבת בצל | עגבניה | חסה | איולי פפריקה ודבש | תוספת צ'יפס" },
+    { id: "m9", name: "פילה לברק", desc: "פילה לברק צרוב על קרם כרובית עשיר | שמנת | שום קונפי | פרמזן" },
   ],
   "עיקריות חלבי": [
     { id: "c1", name: "פיצה ביאנקה", desc: "רוטב בשמל, פורטבלו ושמפניון בשמן כמהין, מוצרלה, מיקס עלים" },
     { id: "c2", name: "פיצה מרגריטה", desc: "בצק משובח, רוטב עגבניות, מוצרלה, בזיליקום" },
     { id: "c4", name: "פסטה רוזה", desc: "ברוטב שמנת עגבניות" },
     { id: "c5", name: "פסטה שמנת פטריות", desc: "ברוטב שמנת פטריות פורטבלו ושמפניון" },
+    { id: "c6", name: "פיצה נפוליטנה", desc: "בצק משובח | רוטב עגבניות | מוצרלה | אופציה לתוספות" },
+    { id: "c7", name: "פסטה ים תיכונית", desc: "שמנת | עגבניות שרי | זיתי קלמטה | בזיליקום | שום קונפי | פלח לימון" },
+    { id: "c8", name: "טורטליני דבש וערמונים", desc: "ברוטב שמנת קרמי עם תרד וטימין | דלעת צלויה | פרמזן" },
   ],
   "עיקריות אומינו": [
     { id: "u1", name: "עמדת סושי צמחוני/דגים - 2 סושימנים בלייב", desc: "" },
@@ -144,17 +152,34 @@ const MENU_DB = {
     { id: "u4", name: "סלט אייסברג", desc: "חסה אייסברג | בצל ירוק | עגבניות שרי | צנונית | שבבי בוטנים | קוקוס קראנץ' | שבבי בטטה קריספי | רוטב בוטנים פיקנטי" },
     { id: "u5", name: "סלט בנגקוק", desc: "דניס קריספי | גזר | מלפפון | אטריות שעועית | בצל ירוק | כוסברה | רוטב תאילנדי" },
   ],
+  "סושי": [
+    { id: "s1", name: "Luna", desc: "דניס טרי | מלפפון | אושינקו | מעטפת דניס | טוביקו ירוק | גרידת לימון | איולי יוזו" },
+    { id: "s2", name: "ספיישל טרטר סלמון", desc: "6 יחידות מאקי אבוקדו | טרטר סלמון | נענע | כוסברה | ספייסי מיונז | טוביקו שחור" },
+    { id: "s3", name: "Black & Lemon", desc: "סלמון טרי | מלפפון | אבוקדו | צ'אנק לימון | ספייסי מיונז | מעטפת סלמון | טוביקו שחור | איולי כמהין" },
+    { id: "s4", name: "Midori Roll", desc: "דניס | עירית | לימון | מלפפון | אבוקדו | מעטפת נענע | טוביקו ירוק | איולי יוזו" },
+    { id: "s5", name: "Dragon Roll", desc: "סלמון אפוי | שיטאקי | קמפיו | בטטה | מעטפת שבבי קריספי בטטה" },
+    { id: "s6", name: "Spicy Tuna", desc: "טונה אדומה פיקנטית | אספרגוס | מלפפון | טוגראשי | איולי יוזו | מעטפת טונה צ'ילי חריף" },
+    { id: "s7", name: "Umino Tuna", desc: "טונה טרייה | אושינקו | אבוקדו | בצל ירוק | גרידת לימון | מעטפת אבוקדו טוביקו כתום" },
+    { id: "s8", name: "ווג'י בטטה ואבוקדו", desc: "שיטאקי | גזר | אושינקו | קמפיו | מעטפת אבוקדו בטטה | שבבי קריספי בטטה" },
+    { id: "s9", name: "אומינו סלמון", desc: "בטטה | ספייסי מיונז | אבוקדו | מלפפון | סלמון צרוב | טריאקי ושקדים | איולי כמהין" },
+  ],
   "תוספת פרימיום": [
     { id: "x1", name: "פאני פורי", desc: "סביצ'ה סלמון | קליפות מלפפון | בצל סגול | כוסברה | צ'ילי אדום" },
     { id: "x2", name: "טטאקי טונה", desc: "טונה עם טוגראשי ושומשום | אבוקדו | צ'ילי חריף | יוזו | איולי וואסבי" },
+    { id: "x3", name: "סשימי סלמון", desc: "סלמון עם טוגראשי ושומשום | אבוקדו | צ'ילי חריף | בצל ירוק | כוסברה | יוזו | איולי וואסבי" },
   ],
   "קינוחים": [
     { id: "d1", name: "פטיפורים וקינוחי ביס פרווה", desc: "" },
+    { id: "d2", name: "ברולה", desc: "תחתית קראמבל | קרם ברולה | קולי פסיפלורה" },
+    { id: "d3", name: "טירמיסו די פסאו", desc: "שכבות עוגיות בישקוטי | קרם מסקרפונה | קקאו | רוטב קפוצ'ינו" },
+    { id: "d4", name: "פרלינה שוקולד (טבעוני)", desc: "עוגיית קקאו | קרם שוקולד מריר | גנאש מוקצף | רוטב פירות יער | אבקת סוכר" },
+    { id: "d5", name: "קינדר קוקי", desc: "עוגיית שוקו צ'יפס קינדר עסיסית עם רוטב פיסטוק וגלידה וניל" },
+    { id: "d6", name: "פאדג' שוקולד חמה", desc: "עוגת שוקולד חמה | קראמבל עוגיות | גלידה וניל" },
   ],
 };
 
 const PRESETS = {
-  "בשרי": ["p1","p2","p3","p4","p5","p6","m1","m2","m3","m4","m5","d1"],
+  "בשרי": ["p1","p2","p3","p4","p5","p6","m1","m2","m5","d1"],
   "חלבי": ["p1","p4","p5","p6","c1","c2","c4","c5","d1"],
   "חלבי-פרימיום": ["p1","p4","p5","p6","p11","c1","c2","c4","c5","x1","x2","d1"],
   "אומינו כשר": ["p1","p5","p6","u1","u2","u3","u4","u5","d1"],
@@ -305,7 +330,7 @@ function MenuPage({ menuTitle, menuType, categories, supplementPrice }) {
 }
 
 // === PAGE 2: PRICING ===
-function PricingPage({ clientName, eventType, eventDate, eventTime, guestCount, pricePerGuest, menuTitle, menuType, services, cocktailUpgrade, foodTotal, totalBeforeVat, totalWithVat, servicePct }) {
+function PricingPage({ clientName, eventType, eventDate, eventTime, guestCount, pricePerGuest, menuTitle, menuType, services, cocktailUpgrade, foodTotal, totalBeforeVat, totalWithVat, servicePct, drinkPackage }) {
   const td = { fontFamily: FN.body, fontSize: 10.5, fontWeight: 300, color: S.text, padding: "7px 5px", textAlign: "center", borderBottom: `1px solid ${S.line}` };
   const photoSet = MENU_PHOTOS[menuType] || MENU_PHOTOS["בשרי"];
   const photos = photoSet.pricing;
@@ -354,6 +379,13 @@ function PricingPage({ clientName, eventType, eventDate, eventTime, guestCount, 
             </tbody>
           </table>
           {parseInt(cocktailUpgrade) > 0 && <div style={{ fontFamily: FN.body, fontSize: 11, color: S.text, textAlign: "center", margin: "16px 0" }}>שדרוג לעמדת קוקטיילים - בתוספת של {fmt(parseInt(cocktailUpgrade))} ש"ח</div>}
+          {drinkPackage && drinkPackage !== "none" && (
+            <div style={{ fontFamily: FN.body, fontSize: 11, color: S.text, textAlign: "center", margin: "10px 0", padding: "8px 12px", background: "rgba(255,255,255,0.2)", borderRadius: 6 }}>
+              {drinkPackage === "soft" && "חבילת שתייה קלה"}
+              {drinkPackage === "alcohol" && "חבילת אלכוהול (בירות, יין וקוקטיילים)"}
+              {drinkPackage === "both" && "חבילת שתייה קלה + אלכוהול (בירות, יין וקוקטיילים)"}
+            </div>
+          )}
           <div style={{ maxWidth: 250, margin: "20px auto", border: `1.5px solid ${S.line}`, padding: "14px 18px", textAlign: "center", background: "rgba(255,255,255,0.3)" }}>
             <div style={{ fontFamily: FN.body, fontSize: 11, color: S.text }}>סהכ״ ללא מע"מ</div>
             <div style={{ fontFamily: FN.body, fontSize: 16, fontWeight: 700, color: S.titleBold, margin: "2px 0 10px" }}>{fmt(totalBeforeVat)} ש"ח</div>
@@ -685,6 +717,7 @@ function App() {
   const [cocktailUpgrade, setCocktailUpgrade] = useState("2500");
   const [validDays, setValidDays] = useState("7");
   const [servicePct, setServicePct] = useState("12");
+  const [drinkPackage, setDrinkPackage] = useState("none");
   const [sel, setSel] = useState(new Set(PRESETS["בשרי"]));
   const [customs, setCustoms] = useState([]);
   const [services, setServices] = useState(DEFAULT_SERVICES);
@@ -833,6 +866,14 @@ function App() {
                 <div><label style={lbl}>תוספת פרימיום ₪</label><input type="number" style={inp} value={supplementPrice} onChange={e=>setSupplementPrice(e.target.value)} /></div>
                 <div><label style={lbl}>שדרוג קוקטיילים ₪</label><input type="number" style={inp} value={cocktailUpgrade} onChange={e=>setCocktailUpgrade(e.target.value)} /></div>
               </div>
+              <div><label style={lbl}>חבילת שתייה</label>
+                <select style={{...inp, textAlignLast: "right", WebkitAppearance: "none", MozAppearance: "none", appearance: "none", backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "left 12px center", paddingLeft: 32}} value={drinkPackage} onChange={e=>setDrinkPackage(e.target.value)}>
+                  <option value="none">ללא חבילת שתייה</option>
+                  <option value="soft">שתייה קלה</option>
+                  <option value="alcohol">אלכוהול (בירות, יין וקוקטיילים)</option>
+                  <option value="both">שתייה קלה + אלכוהול</option>
+                </select>
+              </div>
             </div>
           </div>
           <div style={{ padding: "20px 20px", borderBottom: `1px solid ${F.br}` }}>
@@ -901,7 +942,7 @@ function App() {
           </div>
           <Preview>
             {pg === 0 && <MenuPage menuTitle={menuTitle} menuType={menuType} categories={byCat} supplementPrice={supplementPrice} />}
-            {pg === 1 && <PricingPage clientName={clientName} eventType={eventType} eventDate={eventDate} eventTime={eventTime} guestCount={guestCount} pricePerGuest={pricePerGuest} menuTitle={menuTitle} menuType={menuType} services={services} cocktailUpgrade={cocktailUpgrade} foodTotal={foodT} totalBeforeVat={tot} totalWithVat={totV} servicePct={servicePct} />}
+            {pg === 1 && <PricingPage clientName={clientName} eventType={eventType} eventDate={eventDate} eventTime={eventTime} guestCount={guestCount} pricePerGuest={pricePerGuest} menuTitle={menuTitle} menuType={menuType} services={services} cocktailUpgrade={cocktailUpgrade} foodTotal={foodT} totalBeforeVat={tot} totalWithVat={totV} servicePct={servicePct} drinkPackage={drinkPackage} />}
             {pg === 2 && <TermsPage validDays={validDays} menuType={menuType} />}
           </Preview>
         </div>
@@ -911,7 +952,7 @@ function App() {
       {printing && (
         <div id="print-area" style={{ position: "fixed", left: 0, top: 0, width: 794, background: "#fff", zIndex: 9999, overflow: "auto" }}>
           <MenuPage menuTitle={menuTitle} menuType={menuType} categories={byCat} supplementPrice={supplementPrice} />
-          <PricingPage clientName={clientName} eventType={eventType} eventDate={eventDate} eventTime={eventTime} guestCount={guestCount} pricePerGuest={pricePerGuest} menuTitle={menuTitle} menuType={menuType} services={services} cocktailUpgrade={cocktailUpgrade} foodTotal={foodT} totalBeforeVat={tot} totalWithVat={totV} servicePct={servicePct} />
+          <PricingPage clientName={clientName} eventType={eventType} eventDate={eventDate} eventTime={eventTime} guestCount={guestCount} pricePerGuest={pricePerGuest} menuTitle={menuTitle} menuType={menuType} services={services} cocktailUpgrade={cocktailUpgrade} foodTotal={foodT} totalBeforeVat={tot} totalWithVat={totV} servicePct={servicePct} drinkPackage={drinkPackage} />
           <TermsPage validDays={validDays} menuType={menuType} />
         </div>
       )}
