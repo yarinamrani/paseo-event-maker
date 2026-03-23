@@ -15,7 +15,8 @@
     @media print {
       body, html { margin: 0 !important; padding: 0 !important; }
       @page { size: A4; margin: 0; }
-      #print-area { pointer-events: none; }
+      body > div > *:not(#print-area) { display: none !important; }
+      #print-area { position: static !important; pointer-events: none; }
       #print-area > div { page-break-after: always; }
       #print-area > div:last-child { page-break-after: avoid; }
     }
@@ -54,6 +55,7 @@
     .crm-fu { display: inline-flex; font-size: 10px; padding: 2px 8px; border-radius: 10px; }
     .crm-fu.warn { color: #fb923c; background: rgba(251,146,60,0.1); }
     .crm-fu.late { color: #f87171; background: rgba(248,113,113,0.1); }
+    select option { background: #232323; color: #e0e0e0; }
     .crm-modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: flex; align-items: flex-end; justify-content: center; }
     .crm-modal { background: #232323; border-top: 2px solid #c8a96e; border-radius: 16px 16px 0 0; width: 100%; max-height: 90vh; overflow-y: auto; animation: crmUp 0.25s ease; }
     @keyframes crmUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -266,21 +268,24 @@ function MenuPage({ menuTitle, menuType, categories, supplementPrice }) {
   const totalCats = Object.keys(categories).filter(c => c !== "תוספת פרימיום").length + (hasPremium ? 1 : 0);
 
   // Dynamic sizing based on content density
-  const dense = totalItems > 18;
-  const veryDense = totalItems > 24;
-  const extreme = totalItems > 30;
-  const logoSize = extreme ? "sm" : dense ? "sm" : "lg";
-  const titleFs = extreme ? 22 : dense ? 26 : 30;
-  const catFs = extreme ? 13 : dense ? 15 : 17;
-  const itemFs = extreme ? 12.5 : dense ? 14 : 16;
-  const descFs = extreme ? 9 : dense ? 10 : 11;
-  const catMargin = extreme ? "6px 0 3px" : dense ? "10px 0 4px" : "14px 0 6px";
-  const itemMb = extreme ? 3 : dense ? 5 : 7;
-  const topPad = extreme ? "12px 20px 0" : dense ? "20px 20px 2px" : "36px 20px 4px";
-  const contentPad = extreme ? "2px 30px 0" : dense ? "4px 35px 0" : "6px 40px 0";
-  const bottomH = extreme ? 80 : dense ? 110 : 140;
-  const stripW = veryDense ? "35%" : "40%";
-  const contentW = veryDense ? "65%" : "60%";
+  // Available content heights: normal ~671px, dense ~798px, compact ~830px, extreme ~845px
+  // Per item with desc: normal ~41px, dense ~36px | without desc: compact ~20px, extreme ~18px
+  const dense = totalItems > 14;
+  const compact = totalItems > 20;
+  const extreme = totalItems > 32;
+  const hideDesc = compact;
+  const logoSize = dense ? "sm" : "lg";
+  const titleFs = extreme ? 20 : compact ? 22 : dense ? 26 : 30;
+  const catFs = extreme ? 12 : compact ? 13 : dense ? 15 : 17;
+  const itemFs = extreme ? 11.5 : compact ? 12.5 : dense ? 14 : 16;
+  const descFs = dense ? 10 : 11;
+  const catMargin = extreme ? "4px 0 2px" : compact ? "6px 0 3px" : dense ? "10px 0 4px" : "14px 0 6px";
+  const itemMb = extreme ? 2 : compact ? 3 : dense ? 5 : 7;
+  const topPad = extreme ? "8px 20px 0" : compact ? "12px 20px 0" : dense ? "20px 20px 2px" : "36px 20px 4px";
+  const contentPad = extreme ? "2px 30px 0" : compact ? "2px 30px 0" : dense ? "4px 35px 0" : "6px 40px 0";
+  const bottomH = extreme ? 60 : compact ? 80 : dense ? 110 : 140;
+  const stripW = compact ? "35%" : "40%";
+  const contentW = compact ? "65%" : "60%";
 
   return (
     <div style={page}>
@@ -299,7 +304,7 @@ function MenuPage({ menuTitle, menuType, categories, supplementPrice }) {
                 {items.map((item) => (
                   <div key={item.id} style={{ textAlign: "center", marginBottom: itemMb }}>
                     <div style={{ fontFamily: FN.title, fontSize: itemFs, fontWeight: 700, color: S.titleBold }}>{item.name}</div>
-                    {item.desc && !extreme && <div style={{ fontFamily: FN.body, fontSize: descFs, fontWeight: 300, color: S.desc, lineHeight: 1.4, maxWidth: 400, margin: "0 auto" }}>{item.desc}</div>}
+                    {item.desc && !hideDesc && <div style={{ fontFamily: FN.body, fontSize: descFs, fontWeight: 300, color: S.desc, lineHeight: 1.4, maxWidth: 400, margin: "0 auto" }}>{item.desc}</div>}
                   </div>
                 ))}
               </div>
@@ -307,12 +312,12 @@ function MenuPage({ menuTitle, menuType, categories, supplementPrice }) {
           })}
           {hasPremium && (
             <>
-              <div style={{ width: 40, height: 1, background: S.line, margin: `${extreme ? 4 : dense ? 8 : 12}px auto` }} />
-              <div style={{ fontFamily: FN.body, fontSize: extreme ? 10 : 13, color: S.title, textAlign: "center", margin: "4px 0" }}>בתוספת של {supplementPrice} ש"ח לסועד</div>
+              <div style={{ width: 40, height: 1, background: S.line, margin: `${compact ? 4 : dense ? 8 : 12}px auto` }} />
+              <div style={{ fontFamily: FN.body, fontSize: compact ? 10 : 13, color: S.title, textAlign: "center", margin: "4px 0" }}>בתוספת של {supplementPrice} ש"ח לסועד</div>
               {categories["תוספת פרימיום"].map((item) => (
                 <div key={item.id} style={{ textAlign: "center", marginBottom: itemMb }}>
                   <div style={{ fontFamily: FN.title, fontSize: itemFs, fontWeight: 700, color: S.titleBold }}>{item.name}</div>
-                  {item.desc && !extreme && <div style={{ fontFamily: FN.body, fontSize: descFs, fontWeight: 300, color: S.desc, lineHeight: 1.4, maxWidth: 400, margin: "0 auto" }}>{item.desc}</div>}
+                  {item.desc && !hideDesc && <div style={{ fontFamily: FN.body, fontSize: descFs, fontWeight: 300, color: S.desc, lineHeight: 1.4, maxWidth: 400, margin: "0 auto" }}>{item.desc}</div>}
                 </div>
               ))}
             </>
@@ -406,7 +411,7 @@ function PricingPage({ clientName, eventType, eventDate, eventTime, guestCount, 
 
 // === PAGE 3: TERMS ===
 function TermsPage({ validDays, menuType }) {
-  const ts = { fontFamily: FN.body, fontSize: 10.5, fontWeight: 300, color: S.desc, lineHeight: 2, marginBottom: 6 };
+  const ts = { fontFamily: FN.body, fontSize: 10.5, fontWeight: 300, color: S.desc, lineHeight: 1.7, marginBottom: 4 };
   const tt = { fontFamily: FN.title, fontSize: 14, fontWeight: 700, color: S.titleBold, margin: "16px 0 4px", textDecoration: "underline", textUnderlineOffset: 5, textDecorationColor: S.line };
   const photoSet = MENU_PHOTOS[menuType] || MENU_PHOTOS["בשרי"];
   const photos = photoSet.terms;
@@ -523,7 +528,7 @@ function CrmModal({ lead, onSave, onDelete, onClose }) {
               <div><label>סוג אירוע</label>
                 <select value={f.eventType} onChange={e=>u("eventType",e.target.value)}>
                   <option value="">בחר</option>
-                  {["חתונה","יום הולדת","בר/בת מצווה","אירוע חברה","ברית/הברית","אירוע פרטי","אחר"].map(t=><option key={t}>{t}</option>)}
+                  {["הצעת נישואין","חתונה","יום הולדת","הרמת כוסית","חינה","בר/בת מצווה","אירוע חברה","השקה","ברית/הברית","אירוע פרטי","אחר"].map(t=><option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
             </div>
@@ -735,13 +740,31 @@ function App() {
 
   const [crmSaved, setCrmSaved] = useState(false);
 
-  const handlePrint = useCallback(() => {
-    setPrinting(true);
-    setTimeout(() => {
-      window.print();
-      setPrinting(false);
-    }, 500);
-  }, []);
+  const handlePrint = useCallback(async () => {
+    const fname = `הצעה-${clientName || "PASEO"}.pdf`;
+    try {
+      setPrinting(true);
+      await new Promise(r => requestAnimationFrame(() => setTimeout(r, 800)));
+      window.scrollTo(0, 0);
+      const el = document.getElementById("print-area");
+      if (el && el.children.length > 0) {
+        const pdf = new window.jspdf.jsPDF("p", "mm", "a4");
+        const pages = el.children;
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        const sc = isMobile ? 1.5 : 2;
+        for (let i = 0; i < pages.length; i++) {
+          const canvas = await window.html2canvas(pages[i], { scale: sc, useCORS: true, logging: false, width: 794, height: 1123, scrollX: 0, scrollY: 0 });
+          const imgData = canvas.toDataURL("image/jpeg", isMobile ? 0.85 : 0.95);
+          if (i > 0) pdf.addPage();
+          pdf.addImage(imgData, "JPEG", 0, 0, 210, 297);
+        }
+        const url = URL.createObjectURL(pdf.output("blob"));
+        const a = document.createElement("a"); a.href = url; a.download = fname; a.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch (e) { console.warn("PDF gen error:", e); window.print(); }
+    setPrinting(false);
+  }, [clientName]);
 
   const saveToCrm = useCallback(() => {
     if (!clientName.trim()) { alert("נא להזין שם לקוח"); return; }
@@ -765,6 +788,7 @@ function App() {
     try {
       setPrinting(true);
       await new Promise(r => requestAnimationFrame(() => setTimeout(r, 800)));
+      window.scrollTo(0, 0);
       const el = document.getElementById("print-area");
       if (el && el.children.length > 0) {
         const pdf = new window.jspdf.jsPDF("p", "mm", "a4");
@@ -952,7 +976,7 @@ function App() {
 
       {/* Print mode - all 3 pages stacked for PDF */}
       {printing && (
-        <div id="print-area" style={{ position: "fixed", left: 0, top: 0, width: 794, background: "#fff", zIndex: 9999, overflow: "auto" }}>
+        <div id="print-area" style={{ position: "absolute", left: 0, top: 0, width: 794, background: "#fff", zIndex: 9999, overflow: "visible" }}>
           <MenuPage menuTitle={menuTitle} menuType={menuType} categories={byCat} supplementPrice={supplementPrice} />
           <PricingPage clientName={clientName} eventType={eventType} eventDate={eventDate} eventTime={eventTime} guestCount={guestCount} pricePerGuest={pricePerGuest} menuTitle={menuTitle} menuType={menuType} services={services} cocktailUpgrade={cocktailUpgrade} foodTotal={foodT} totalBeforeVat={tot} totalWithVat={totV} servicePct={servicePct} drinkPackage={drinkPackage} />
           <TermsPage validDays={validDays} menuType={menuType} />
