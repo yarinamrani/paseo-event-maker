@@ -15,7 +15,8 @@
     @media print {
       body, html { margin: 0 !important; padding: 0 !important; }
       @page { size: A4; margin: 0; }
-      #print-area { pointer-events: none; }
+      body > div > *:not(#print-area) { display: none !important; }
+      #print-area { position: static !important; pointer-events: none; }
       #print-area > div { page-break-after: always; }
       #print-area > div:last-child { page-break-after: avoid; }
     }
@@ -407,7 +408,7 @@ function PricingPage({ clientName, eventType, eventDate, eventTime, guestCount, 
 
 // === PAGE 3: TERMS ===
 function TermsPage({ validDays, menuType }) {
-  const ts = { fontFamily: FN.body, fontSize: 10.5, fontWeight: 300, color: S.desc, lineHeight: 2, marginBottom: 6 };
+  const ts = { fontFamily: FN.body, fontSize: 10.5, fontWeight: 300, color: S.desc, lineHeight: 1.7, marginBottom: 4 };
   const tt = { fontFamily: FN.title, fontSize: 14, fontWeight: 700, color: S.titleBold, margin: "16px 0 4px", textDecoration: "underline", textUnderlineOffset: 5, textDecorationColor: S.line };
   const photoSet = MENU_PHOTOS[menuType] || MENU_PHOTOS["בשרי"];
   const photos = photoSet.terms;
@@ -524,7 +525,7 @@ function CrmModal({ lead, onSave, onDelete, onClose }) {
               <div><label>סוג אירוע</label>
                 <select value={f.eventType} onChange={e=>u("eventType",e.target.value)}>
                   <option value="">בחר</option>
-                  {["חתונה","יום הולדת","בר/בת מצווה","אירוע חברה","ברית/הברית","אירוע פרטי","אחר"].map(t=><option key={t}>{t}</option>)}
+                  {["הצעת נישואין","חתונה","יום הולדת","הרמת כוסית","חינה","בר/בת מצווה","אירוע חברה","השקה","ברית/הברית","אירוע פרטי","אחר"].map(t=><option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
             </div>
@@ -741,6 +742,7 @@ function App() {
     try {
       setPrinting(true);
       await new Promise(r => requestAnimationFrame(() => setTimeout(r, 800)));
+      window.scrollTo(0, 0);
       const el = document.getElementById("print-area");
       if (el && el.children.length > 0) {
         const pdf = new window.jspdf.jsPDF("p", "mm", "a4");
@@ -782,6 +784,7 @@ function App() {
     try {
       setPrinting(true);
       await new Promise(r => requestAnimationFrame(() => setTimeout(r, 800)));
+      window.scrollTo(0, 0);
       const el = document.getElementById("print-area");
       if (el && el.children.length > 0) {
         const pdf = new window.jspdf.jsPDF("p", "mm", "a4");
