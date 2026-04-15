@@ -965,23 +965,6 @@ function ClientMenuPage({ proposal }) {
       await supabase.from("submissions").upsert([submission], { onConflict: "id" });
     } catch(e) { console.warn("submission save err", e); }
 
-    // Send email notification to admin (silent, no client involvement)
-    try {
-      const emailText = msg.replace(/\*/g, "");
-      await fetch("https://formsubmit.co/ajax/paseo.rishon@gmail.com", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Accept": "application/json" },
-        body: JSON.stringify({
-          _subject: `בחירת תפריט חדשה - ${proposal.clientName}`,
-          name: proposal.clientName,
-          event: proposal.eventType || "",
-          date: proposal.eventDate || "",
-          guests: proposal.guestCount || "",
-          message: emailText,
-        }),
-      });
-    } catch(e) { console.warn("email notification err", e); }
-
     setSubmitted(true);
   };
 
