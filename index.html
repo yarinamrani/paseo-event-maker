@@ -1152,37 +1152,24 @@ function App() {
   const [clientLink, setClientLink] = useState("");
   const [linkCopied, setLinkCopied] = useState(false);
 
-  const generateClientLink = useCallback(async () => {
+    const generateClientLink = useCallback(async () => {
     if (!clientName.trim()) { alert("נא להזין שם לקוח"); return; }
-    const id = proposalId();
     const proposal = {
-      id,
-      eventMode: "private",
-      clientName: clientName.trim(),
-      eventType,
-      eventDate,
-      eventTime,
-      guestCount,
-      pricePerGuest,
-      stations: STATIONS_CONFIG,
-      clientSelections: null,
-      clientNotes: "",
-      adminPhone: "",
-      status: "sent",
-      createdAt: new Date().toISOString(),
-      sentAt: new Date().toISOString(),
-      submittedAt: null,
+      n: clientName.trim(),
+      t: eventType,
+      d: eventDate,
+      tm: eventTime,
+      g: guestCount,
+      m: "private",
     };
-    // Save locally + Supabase
-    const proposals = proposalLoad();
-    proposals.unshift(proposal);
-    proposalSave(proposals);
+    // Encode proposal as base64 in URL
+    const data = btoa(unescape(encodeURIComponent(JSON.stringify(proposal))));
+    const baseUrl = window.location.origin + window.location.pathname;
+    const link = `${baseUrl}?p=${data}`;
+    setClientLink(link);
+
     // Also save to CRM leads
     saveToCrm();
-    // Generate link
-    const baseUrl = window.location.origin + window.location.pathname;
-    const link = `${baseUrl}?client=${id}`;
-    setClientLink(link);
 
     // Copy to clipboard
     try { await navigator.clipboard.writeText(link); setLinkCopied(true); setTimeout(() => setLinkCopied(false), 3000); } catch(e) { console.warn("clipboard err", e); }
@@ -1506,35 +1493,30 @@ function App() {
 
 
     // Route: if ?client=PROPOSAL_ID is in URL, show client page
-    function Root() {
-      const [proposal, setProposal] = useState(null);
-      const [loading, setLoading] = useState(true);
-      const clientId = new URLSearchParams(window.location.search).get("client");
+        function Root() {
+      const params = new URLSearchParams(window.location.search);
+      const encodedData = params.get("p");
 
-      useEffect(() => {
-        if (!clientId) { setLoading(false); return; }
-        // Try loading from Supabase first, fallback to localStorage
-        (async () => {
-          try {
-            const { data } = await supabase.from("proposals").select("*").eq("id", clientId).single();
-            if (data) { setProposal(data); setLoading(false); return; }
-          } catch(e) { console.warn("proposal fetch err", e); }
-          // Fallback to localStorage
-          const local = proposalLoad().find(p => p.id === clientId);
-          if (local) setProposal(local);
-          setLoading(false);
-        })();
-      }, [clientId]);
+      if (!encodedData) return <App />;
 
-      if (!clientId) return <App />;
-      if (loading) return (
-        <div style={{ minHeight: "100vh", background: "#1a1a1a", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <div style={{ textAlign: "center" }}>
-            <img src={IMG.logo} style={{ width: 80, height: 80, objectFit: "contain", opacity: 0.6, marginBottom: 16 }} />
-            <div style={{ color: "rgba(255,255,255,0.4)", fontFamily: "'Heebo', sans-serif", fontSize: 14 }}>טוען...</div>
-          </div>
-        </div>
-      );
+      // Decode proposal from URL
+      let proposal = null;
+      try {
+        const json = decodeURIComponent(escape(atob(encodedData)));
+        const data = JSON.parse(json);
+        proposal = {
+          clientName: data.n || "",
+          eventType: data.t || "",
+          eventDate: data.d || "",
+          eventTime: data.tm || "",
+          guestCount: data.g || "",
+          eventMode: data.m || "private",
+          stations: STATIONS_CONFIG,
+        };
+      } catch(e) {
+        console.warn("decode err", e);
+      }
+
       if (!proposal) return (
         <div style={{ minHeight: "100vh", background: "#1a1a1a", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ textAlign: "center", color: "rgba(255,255,255,0.5)", fontFamily: "'Heebo', sans-serif" }}>
