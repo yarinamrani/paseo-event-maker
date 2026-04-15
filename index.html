@@ -232,7 +232,6 @@ const MENU_DB = {
     { id: "pa3", name: "פסטה עגבניות", desc: "ברוטב עגבניות טריות | בזיליקום | שום" },
     { id: "pa4", name: "טורטליני דבש וערמונים", desc: "ברוטב שמנת קרמי | תרד | דלעת צלויה | פרמזן" },
     { id: "pa5", name: "פסטה ים תיכונית", desc: "שמנת | עגבניות שרי | זיתי קלמטה | בזיליקום | שום קונפי" },
-    { id: "pa6", name: "פסטה אלפרדו", desc: "ברוטב שמנת פרמזן קלאסי | פטרוזיליה" },
   ],
   "תפריט ילדים": [
     { id: "k1", name: "פיש אנד צ'יפס", desc: "דג לבן בטמפורה | צ'יפס אמריקאי" },
@@ -250,9 +249,10 @@ const STATIONS_CONFIG = [
   { key: "מסתובבים", label: "עמדת מנות מעוף", subtitle: "הפתעות קטנות שמשאירות רושם גדול", minSelect: 4, maxSelect: 5, img: "starters" },
   { key: "עמדת בשר", label: "עמדת בשר", subtitle: "על האש, בדיוק כמו שצריך", minSelect: 3, maxSelect: 3, img: "mains" },
   { key: "עמדת באנים", label: "עמדת באנים", subtitle: "הקלאסיקה של פסאו", minSelect: 3, maxSelect: 3, img: "cover" },
-  { key: "עמדת סושי", label: "עמדת סושי", subtitle: "שני סושימנים, אומנות בלייב", minSelect: 5, maxSelect: 5, img: "sushi" },
+  { key: "עמדת סושי", label: "עמדת סושי", subtitle: "שני סושימנים, אומנות בלייב", minSelect: 4, maxSelect: 4, img: "sushi" },
   { key: "עמדת סלטים", label: "עמדת סלטים", subtitle: "טריים, צבעוניים, מושלמים", minSelect: 4, maxSelect: 4, img: "terrace" },
   { key: "עמדת פסטות", label: "עמדת פסטות", subtitle: "נוחמת, עשירה, ביתית", minSelect: 2, maxSelect: 2, img: "drinks" },
+  { key: "קינוחים", label: "קינוחים", subtitle: "סיום מתוק", minSelect: 2, maxSelect: 3, img: "cheers" },
   { key: "תפריט ילדים", label: "תפריט ילדים (עד גיל 13)", subtitle: "ספיישל לילדים", minSelect: 2, maxSelect: 2, img: "party" },
 ];
 
@@ -1042,9 +1042,9 @@ function ClientMenuPage({ proposal }) {
             <div key={station.key} ref={el => stationRefs.current[idx] = el} style={{ paddingTop: 32 }}>
               {/* Station header with image */}
               {station.img && IMG[station.img] && (
-                <div style={{ position: "relative", borderRadius: 14, overflow: "hidden", marginBottom: 16, height: 160 }}>
+                <div style={{ position: "relative", borderRadius: 14, overflow: "hidden", marginBottom: 16, height: 200 }}>
                   <img src={IMG[station.img]} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(0deg, rgba(26,26,26,0.95) 0%, rgba(26,26,26,0.3) 50%, rgba(26,26,26,0.1) 100%)" }} />
+                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(0deg, rgba(26,26,26,1) 0%, rgba(26,26,26,0.7) 40%, rgba(26,26,26,0.35) 100%)" }} />
                   <div style={{ position: "absolute", bottom: 16, left: 0, right: 0, textAlign: "center" }}>
                     <div style={{ fontFamily: FN.title, fontSize: 22, color: "#c8a96e", textShadow: "0 2px 8px rgba(0,0,0,0.6)" }}>{station.label}</div>
                     <div style={{ fontFamily: FN.body, fontSize: 12, color: "rgba(255,255,255,0.6)", fontWeight: 300, marginTop: 2 }}>{station.subtitle}</div>
