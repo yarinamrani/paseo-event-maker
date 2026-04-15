@@ -247,13 +247,13 @@ const MENU_DB = {
 
 // Station configuration for private events (80+ guests)
 const STATIONS_CONFIG = [
-  { key: "מסתובבים", label: "עמדת מנות מעוף", subtitle: "הפתעות קטנות שמשאירות רושם גדול", minSelect: 4, maxSelect: 5 },
-  { key: "עמדת בשר", label: "עמדת בשר", subtitle: "על האש, בדיוק כמו שצריך", minSelect: 3, maxSelect: 3 },
-  { key: "עמדת באנים", label: "עמדת באנים", subtitle: "הקלאסיקה של פסאו", minSelect: 3, maxSelect: 3 },
-  { key: "עמדת סושי", label: "עמדת סושי", subtitle: "שני סושימנים, אומנות בלייב", minSelect: 5, maxSelect: 5 },
-  { key: "עמדת סלטים", label: "עמדת סלטים", subtitle: "טריים, צבעוניים, מושלמים", minSelect: 4, maxSelect: 4 },
-  { key: "עמדת פסטות", label: "עמדת פסטות", subtitle: "נוחמת, עשירה, ביתית", minSelect: 2, maxSelect: 2 },
-  { key: "תפריט ילדים", label: "תפריט ילדים (עד גיל 13)", subtitle: "ספיישל לילדים", minSelect: 2, maxSelect: 2 },
+  { key: "מסתובבים", label: "עמדת מנות מעוף", subtitle: "הפתעות קטנות שמשאירות רושם גדול", minSelect: 4, maxSelect: 5, img: "starters" },
+  { key: "עמדת בשר", label: "עמדת בשר", subtitle: "על האש, בדיוק כמו שצריך", minSelect: 3, maxSelect: 3, img: "mains" },
+  { key: "עמדת באנים", label: "עמדת באנים", subtitle: "הקלאסיקה של פסאו", minSelect: 3, maxSelect: 3, img: "cover" },
+  { key: "עמדת סושי", label: "עמדת סושי", subtitle: "שני סושימנים, אומנות בלייב", minSelect: 5, maxSelect: 5, img: "sushi" },
+  { key: "עמדת סלטים", label: "עמדת סלטים", subtitle: "טריים, צבעוניים, מושלמים", minSelect: 4, maxSelect: 4, img: "terrace" },
+  { key: "עמדת פסטות", label: "עמדת פסטות", subtitle: "נוחמת, עשירה, ביתית", minSelect: 2, maxSelect: 2, img: "drinks" },
+  { key: "תפריט ילדים", label: "תפריט ילדים (עד גיל 13)", subtitle: "ספיישל לילדים", minSelect: 2, maxSelect: 2, img: "party" },
 ];
 
 const PRESETS = {
@@ -1006,19 +1006,23 @@ function ClientMenuPage({ proposal }) {
         <div style={{ height: "100%", background: "#c8a96e", width: `${(totalSelected / totalRequired) * 100}%`, transition: "width 0.4s ease", maxWidth: "100%" }} />
       </div>
 
-      {/* Hero Section */}
-      <div style={{ position: "relative", padding: "60px 24px 40px", textAlign: "center", background: "linear-gradient(180deg, rgba(200,169,110,0.08) 0%, transparent 100%)" }}>
-        <img src={IMG.logo} style={{ width: 100, height: 100, objectFit: "contain", margin: "0 auto 16px", display: "block", borderRadius: 4 }} />
-        <div style={{ fontFamily: FN.title, fontSize: 24, color: "#c8a96e", marginBottom: 8 }}>
-          {proposal.clientName ? `שלום, ${proposal.clientName}` : "ברוכים הבאים"}
-        </div>
-        {(proposal.eventType || proposal.eventDate || proposal.guestCount) && (
-          <div style={{ fontFamily: FN.body, fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 16 }}>
-            {[proposal.eventType, proposal.eventDate, proposal.guestCount ? `${proposal.guestCount} אורחים` : ""].filter(Boolean).join(" · ")}
+      {/* Hero Section with venue photo */}
+      <div style={{ position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", inset: 0, backgroundImage: `url(${IMG.venue})`, backgroundSize: "cover", backgroundPosition: "center", filter: "brightness(0.35)" }} />
+        <div style={{ position: "relative", padding: "70px 24px 50px", textAlign: "center" }}>
+          <img src={IMG.logo} style={{ width: 100, height: 100, objectFit: "contain", margin: "0 auto 20px", display: "block", borderRadius: 4, filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.5))" }} />
+          <div style={{ fontFamily: FN.title, fontSize: 26, color: "#c8a96e", marginBottom: 8, textShadow: "0 2px 8px rgba(0,0,0,0.5)" }}>
+            {proposal.clientName ? `שלום, ${proposal.clientName}` : "ברוכים הבאים"}
           </div>
-        )}
-        <div style={{ fontFamily: FN.body, fontSize: 15, color: "rgba(255,255,255,0.7)", fontWeight: 300, maxWidth: 340, margin: "0 auto", lineHeight: 1.7 }}>
-          בחרו את המנות שהכי מדברות אליכם.<br/>אנחנו נדאג לכל השאר.
+          {(proposal.eventType || proposal.eventDate || proposal.guestCount) && (
+            <div style={{ display: "inline-flex", gap: 8, padding: "6px 16px", borderRadius: 20, background: "rgba(0,0,0,0.3)", backdropFilter: "blur(10px)", fontFamily: FN.body, fontSize: 13, color: "rgba(255,255,255,0.7)", marginBottom: 20 }}>
+              {[proposal.eventType, proposal.eventDate, proposal.guestCount ? `${proposal.guestCount} אורחים` : ""].filter(Boolean).join(" · ")}
+            </div>
+          )}
+          <div style={{ fontFamily: FN.body, fontSize: 15, color: "rgba(255,255,255,0.8)", fontWeight: 300, maxWidth: 340, margin: "0 auto", lineHeight: 1.8, textShadow: "0 1px 4px rgba(0,0,0,0.4)" }}>
+            בחרו את המנות שהכי מדברות אליכם.<br/>אנחנו נדאג לכל השאר.
+          </div>
+          <div style={{ marginTop: 24, color: "rgba(200,169,110,0.5)", fontSize: 20, animation: "crmUp 1.5s ease infinite alternate" }}>↓</div>
         </div>
       </div>
 
@@ -1044,7 +1048,18 @@ function ClientMenuPage({ proposal }) {
           const complete = count >= station.minSelect;
           return (
             <div key={station.key} ref={el => stationRefs.current[idx] = el} style={{ paddingTop: 32 }}>
-              {/* Station header */}
+              {/* Station header with image */}
+              {station.img && IMG[station.img] && (
+                <div style={{ position: "relative", borderRadius: 14, overflow: "hidden", marginBottom: 16, height: 160 }}>
+                  <img src={IMG[station.img]} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(0deg, rgba(26,26,26,0.95) 0%, rgba(26,26,26,0.3) 50%, rgba(26,26,26,0.1) 100%)" }} />
+                  <div style={{ position: "absolute", bottom: 16, left: 0, right: 0, textAlign: "center" }}>
+                    <div style={{ fontFamily: FN.title, fontSize: 22, color: "#c8a96e", textShadow: "0 2px 8px rgba(0,0,0,0.6)" }}>{station.label}</div>
+                    <div style={{ fontFamily: FN.body, fontSize: 12, color: "rgba(255,255,255,0.6)", fontWeight: 300, marginTop: 2 }}>{station.subtitle}</div>
+                  </div>
+                </div>
+              )}
+              {(!station.img || !IMG[station.img]) && (
               <div style={{ textAlign: "center", marginBottom: 20 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12, justifyContent: "center", marginBottom: 8 }}>
                   <div style={{ flex: 1, height: 1, background: "rgba(200,169,110,0.2)" }} />
@@ -1053,6 +1068,8 @@ function ClientMenuPage({ proposal }) {
                 </div>
                 <div style={{ fontFamily: FN.title, fontSize: 20, color: "#c8a96e", marginBottom: 4 }}>{station.label}</div>
                 <div style={{ fontFamily: FN.body, fontSize: 12, color: "rgba(255,255,255,0.4)", fontWeight: 300, marginBottom: 8 }}>{station.subtitle}</div>
+              </div>
+              )}
                 <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
                   <span style={{ fontSize: 12, color: complete ? "#4ade80" : "rgba(255,255,255,0.5)" }}>
                     {`בחרו ${station.minSelect === station.maxSelect ? station.minSelect : `${station.minSelect}-${station.maxSelect}`} מנות`}
