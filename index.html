@@ -1062,6 +1062,7 @@ function ClientMenuPage({ proposal }) {
                 <div style={{ fontFamily: FN.body, fontSize: 12, color: "rgba(255,255,255,0.4)", fontWeight: 300, marginBottom: 8 }}>{station.subtitle}</div>
               </div>
               )}
+              <div style={{ textAlign: "center", marginBottom: 16 }}>
                 <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
                   <span style={{ fontSize: 12, color: complete ? "#4ade80" : "rgba(255,255,255,0.5)" }}>
                     {`בחרו ${station.minSelect === station.maxSelect ? station.minSelect : `${station.minSelect}-${station.maxSelect}`} מנות`}
