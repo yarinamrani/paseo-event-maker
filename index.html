@@ -926,7 +926,6 @@ function ClientMenuPage({ proposal }) {
   };
 
   const ADMIN_PHONE = "972543332696";
-  const ADMIN_EMAIL = "paseo.rishon@gmail.com";
 
   const handleSubmit = async () => {
     // Build selection summary
@@ -965,13 +964,6 @@ function ClientMenuPage({ proposal }) {
       };
       await supabase.from("submissions").upsert([submission], { onConflict: "id" });
     } catch(e) { console.warn("submission save err", e); }
-
-    // Send email
-    try {
-      const emailSubject = encodeURIComponent(`בחירת תפריט - ${proposal.clientName} | PASEO`);
-      const emailBody = encodeURIComponent(msg.replace(/\*/g, ""));
-      window.open(`mailto:${ADMIN_EMAIL}?subject=${emailSubject}&body=${emailBody}`, "_self");
-    } catch(e) { console.warn("email err", e); }
 
     setSubmitted(true);
 
