@@ -246,7 +246,7 @@ const MENU_DB = {
 
 // Station configuration for private events (80+ guests)
 const STATIONS_CONFIG = [
-  { key: "מסתובבים", label: "עמדת מנות מעוף", subtitle: "הפתעות קטנות שמשאירות רושם גדול", minSelect: 4, maxSelect: 5, img: "starters" },
+  { key: "מסתובבים", label: "עמדת פתיחים", subtitle: "הפתעות קטנות שמשאירות רושם גדול", minSelect: 4, maxSelect: 5, img: "starters" },
   { key: "עמדת בשר", label: "עמדת בשר", subtitle: "על האש, בדיוק כמו שצריך", minSelect: 3, maxSelect: 3, img: "mains" },
   { key: "עמדת באנים", label: "עמדת באנים", subtitle: "הקלאסיקה של פסאו", minSelect: 3, maxSelect: 3, img: "cover" },
   { key: "עמדת סושי", label: "עמדת סושי", subtitle: "שני סושימנים, אומנות בלייב", minSelect: 4, maxSelect: 4, img: "sushi" },
@@ -965,13 +965,24 @@ function ClientMenuPage({ proposal }) {
       await supabase.from("submissions").upsert([submission], { onConflict: "id" });
     } catch(e) { console.warn("submission save err", e); }
 
-    setSubmitted(true);
+    // Send email notification to admin (silent, no client involvement)
+    try {
+      const emailText = msg.replace(/\*/g, "");
+      await fetch("https://formsubmit.co/ajax/paseo.rishon@gmail.com", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({
+          _subject: `בחירת תפריט חדשה - ${proposal.clientName}`,
+          name: proposal.clientName,
+          event: proposal.eventType || "",
+          date: proposal.eventDate || "",
+          guests: proposal.guestCount || "",
+          message: emailText,
+        }),
+      });
+    } catch(e) { console.warn("email notification err", e); }
 
-    // Open WhatsApp after short delay
-    setTimeout(() => {
-      const encoded = encodeURIComponent(msg);
-      window.open(`https://wa.me/${ADMIN_PHONE}?text=${encoded}`, "_blank");
-    }, 1500);
+    setSubmitted(true);
   };
 
   if (submitted) {
