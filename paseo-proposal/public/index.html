@@ -247,13 +247,13 @@ const MENU_DB = {
 
 // Station configuration for private events (80+ guests)
 const STATIONS_CONFIG = [
-  { key: "מסתובבים", label: "עמדת מנות מעוף", subtitle: "הפתעות קטנות שמשאירות רושם גדול", minSelect: 4, maxSelect: 5, allIncluded: false },
-  { key: "עמדת בשר", label: "עמדת בשר", subtitle: "על האש, בדיוק כמו שצריך", minSelect: 3, maxSelect: 3, allIncluded: false },
-  { key: "עמדת באנים", label: "עמדת באנים", subtitle: "הקלאסיקה של פסאו", minSelect: 4, maxSelect: 4, allIncluded: true },
-  { key: "עמדת סושי", label: "עמדת סושי", subtitle: "שני סושימנים, אומנות בלייב", minSelect: 5, maxSelect: 5, allIncluded: false },
-  { key: "עמדת סלטים", label: "עמדת סלטים", subtitle: "טריים, צבעוניים, מושלמים", minSelect: 4, maxSelect: 4, allIncluded: false },
-  { key: "עמדת פסטות", label: "עמדת פסטות", subtitle: "נוחמת, עשירה, ביתית", minSelect: 2, maxSelect: 2, allIncluded: false },
-  { key: "תפריט ילדים", label: "תפריט ילדים (עד גיל 13)", subtitle: "ספיישל לילדים", minSelect: 2, maxSelect: 2, allIncluded: false },
+  { key: "מסתובבים", label: "עמדת מנות מעוף", subtitle: "הפתעות קטנות שמשאירות רושם גדול", minSelect: 4, maxSelect: 5 },
+  { key: "עמדת בשר", label: "עמדת בשר", subtitle: "על האש, בדיוק כמו שצריך", minSelect: 3, maxSelect: 3 },
+  { key: "עמדת באנים", label: "עמדת באנים", subtitle: "הקלאסיקה של פסאו", minSelect: 3, maxSelect: 3 },
+  { key: "עמדת סושי", label: "עמדת סושי", subtitle: "שני סושימנים, אומנות בלייב", minSelect: 5, maxSelect: 5 },
+  { key: "עמדת סלטים", label: "עמדת סלטים", subtitle: "טריים, צבעוניים, מושלמים", minSelect: 4, maxSelect: 4 },
+  { key: "עמדת פסטות", label: "עמדת פסטות", subtitle: "נוחמת, עשירה, ביתית", minSelect: 2, maxSelect: 2 },
+  { key: "תפריט ילדים", label: "תפריט ילדים (עד גיל 13)", subtitle: "ספיישל לילדים", minSelect: 2, maxSelect: 2 },
 ];
 
 const PRESETS = {
@@ -669,9 +669,16 @@ function CrmView() {
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState("all");
   const [modal, setModal] = useState(null);
+  const [crmTab, setCrmTab] = useState("leads"); // "leads" or "submissions"
+  const [submissions, setSubmissions] = useState([]);
+  const [subModal, setSubModal] = useState(null);
 
   useEffect(() => { crmSave(leads); }, [leads]);
-  useEffect(() => { crmSyncDown().then(data => { if (data && data.length) { const local = crmLoad(); const merged = [...data]; local.forEach(l => { if (!merged.find(m => m.id === l.id)) merged.push(l); }); merged.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)); setLeads(merged); } }); }, []);
+  useEffect(() => {
+    crmSyncDown().then(data => { if (data && data.length) { const local = crmLoad(); const merged = [...data]; local.forEach(l => { if (!merged.find(m => m.id === l.id)) merged.push(l); }); merged.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)); setLeads(merged); } });
+    // Load submissions
+    (async () => { try { const { data } = await supabase.from("submissions").select("*").order("submittedAt", { ascending: false }); if (data) setSubmissions(data); } catch(e) { console.warn("submissions load err", e); } })();
+  }, []);
 
   const stats = useMemo(() => {
     const now = new Date(); now.setDate(1); now.setHours(0,0,0,0);
@@ -723,6 +730,76 @@ function CrmView() {
 
   return (
     <div className="crm-wrap">
+      {/* CRM Tabs: Leads / Submissions */}
+      <div style={{ display: "flex", gap: 0, marginBottom: 12, borderRadius: 8, overflow: "hidden", border: "1px solid #333" }}>
+        <button onClick={() => setCrmTab("leads")} style={{ flex: 1, padding: "10px 0", background: crmTab === "leads" ? "#c8a96e" : "#232323", color: crmTab === "leads" ? "#1a1a1a" : "#999", border: "none", fontFamily: "'Heebo', sans-serif", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>לידים</button>
+        <button onClick={() => setCrmTab("submissions")} style={{ flex: 1, padding: "10px 0", background: crmTab === "submissions" ? "#c8a96e" : "#232323", color: crmTab === "submissions" ? "#1a1a1a" : "#999", border: "none", fontFamily: "'Heebo', sans-serif", fontSize: 13, fontWeight: 600, cursor: "pointer", position: "relative" }}>
+          הגשות לקוחות
+          {submissions.length > 0 && <span style={{ position: "absolute", top: 4, left: 8, width: 18, height: 18, borderRadius: "50%", background: "#4ade80", color: "#1a1a1a", fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{submissions.length}</span>}
+        </button>
+      </div>
+
+      {/* Submissions view */}
+      {crmTab === "submissions" && (<>
+        {submissions.length === 0 ? (
+          <div className="crm-empty">אין הגשות לקוחות עדיין</div>
+        ) : (
+          <div className="crm-list">
+            {submissions.map(sub => (
+              <div key={sub.id} className="crm-card" onClick={() => setSubModal(sub)}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>{sub.clientName}</div>
+                  <span className="crm-badge crm-b-closed"><span className="bd"></span>הגיש בחירות</span>
+                </div>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", fontSize: 11, color: "#888" }}>
+                  {sub.eventType && <span>{sub.eventType}</span>}
+                  {sub.eventDate && <span>· {sub.eventDate}</span>}
+                  {sub.guestCount && <span>· {sub.guestCount} אורחים</span>}
+                  <span>· {new Date(sub.submittedAt).toLocaleDateString("he-IL")}</span>
+                </div>
+                {sub.selections && <div style={{ marginTop: 8, fontSize: 11, color: "#666" }}>
+                  {Object.entries(sub.selections).map(([k, v]) => `${k}: ${v.length} מנות`).join(" · ")}
+                </div>}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Submission detail modal */}
+        {subModal && (
+          <div className="crm-modal-bg" onClick={() => setSubModal(null)}>
+            <div className="crm-modal" onClick={e => e.stopPropagation()} style={{ maxHeight: "85vh" }}>
+              <div className="crm-mh">
+                <h3>{subModal.clientName} - בחירות תפריט</h3>
+                <button className="crm-mx" onClick={() => setSubModal(null)}>×</button>
+              </div>
+              <div className="crm-mb" style={{ overflowY: "auto", maxHeight: "65vh" }}>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", fontSize: 12, color: "#888", marginBottom: 16 }}>
+                  {subModal.eventType && <span>{subModal.eventType}</span>}
+                  {subModal.eventDate && <span>· {subModal.eventDate}</span>}
+                  {subModal.guestCount && <span>· {subModal.guestCount} אורחים</span>}
+                  <span>· הוגש: {new Date(subModal.submittedAt).toLocaleString("he-IL")}</span>
+                </div>
+                {subModal.selections && Object.entries(subModal.selections).map(([station, dishes]) => (
+                  <div key={station} style={{ marginBottom: 14 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "#c8a96e", marginBottom: 4 }}>{station}</div>
+                    {dishes.map((d, i) => <div key={i} style={{ fontSize: 12, color: "#ccc", padding: "2px 0", paddingRight: 12 }}>• {d}</div>)}
+                  </div>
+                ))}
+                {subModal.notes && (
+                  <div style={{ marginTop: 12, padding: 12, background: "#1a1a1a", borderRadius: 8 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: "#c8a96e", marginBottom: 4 }}>הערות הלקוח:</div>
+                    <div style={{ fontSize: 12, color: "#ccc" }}>{subModal.notes}</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </>)}
+
+      {/* Existing leads view */}
+      {crmTab === "leads" && (<>
       {/* Dashboard */}
       <div className="crm-dashboard">
         <div className="crm-stat"><div className="sl">סה״כ לידים</div><div className="sv" style={{color:"#60a5fa"}}>{stats.total}</div><div className="ss">{stats.monthNew} החודש</div></div>
@@ -788,6 +865,7 @@ function CrmView() {
       )}
 
       {modal && <CrmModal lead={modal} onSave={onSave} onDelete={onDel} onClose={()=>setModal(null)} />}
+      </>)}
     </div>
   );
 }
@@ -814,7 +892,7 @@ function ClientMenuPage({ proposal }) {
   };
 
   const toggleItem = (station, itemId) => {
-    if (station.allIncluded) return;
+    // removed allIncluded check
     setSelections(prev => {
       const current = prev[station.key] || [];
       if (current.includes(itemId)) {
@@ -825,9 +903,9 @@ function ClientMenuPage({ proposal }) {
     });
   };
 
-  const totalSelected = stations.reduce((sum, s) => sum + (s.allIncluded ? (MENU_DB[s.key] || []).length : getCount(s.key)), 0);
-  const totalRequired = stations.reduce((sum, s) => sum + (s.allIncluded ? (MENU_DB[s.key] || []).length : s.minSelect), 0);
-  const allComplete = stations.every(s => s.allIncluded || getCount(s.key) >= s.minSelect);
+  const totalSelected = stations.reduce((sum, s) => sum + getCount(s.key), 0);
+  const totalRequired = stations.reduce((sum, s) => sum + s.minSelect, 0);
+  const allComplete = stations.every(s => getCount(s.key) >= s.minSelect);
 
   // Scroll observer for active station tracking
   useEffect(() => {
@@ -847,33 +925,23 @@ function ClientMenuPage({ proposal }) {
     stationRefs.current[idx]?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
+  const ADMIN_PHONE = "972543332696";
+  const ADMIN_EMAIL = "paseo.rishon@gmail.com";
+
   const handleSubmit = async () => {
     // Build selection summary
     const summary = {};
     stations.forEach(s => {
       const items = MENU_DB[s.key] || [];
-      if (s.allIncluded) {
-        summary[s.label] = items.map(i => i.name);
-      } else {
-        summary[s.label] = (selections[s.key] || []).map(id => items.find(i => i.id === id)?.name).filter(Boolean);
-      }
+      summary[s.label] = (selections[s.key] || []).map(id => items.find(i => i.id === id)?.name).filter(Boolean);
     });
 
-    // Save to Supabase
-    try {
-      await supabase.from("proposals").update({
-        clientSelections: summary,
-        clientNotes: notes,
-        status: "submitted",
-        submittedAt: new Date().toISOString(),
-      }).eq("id", proposal.id);
-    } catch(e) { console.warn("submit err", e); }
-
-    // Build WhatsApp message
+    // Build text summary
     let msg = `*בחירת תפריט - PASEO*\n`;
     msg += `*לקוח:* ${proposal.clientName}\n`;
     if (proposal.eventType) msg += `*אירוע:* ${proposal.eventType}\n`;
     if (proposal.eventDate) msg += `*תאריך:* ${proposal.eventDate}\n`;
+    if (proposal.guestCount) msg += `*אורחים:* ${proposal.guestCount}\n`;
     msg += `\n`;
     Object.entries(summary).forEach(([station, dishes]) => {
       msg += `*${station}:*\n`;
@@ -882,12 +950,35 @@ function ClientMenuPage({ proposal }) {
     });
     if (notes.trim()) msg += `*הערות:* ${notes}\n`;
 
+    // Save to CRM via Supabase
+    try {
+      const submission = {
+        id: "S" + Date.now(),
+        clientName: proposal.clientName,
+        eventType: proposal.eventType,
+        eventDate: proposal.eventDate,
+        guestCount: proposal.guestCount,
+        selections: summary,
+        notes: notes,
+        submittedAt: new Date().toISOString(),
+        status: "client_submitted",
+      };
+      await supabase.from("submissions").upsert([submission], { onConflict: "id" });
+    } catch(e) { console.warn("submission save err", e); }
+
+    // Send email
+    try {
+      const emailSubject = encodeURIComponent(`בחירת תפריט - ${proposal.clientName} | PASEO`);
+      const emailBody = encodeURIComponent(msg.replace(/\*/g, ""));
+      window.open(`mailto:${ADMIN_EMAIL}?subject=${emailSubject}&body=${emailBody}`, "_self");
+    } catch(e) { console.warn("email err", e); }
+
     setSubmitted(true);
 
-    // Open WhatsApp
+    // Open WhatsApp after short delay
     setTimeout(() => {
       const encoded = encodeURIComponent(msg);
-      window.open(`https://wa.me/972${proposal.adminPhone || ""}?text=${encoded}`, "_blank");
+      window.open(`https://wa.me/${ADMIN_PHONE}?text=${encoded}`, "_blank");
     }, 1500);
   };
 
@@ -934,12 +1025,12 @@ function ClientMenuPage({ proposal }) {
       {/* Sticky category navigation */}
       <div style={{ position: "sticky", top: 3, zIndex: 50, background: "rgba(26,26,26,0.95)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", borderBottom: "1px solid rgba(200,169,110,0.15)", padding: "8px 12px", overflowX: "auto", display: "flex", gap: 8, WebkitOverflowScrolling: "touch" }}>
         {stations.map((s, i) => {
-          const count = s.allIncluded ? (MENU_DB[s.key] || []).length : getCount(s.key);
-          const max = s.allIncluded ? (MENU_DB[s.key] || []).length : s.maxSelect;
-          const complete = s.allIncluded || count >= s.minSelect;
+          const count = getCount(s.key);
+          const max = s.maxSelect;
+          const complete = count >= s.minSelect;
           return (
             <button key={s.key} onClick={() => scrollToStation(i)} style={{ flexShrink: 0, padding: "6px 14px", borderRadius: 20, border: `1px solid ${complete ? "rgba(74,222,128,0.4)" : i === activeStation ? "#c8a96e" : "rgba(200,169,110,0.2)"}`, background: complete ? "rgba(74,222,128,0.08)" : i === activeStation ? "rgba(200,169,110,0.08)" : "transparent", color: complete ? "#4ade80" : i === activeStation ? "#c8a96e" : "rgba(255,255,255,0.5)", fontFamily: FN.body, fontSize: 11, fontWeight: 500, cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s" }}>
-              {complete && "✓ "}{s.label.replace("עמדת ", "")} {!s.allIncluded && <span style={{ opacity: 0.7 }}>{count}/{max}</span>}
+              {complete && "✓ "}{s.label.replace("עמדת ", "")} <span style={{ opacity: 0.7 }}>{count}/{max}</span>
             </button>
           );
         })}
@@ -950,7 +1041,7 @@ function ClientMenuPage({ proposal }) {
         {stations.map((station, idx) => {
           const items = MENU_DB[station.key] || [];
           const count = getCount(station.key);
-          const complete = station.allIncluded || count >= station.minSelect;
+          const complete = count >= station.minSelect;
           return (
             <div key={station.key} ref={el => stationRefs.current[idx] = el} style={{ paddingTop: 32 }}>
               {/* Station header */}
@@ -962,33 +1053,29 @@ function ClientMenuPage({ proposal }) {
                 </div>
                 <div style={{ fontFamily: FN.title, fontSize: 20, color: "#c8a96e", marginBottom: 4 }}>{station.label}</div>
                 <div style={{ fontFamily: FN.body, fontSize: 12, color: "rgba(255,255,255,0.4)", fontWeight: 300, marginBottom: 8 }}>{station.subtitle}</div>
-                {!station.allIncluded ? (
-                  <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontSize: 12, color: complete ? "#4ade80" : "rgba(255,255,255,0.5)" }}>
-                      {`בחרו ${station.minSelect === station.maxSelect ? station.minSelect : `${station.minSelect}-${station.maxSelect}`} מנות`}
-                    </span>
-                    <svg width="32" height="32" viewBox="0 0 36 36">
-                      <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(200,169,110,0.15)" strokeWidth="2.5" />
-                      <circle cx="18" cy="18" r="15" fill="none" stroke={complete ? "#4ade80" : "#c8a96e"} strokeWidth="2.5" strokeDasharray={`${(count / station.maxSelect) * 94.2} 94.2`} strokeLinecap="round" transform="rotate(-90 18 18)" style={{ transition: "stroke-dasharray 0.4s ease" }} />
-                    </svg>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: complete ? "#4ade80" : "#c8a96e" }}>{count}/{station.maxSelect}</span>
-                  </div>
-                ) : (
-                  <div style={{ fontSize: 12, color: "#4ade80", fontWeight: 500 }}>כל המנות כלולות</div>
-                )}
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: 12, color: complete ? "#4ade80" : "rgba(255,255,255,0.5)" }}>
+                    {`בחרו ${station.minSelect === station.maxSelect ? station.minSelect : `${station.minSelect}-${station.maxSelect}`} מנות`}
+                  </span>
+                  <svg width="32" height="32" viewBox="0 0 36 36">
+                    <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(200,169,110,0.15)" strokeWidth="2.5" />
+                    <circle cx="18" cy="18" r="15" fill="none" stroke={complete ? "#4ade80" : "#c8a96e"} strokeWidth="2.5" strokeDasharray={`${(count / station.maxSelect) * 94.2} 94.2`} strokeLinecap="round" transform="rotate(-90 18 18)" style={{ transition: "stroke-dasharray 0.4s ease" }} />
+                  </svg>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: complete ? "#4ade80" : "#c8a96e" }}>{count}/{station.maxSelect}</span>
+                </div>
               </div>
 
               {/* Dish cards */}
               {items.map(item => {
-                const selected = station.allIncluded || isSelected(station.key, item.id);
-                const atMax = !station.allIncluded && count >= station.maxSelect && !isSelected(station.key, item.id);
+                const selected = isSelected(station.key, item.id);
+                const atMax = count >= station.maxSelect && !selected;
                 return (
                   <div key={item.id} onClick={() => toggleItem(station, item.id)}
                     style={{
                       padding: "14px 16px", marginBottom: 8, borderRadius: 10,
                       background: selected ? "rgba(200,169,110,0.08)" : "#232323",
                       border: `${selected ? "1.5px" : "1px"} solid ${selected ? "#c8a96e" : "rgba(100,100,100,0.2)"}`,
-                      cursor: station.allIncluded ? "default" : atMax ? "not-allowed" : "pointer",
+                      cursor: atMax ? "not-allowed" : "pointer",
                       opacity: atMax ? 0.35 : 1,
                       transition: "all 0.2s ease",
                       display: "flex", justifyContent: "space-between", alignItems: "center",
@@ -998,8 +1085,8 @@ function ClientMenuPage({ proposal }) {
                       {item.desc && <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", lineHeight: 1.5, fontWeight: 300 }}>{item.desc}</div>}
                     </div>
                     {selected && (
-                      <div style={{ width: 24, height: 24, borderRadius: "50%", background: station.allIncluded ? "rgba(74,222,128,0.2)" : "#c8a96e", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginRight: 12 }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={station.allIncluded ? "#4ade80" : "#1a1a1a"} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                      <div style={{ width: 24, height: 24, borderRadius: "50%", background: "#c8a96e", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginRight: 12 }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
                       </div>
                     )}
                   </div>
@@ -1031,8 +1118,8 @@ function ClientMenuPage({ proposal }) {
             <div style={{ padding: "0 20px 20px" }}>
               {stations.map(s => {
                 const items = MENU_DB[s.key] || [];
-                const selected = s.allIncluded ? items : items.filter(i => isSelected(s.key, i.id));
-                const complete = s.allIncluded || getCount(s.key) >= s.minSelect;
+                const selected = items.filter(i => isSelected(s.key, i.id));
+                const complete = getCount(s.key) >= s.minSelect;
                 return (
                   <div key={s.key} style={{ marginBottom: 16 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
@@ -1084,6 +1171,7 @@ function App() {
   const [tab, setTab] = useState("form");
   const [pg, setPg] = useState(0);
   const [eventMode, setEventMode] = useState(""); // "private" (80+) or "tables" (10-70)
+  const [activeStations, setActiveStations] = useState(STATIONS_CONFIG.map(s => s.key)); // which stations to include in client link
   const [clientName, setClientName] = useState("");
   const [eventType, setEventType] = useState("");
   const [eventDate, setEventDate] = useState("");
@@ -1161,6 +1249,7 @@ function App() {
       tm: eventTime,
       g: guestCount,
       m: "private",
+      s: activeStations,
     };
     // Encode proposal as base64 in URL
     const data = btoa(unescape(encodeURIComponent(JSON.stringify(proposal))));
@@ -1338,8 +1427,18 @@ function App() {
           </div>
           <div style={{ padding: "20px 20px", borderBottom: `1px solid ${F.br}` }}>
             {eventMode === "private" ? (<>
-              <div style={{ fontSize: 13, fontWeight: 700, color: F.gold, marginBottom: 16 }}>עמדות לאירוע פרטי</div>
-              {STATIONS_CONFIG.map(station => {
+              <div style={{ fontSize: 13, fontWeight: 700, color: F.gold, marginBottom: 16 }}>בחירת עמדות לאירוע</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
+                {STATIONS_CONFIG.map(s => {
+                  const active = activeStations.includes(s.key);
+                  return (
+                    <button key={s.key} onClick={() => setActiveStations(prev => active ? prev.filter(k => k !== s.key) : [...prev, s.key])} style={{ padding: "6px 14px", borderRadius: 20, border: `1px solid ${active ? F.gold : F.br}`, background: active ? "rgba(200,169,110,0.1)" : "transparent", color: active ? F.gold : F.dm, fontFamily: FN.body, fontSize: 12, fontWeight: 500, cursor: "pointer", transition: "all 0.2s" }}>
+                      {active ? "✓ " : ""}{s.label}
+                    </button>
+                  );
+                })}
+              </div>
+              {STATIONS_CONFIG.filter(s => activeStations.includes(s.key)).map(station => {
                 const items = MENU_DB[station.key] || [];
                 const selCount = items.filter(i => sel.has(i.id)).length;
                 return (
@@ -1350,20 +1449,19 @@ function App() {
                         <div style={{ fontSize: 10, color: F.dm, marginTop: 2 }}>{station.subtitle}</div>
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <div style={{ fontSize: 11, fontWeight: 600, color: selCount >= station.minSelect ? "#4ade80" : F.gold }}>{selCount}/{station.allIncluded ? items.length : station.maxSelect}</div>
+                        <div style={{ fontSize: 11, fontWeight: 600, color: selCount >= station.minSelect ? "#4ade80" : F.gold }}>{selCount}/{station.maxSelect}</div>
                         <svg width="28" height="28" viewBox="0 0 36 36">
                           <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(200,169,110,0.15)" strokeWidth="3" />
-                          <circle cx="18" cy="18" r="15" fill="none" stroke={selCount >= station.minSelect ? "#4ade80" : F.gold} strokeWidth="3" strokeDasharray={`${(selCount / (station.allIncluded ? items.length : station.maxSelect)) * 94.2} 94.2`} strokeLinecap="round" transform="rotate(-90 18 18)" style={{ transition: "stroke-dasharray 0.4s ease" }} />
+                          <circle cx="18" cy="18" r="15" fill="none" stroke={selCount >= station.minSelect ? "#4ade80" : F.gold} strokeWidth="3" strokeDasharray={`${(selCount / station.maxSelect) * 94.2} 94.2`} strokeLinecap="round" transform="rotate(-90 18 18)" style={{ transition: "stroke-dasharray 0.4s ease" }} />
                         </svg>
                       </div>
                     </div>
-                    {station.allIncluded && <div style={{ fontSize: 10, color: "#4ade80", marginBottom: 6, fontWeight: 500 }}>כל המנות כלולות</div>}
                     {items.map(item => {
                       const isSelected = sel.has(item.id);
-                      const atMax = !station.allIncluded && selCount >= station.maxSelect && !isSelected;
+                      const atMax = selCount >= station.maxSelect && !isSelected;
                       return (
-                        <div key={item.id} onClick={() => { if (station.allIncluded) return; if (atMax && !isSelected) return; tog(item.id); }} style={{ display: "flex", gap: 10, padding: "7px 0", cursor: station.allIncluded ? "default" : atMax ? "not-allowed" : "pointer", opacity: atMax ? 0.35 : 1, transition: "opacity 0.2s" }}>
-                          <div style={{ width: 20, height: 20, borderRadius: 4, flexShrink: 0, marginTop: 1, display: "flex", alignItems: "center", justifyContent: "center", background: (isSelected || station.allIncluded)?F.gold:F.bg, border: `1.5px solid ${(isSelected || station.allIncluded)?F.gold:F.br}`, fontSize: 12, fontWeight: 700, color: F.bg }}>{(isSelected || station.allIncluded) && "✓"}</div>
+                        <div key={item.id} onClick={() => { if (atMax && !isSelected) return; tog(item.id); }} style={{ display: "flex", gap: 10, padding: "7px 0", cursor: atMax ? "not-allowed" : "pointer", opacity: atMax ? 0.35 : 1, transition: "opacity 0.2s" }}>
+                          <div style={{ width: 20, height: 20, borderRadius: 4, flexShrink: 0, marginTop: 1, display: "flex", alignItems: "center", justifyContent: "center", background: isSelected?F.gold:F.bg, border: `1.5px solid ${isSelected?F.gold:F.br}`, fontSize: 12, fontWeight: 700, color: F.bg }}>{isSelected && "✓"}</div>
                           <div style={{flex:1}}>
                             <div style={{ fontSize: 13, fontWeight: 500 }}>{item.name}</div>
                             {item.desc && <div style={{ fontSize: 10.5, color: F.dm, lineHeight: 1.5, marginTop: 2 }}>{item.desc}</div>}
@@ -1504,6 +1602,7 @@ function App() {
       try {
         const json = decodeURIComponent(escape(atob(encodedData)));
         const data = JSON.parse(json);
+        const activeKeys = data.s || STATIONS_CONFIG.map(s => s.key);
         proposal = {
           clientName: data.n || "",
           eventType: data.t || "",
@@ -1511,7 +1610,7 @@ function App() {
           eventTime: data.tm || "",
           guestCount: data.g || "",
           eventMode: data.m || "private",
-          stations: STATIONS_CONFIG,
+          stations: STATIONS_CONFIG.filter(s => activeKeys.includes(s.key)),
         };
       } catch(e) {
         console.warn("decode err", e);
