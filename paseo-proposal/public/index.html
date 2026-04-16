@@ -413,7 +413,7 @@ function MenuPage({ menuTitle, menuType, categories, supplementPrice }) {
 }
 
 // === PAGE 2: PRICING ===
-function PricingPage({ clientName, eventType, eventDate, eventTime, guestCount, pricePerGuest, menuTitle, menuType, services, cocktailUpgrade, foodTotal, totalBeforeVat, totalWithVat, servicePct, drinkPackage }) {
+function PricingPage({ clientName, eventType, eventDate, eventTime, guestCount, pricePerGuest, childCount, pricePerChild, menuTitle, menuType, services, cocktailUpgrade, foodTotal, totalBeforeVat, totalWithVat, servicePct, drinkPackage }) {
   const td = { fontFamily: FN.body, fontSize: 10.5, fontWeight: 300, color: S.text, padding: "7px 5px", textAlign: "center", borderBottom: `1px solid ${S.line}` };
   const photoSet = MENU_PHOTOS[menuType] || MENU_PHOTOS["בשרי"];
   const photos = photoSet.pricing;
@@ -445,11 +445,20 @@ function PricingPage({ clientName, eventType, eventDate, eventTime, guestCount, 
             <tbody>
               <tr>
                 <td style={{ ...td, textAlign: "right", fontWeight: 600 }}>{menuTitle}</td>
-                <td style={td}>מנות נבחרות</td>
+                <td style={td}>מבוגרים</td>
                 <td style={td}>{guestCount}</td>
                 <td style={td}>{fmt(parseInt(pricePerGuest) || 0)}</td>
-                <td style={td}>{fmt(foodTotal)}</td>
+                <td style={td}>{fmt((parseInt(guestCount)||0)*(parseInt(pricePerGuest)||0))}</td>
               </tr>
+              {(parseInt(childCount)||0) > 0 && (
+                <tr>
+                  <td style={{ ...td, textAlign: "right", fontWeight: 600 }}>{menuTitle}</td>
+                  <td style={td}>ילדים (עד גיל 13)</td>
+                  <td style={td}>{childCount}</td>
+                  <td style={td}>{fmt(parseInt(pricePerChild) || 0)}</td>
+                  <td style={td}>{fmt((parseInt(childCount)||0)*(parseInt(pricePerChild)||0))}</td>
+                </tr>
+              )}
               {services.map((s, i) => (
                 <tr key={i}>
                   <td style={{ ...td, textAlign: "right", fontWeight: 500 }}>{s.name}</td>
@@ -572,7 +581,7 @@ const crmId = () => "L" + Array.from(crypto.getRandomValues(new Uint8Array(8)), 
 const crmFmtDate = (d) => d ? new Date(d).toLocaleDateString("he-IL") : "—";
 const crmIsOverdue = (d) => d && new Date(d) < new Date(new Date().toDateString());
 const crmDaysDiff = (d) => { if (!d) return null; return Math.ceil((new Date(d) - new Date(new Date().toDateString())) / 86400000); };
-const crmEmpty = () => ({ id: crmId(), clientName: "", clientPhone: "", clientEmail: "", eventType: "", eventDate: "", guestCount: "", pricePerGuest: "", source: "", status: "new", cancelReason: "", notes: "", followUpDate: "", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
+const crmEmpty = () => ({ id: crmId(), clientName: "", clientPhone: "", clientEmail: "", eventType: "", eventDate: "", guestCount: "", pricePerGuest: "", childCount: "", pricePerChild: "", source: "", status: "new", cancelReason: "", notes: "", followUpDate: "", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
 
 /* ── Proposals (for client-facing menu links) ── */
 const PROPOSALS_KEY = "paseo_proposals";
@@ -592,7 +601,7 @@ function CrmModal({ lead, onSave, onDelete, onClose }) {
   const u = (k, v) => setF(p => ({ ...p, [k]: v }));
   const isNew = !lead.clientName;
   const save = () => { if (!f.clientName.trim()) { alert("נא להזין שם לקוח"); return; } onSave({ ...f, updatedAt: new Date().toISOString() }); };
-  const total = (Number(f.guestCount)||0) * (Number(f.pricePerGuest)||0);
+  const total = ((Number(f.guestCount)||0) * (Number(f.pricePerGuest)||0)) + ((Number(f.childCount)||0) * (Number(f.pricePerChild)||0));
 
   return (
     <div className="crm-modal-bg" onClick={e => e.target === e.currentTarget && onClose()}>
@@ -618,10 +627,14 @@ function CrmModal({ lead, onSave, onDelete, onClose }) {
             </div>
             <div className="crm-fg-r">
               <div><label>תאריך אירוע</label><input value={f.eventDate} onChange={e=>u("eventDate",e.target.value)} type="date" /></div>
-              <div><label>כמות אורחים</label><input value={f.guestCount} onChange={e=>u("guestCount",e.target.value)} type="number" placeholder="100" /></div>
+              <div><label>כמות מבוגרים</label><input value={f.guestCount} onChange={e=>u("guestCount",e.target.value)} type="number" placeholder="100" /></div>
             </div>
             <div className="crm-fg-r">
-              <div><label>מחיר לאורח (₪)</label><input value={f.pricePerGuest} onChange={e=>u("pricePerGuest",e.target.value)} type="number" placeholder="350" /></div>
+              <div><label>מחיר לסועד (₪)</label><input value={f.pricePerGuest} onChange={e=>u("pricePerGuest",e.target.value)} type="number" placeholder="350" /></div>
+              <div><label>כמות ילדים</label><input value={f.childCount || ""} onChange={e=>u("childCount",e.target.value)} type="number" placeholder="0" /></div>
+            </div>
+            <div className="crm-fg-r">
+              <div><label>מחיר לילד (₪)</label><input value={f.pricePerChild || ""} onChange={e=>u("pricePerChild",e.target.value)} type="number" placeholder="0" /></div>
               <div><label>מקור הפנייה</label>
                 <select value={f.source} onChange={e=>u("source",e.target.value)}>
                   <option value="">בחר</option>
@@ -684,7 +697,7 @@ function CrmView() {
     const now = new Date(); now.setDate(1); now.setHours(0,0,0,0);
     const ml = leads.filter(l => new Date(l.createdAt) >= now);
     const closed = leads.filter(l => l.status === "closed");
-    const rev = closed.reduce((s,l) => s + (Number(l.guestCount)||0)*(Number(l.pricePerGuest)||0), 0);
+    const rev = closed.reduce((s,l) => s + (Number(l.guestCount)||0)*(Number(l.pricePerGuest)||0) + (Number(l.childCount)||0)*(Number(l.pricePerChild)||0), 0);
     const conv = leads.length > 0 ? Math.round((closed.length / leads.length) * 100) : 0;
     const overdue = leads.filter(l => l.followUpDate && crmIsOverdue(l.followUpDate) && !["closed","cancelled","irrelevant"].includes(l.status)).length;
     return { total: leads.length, monthNew: ml.length, closed: closed.length, sent: leads.filter(l=>l.status==="sent"||l.status==="followup").length, rev, conv, overdue, cancelled: leads.filter(l=>l.status==="cancelled").length };
@@ -712,9 +725,11 @@ function CrmView() {
       "אימייל": l.clientEmail,
       "סוג אירוע": l.eventType,
       "תאריך אירוע": l.eventDate ? l.eventDate.split("-").reverse().join("/") : "",
-      "אורחים": l.guestCount,
+      "מבוגרים": l.guestCount,
       "מחיר לסועד": l.pricePerGuest,
-      "סה״כ": (Number(l.guestCount)||0) * (Number(l.pricePerGuest)||0),
+      "ילדים": l.childCount || "",
+      "מחיר לילד": l.pricePerChild || "",
+      "סה״כ": (Number(l.guestCount)||0) * (Number(l.pricePerGuest)||0) + (Number(l.childCount)||0) * (Number(l.pricePerChild)||0),
       "סטטוס": statusMap[l.status] || l.status,
       "מקור": l.source,
       "הערות": l.notes,
@@ -830,7 +845,7 @@ function CrmView() {
       ) : (
         <div className="crm-list">
           {list.map(lead => {
-            const total = (Number(lead.guestCount)||0)*(Number(lead.pricePerGuest)||0);
+            const total = (Number(lead.guestCount)||0)*(Number(lead.pricePerGuest)||0) + (Number(lead.childCount)||0)*(Number(lead.pricePerChild)||0);
             const dd = crmDaysDiff(lead.followUpDate);
             const overdue = lead.followUpDate && crmIsOverdue(lead.followUpDate) && !["closed","cancelled","irrelevant"].includes(lead.status);
             return (
@@ -846,7 +861,7 @@ function CrmView() {
                   <div style={{display:"flex",gap:12,fontSize:12,color:"#999"}}>
                     {lead.eventType && <span>{lead.eventType}</span>}
                     {lead.eventDate && <span>{crmFmtDate(lead.eventDate)}</span>}
-                    {lead.guestCount && <span>{lead.guestCount} אורחים</span>}
+                    {lead.guestCount && <span>{lead.guestCount} מבוגרים{lead.childCount ? ` + ${lead.childCount} ילדים` : ""}</span>}
                     {lead.source && <span style={{background:"#2d2d2d",padding:"1px 8px",borderRadius:10}}>{lead.source}</span>}
                   </div>
                   <div style={{display:"flex",alignItems:"center",gap:8}}>
@@ -940,7 +955,8 @@ function ClientMenuPage({ proposal }) {
     msg += `*לקוח:* ${proposal.clientName}\n`;
     if (proposal.eventType) msg += `*אירוע:* ${proposal.eventType}\n`;
     if (proposal.eventDate) msg += `*תאריך:* ${proposal.eventDate}\n`;
-    if (proposal.guestCount) msg += `*אורחים:* ${proposal.guestCount}\n`;
+    if (proposal.guestCount) msg += `*מבוגרים:* ${proposal.guestCount}\n`;
+    if (proposal.childCount) msg += `*ילדים:* ${proposal.childCount}\n`;
     msg += `\n`;
     Object.entries(summary).forEach(([station, dishes]) => {
       msg += `*${station}:*\n`;
@@ -956,7 +972,7 @@ function ClientMenuPage({ proposal }) {
         clientName: proposal.clientName,
         eventType: proposal.eventType,
         eventDate: proposal.eventDate,
-        guestCount: proposal.guestCount,
+        guestCount: proposal.childCount ? `${proposal.guestCount} מבוגרים + ${proposal.childCount} ילדים` : proposal.guestCount,
         selections: summary,
         notes: notes,
         submittedAt: new Date().toISOString(),
@@ -1002,7 +1018,7 @@ function ClientMenuPage({ proposal }) {
           </div>
           {(proposal.eventType || proposal.eventDate || proposal.guestCount) && (
             <div style={{ display: "inline-flex", gap: 8, padding: "6px 16px", borderRadius: 20, background: "rgba(0,0,0,0.3)", backdropFilter: "blur(10px)", fontFamily: FN.body, fontSize: 13, color: "rgba(255,255,255,0.7)", marginBottom: 20 }}>
-              {[proposal.eventType, proposal.eventDate, proposal.guestCount ? `${proposal.guestCount} אורחים` : ""].filter(Boolean).join(" · ")}
+              {[proposal.eventType, proposal.eventDate, proposal.guestCount ? `${proposal.guestCount} מבוגרים${proposal.childCount ? ` + ${proposal.childCount} ילדים` : ""}` : ""].filter(Boolean).join(" · ")}
             </div>
           )}
           <div style={{ fontFamily: FN.body, fontSize: 15, color: "rgba(255,255,255,0.8)", fontWeight: 300, maxWidth: 340, margin: "0 auto", lineHeight: 1.8, textShadow: "0 1px 4px rgba(0,0,0,0.4)" }}>
@@ -1183,6 +1199,8 @@ function App() {
   const [eventTime, setEventTime] = useState("");
   const [guestCount, setGuestCount] = useState("100");
   const [pricePerGuest, setPricePerGuest] = useState("350");
+  const [childCount, setChildCount] = useState("");
+  const [pricePerChild, setPricePerChild] = useState("");
   const [menuTitle, setMenuTitle] = useState("תפריט בשרי");
   const [menuType, setMenuType] = useState("בשרי");
   const [supplementPrice, setSupplementPrice] = useState("20");
@@ -1234,12 +1252,12 @@ function App() {
     if (!clientName.trim()) { alert("נא להזין שם לקוח"); return; }
     const leads = crmLoad();
     const existing = leads.find(l => l.clientName === clientName.trim() && l.eventDate === eventDate);
-    const lead = existing ? { ...existing, guestCount, pricePerGuest, eventType, eventDate, status: "sent", updatedAt: new Date().toISOString() } : { ...crmEmpty(), clientName: clientName.trim(), eventType, eventDate, guestCount, pricePerGuest, status: "sent" };
+    const lead = existing ? { ...existing, guestCount, pricePerGuest, childCount, pricePerChild, eventType, eventDate, status: "sent", updatedAt: new Date().toISOString() } : { ...crmEmpty(), clientName: clientName.trim(), eventType, eventDate, guestCount, pricePerGuest, childCount, pricePerChild, status: "sent" };
     if (existing) { const i = leads.indexOf(existing); leads[i] = lead; } else { leads.unshift(lead); }
     crmSave(leads);
     setCrmSaved(true);
     setTimeout(() => setCrmSaved(false), 3000);
-  }, [clientName, eventType, eventDate, guestCount, pricePerGuest]);
+  }, [clientName, eventType, eventDate, guestCount, pricePerGuest, childCount, pricePerChild]);
 
   const [clientLink, setClientLink] = useState("");
   const [linkCopied, setLinkCopied] = useState(false);
@@ -1252,6 +1270,7 @@ function App() {
       d: eventDate,
       tm: eventTime,
       g: guestCount,
+      c: childCount,
       m: "private",
       s: activeStations,
     };
@@ -1272,11 +1291,11 @@ function App() {
     const msg = `שלום ${clientName},\nשמחים שבחרתם בפסאו!\n\nהנה הקישור לבחירת התפריט לאירוע שלכם:\n${link}\n\nבחרו את המנות המועדפות עליכם ואנחנו נדאג לכל השאר.\nלכל שאלה, אנחנו כאן.\n\nצוות פסאו ✦`;
     const encoded = encodeURIComponent(msg);
     window.open(`https://wa.me/?text=${encoded}`, "_blank");
-  }, [clientName, eventType, eventDate, eventTime, guestCount, pricePerGuest, saveToCrm]);
+  }, [clientName, eventType, eventDate, eventTime, guestCount, pricePerGuest, childCount, saveToCrm]);
 
   const shareWhatsApp = useCallback(async () => {
     const fmtDate = eventDate ? eventDate.split("-").reverse().join("-") : "";
-    const msg = `*הצעת מחיר - PASEO*\n\nלקוח: ${clientName}\nסוג: ${eventType}\nתאריך: ${fmtDate}\nאורחים: ${guestCount}`;
+    const msg = `*הצעת מחיר - PASEO*\n\nלקוח: ${clientName}\nסוג: ${eventType}\nתאריך: ${fmtDate}\nמבוגרים: ${guestCount}${(parseInt(childCount)||0) > 0 ? `\nילדים: ${childCount}` : ""}`;
     const fname = `הצעה-${clientName || "PASEO"}.pdf`;
 
     // Generate PDF page by page
@@ -1321,9 +1340,9 @@ function App() {
     const a = document.createElement("a"); a.href = url; a.download = fname; a.click();
     URL.revokeObjectURL(url);
     window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(msg), "_blank");
-  }, [clientName, eventType, eventDate, guestCount]);
+  }, [clientName, eventType, eventDate, guestCount, childCount]);
 
-  const foodT = useMemo(() => (parseInt(guestCount)||0)*(parseInt(pricePerGuest)||0), [guestCount,pricePerGuest]);
+  const foodT = useMemo(() => ((parseInt(guestCount)||0)*(parseInt(pricePerGuest)||0)) + ((parseInt(childCount)||0)*(parseInt(pricePerChild)||0)), [guestCount,pricePerGuest,childCount,pricePerChild]);
   const svcT = useMemo(() => services.reduce((s,v)=>v.included?s:s+(parseInt(v.qty)||0)*(parseInt(v.price)||0),0), [services]);
   const tot = foodT + svcT;
   const totV = Math.round(tot * 1.18);
@@ -1409,8 +1428,12 @@ function App() {
                 <div><label style={lbl}>שעות</label><input style={inp} value={eventTime} onChange={e=>setEventTime(e.target.value)} placeholder="12:00-16:00" /></div>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <div><label style={lbl}>אורחים</label><input type="number" style={inp} value={guestCount} onChange={e=>setGuestCount(e.target.value)} /></div>
-                <div><label style={lbl}>מחיר למנה ₪</label><input type="number" style={inp} value={pricePerGuest} onChange={e=>setPricePerGuest(e.target.value)} /></div>
+                <div><label style={lbl}>מבוגרים</label><input type="number" style={inp} value={guestCount} onChange={e=>setGuestCount(e.target.value)} /></div>
+                <div><label style={lbl}>מחיר לסועד ₪</label><input type="number" style={inp} value={pricePerGuest} onChange={e=>setPricePerGuest(e.target.value)} /></div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div><label style={lbl}>ילדים (אופציונלי)</label><input type="number" style={inp} value={childCount} onChange={e=>setChildCount(e.target.value)} placeholder="0" /></div>
+                <div><label style={lbl}>מחיר לילד ₪</label><input type="number" style={inp} value={pricePerChild} onChange={e=>setPricePerChild(e.target.value)} placeholder="0" /></div>
               </div>
               {eventMode !== "private" && <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <div><label style={lbl}>סוג תפריט</label>
@@ -1525,7 +1548,8 @@ function App() {
               </div>
             ))}
             <div style={{ background: F.bg, borderRadius: 8, padding: 16, marginTop: 12 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", fontSize: 13 }}><span>אוכל ({guestCount} × {fmt(parseInt(pricePerGuest)||0)})</span><span>{fmt(foodT)} ₪</span></div>
+              <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", fontSize: 13 }}><span>מבוגרים ({guestCount} × {fmt(parseInt(pricePerGuest)||0)})</span><span>{fmt((parseInt(guestCount)||0)*(parseInt(pricePerGuest)||0))} ₪</span></div>
+              {(parseInt(childCount)||0) > 0 && <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", fontSize: 13 }}><span>ילדים ({childCount} × {fmt(parseInt(pricePerChild)||0)})</span><span>{fmt((parseInt(childCount)||0)*(parseInt(pricePerChild)||0))} ₪</span></div>}
               <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", fontSize: 13 }}><span>שירותים</span><span>{fmt(svcT)} ₪</span></div>
               <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", fontSize: 12, color: F.dm }}><span>סה"כ לפני מע"מ</span><span>{fmt(tot)} ₪</span></div>
               <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0 0", fontSize: 15, fontWeight: 700, color: F.gold, borderTop: `1px solid ${F.br}`, marginTop: 6 }}><span>סה"כ כולל מע"מ</span><span>{fmt(totV)} ₪</span></div>
@@ -1543,7 +1567,7 @@ function App() {
           </div>
           <Preview>
             {pg < menuPages.length && <MenuPage menuTitle={menuTitle} menuType={menuType} categories={menuPages[pg]} supplementPrice={supplementPrice} />}
-            {pg === menuPages.length && <PricingPage clientName={clientName} eventType={eventType} eventDate={eventDate} eventTime={eventTime} guestCount={guestCount} pricePerGuest={pricePerGuest} menuTitle={menuTitle} menuType={menuType} services={services} cocktailUpgrade={cocktailUpgrade} foodTotal={foodT} totalBeforeVat={tot} totalWithVat={totV} servicePct={servicePct} drinkPackage={drinkPackage} />}
+            {pg === menuPages.length && <PricingPage clientName={clientName} eventType={eventType} eventDate={eventDate} eventTime={eventTime} guestCount={guestCount} pricePerGuest={pricePerGuest} childCount={childCount} pricePerChild={pricePerChild} menuTitle={menuTitle} menuType={menuType} services={services} cocktailUpgrade={cocktailUpgrade} foodTotal={foodT} totalBeforeVat={tot} totalWithVat={totV} servicePct={servicePct} drinkPackage={drinkPackage} />}
             {pg === menuPages.length + 1 && <TermsPage validDays={validDays} menuType={menuType} />}
           </Preview>
         </div>
@@ -1553,7 +1577,7 @@ function App() {
       {printing && (
         <div id="print-area" style={{ position: "absolute", left: 0, top: 0, width: 794, background: "#fff", zIndex: 9999, overflow: "visible" }}>
           {menuPages.map((cats, i) => <MenuPage key={i} menuTitle={menuTitle} menuType={menuType} categories={cats} supplementPrice={supplementPrice} />)}
-          <PricingPage clientName={clientName} eventType={eventType} eventDate={eventDate} eventTime={eventTime} guestCount={guestCount} pricePerGuest={pricePerGuest} menuTitle={menuTitle} menuType={menuType} services={services} cocktailUpgrade={cocktailUpgrade} foodTotal={foodT} totalBeforeVat={tot} totalWithVat={totV} servicePct={servicePct} drinkPackage={drinkPackage} />
+          <PricingPage clientName={clientName} eventType={eventType} eventDate={eventDate} eventTime={eventTime} guestCount={guestCount} pricePerGuest={pricePerGuest} childCount={childCount} pricePerChild={pricePerChild} menuTitle={menuTitle} menuType={menuType} services={services} cocktailUpgrade={cocktailUpgrade} foodTotal={foodT} totalBeforeVat={tot} totalWithVat={totV} servicePct={servicePct} drinkPackage={drinkPackage} />
           <TermsPage validDays={validDays} menuType={menuType} />
         </div>
       )}
@@ -1613,6 +1637,7 @@ function App() {
           eventDate: data.d || "",
           eventTime: data.tm || "",
           guestCount: data.g || "",
+          childCount: data.c || "",
           eventMode: data.m || "private",
           stations: STATIONS_CONFIG.filter(s => activeKeys.includes(s.key)),
         };
