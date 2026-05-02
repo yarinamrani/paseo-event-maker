@@ -961,6 +961,7 @@ function ClientMenuPage({ proposal }) {
 
   const defaultConfig = proposal.m === "tables" ? TABLES_STATIONS_CONFIG : STATIONS_CONFIG;
   const stationKeys = proposal.s || defaultConfig.map(s => s.key);
+  const availableSet = proposal.avail ? new Set(proposal.avail) : null;
   const stations = (proposal.m === "tables" ? [...TABLES_STATIONS_CONFIG, { key: "סושי שולחנות", label: "סושי", subtitle: "3 מנות לבחירה", minSelect: 3, maxSelect: 3, img: "sushi" }] : STATIONS_CONFIG).filter(s => stationKeys.includes(s.key) && MENU_DB[s.key]);
 
   const getCount = (stationKey) => {
@@ -1110,7 +1111,7 @@ function ClientMenuPage({ proposal }) {
       {/* Station Sections */}
       <div style={{ padding: "0 16px 120px" }}>
         {stations.map((station, idx) => {
-          const items = MENU_DB[station.key] || [];
+          const items = (MENU_DB[station.key] || []).filter(i => !availableSet || availableSet.has(i.id));
           const count = getCount(station.key);
           const complete = count >= station.minSelect;
           return (
@@ -1259,6 +1260,17 @@ function App() {
   const [activeStations, setActiveStations] = useState(STATIONS_CONFIG.map(s => s.key));
   const [activeTablesStations, setActiveTablesStations] = useState(TABLES_STATIONS_CONFIG.map(s => s.key));
   const [includeSushi, setIncludeSushi] = useState(false);
+  const allTablesDishIds = useMemo(() => {
+    const ids = new Set();
+    [...TABLES_STATIONS_CONFIG, { key: "סושי שולחנות" }].forEach(s => (MENU_DB[s.key] || []).forEach(i => ids.add(i.id)));
+    return ids;
+  }, []);
+  const [tablesAvailable, setTablesAvailable] = useState(() => {
+    const s = new Set();
+    [...TABLES_STATIONS_CONFIG, { key: "סושי שולחנות" }].forEach(st => (MENU_DB[st.key] || []).forEach(i => s.add(i.id)));
+    return s;
+  });
+  const togAvail = useCallback((id) => { setTablesAvailable(p => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n; }); }, []);
   const [clientName, setClientName] = useState("");
   const [eventType, setEventType] = useState("");
   const [eventDate, setEventDate] = useState("");
@@ -1342,6 +1354,7 @@ function App() {
       c: childCount,
       m: isPrivate ? "private" : "tables",
       s: stationsForLink,
+      ...(isPrivate ? {} : { avail: [...tablesAvailable] }),
     };
     // Encode proposal as base64 in URL
     const data = btoa(unescape(encodeURIComponent(JSON.stringify(proposal))));
@@ -1360,7 +1373,7 @@ function App() {
     const msg = `שלום ${clientName},\nשמחים שבחרתם בפסאו!\n\nהנה הקישור לבחירת התפריט לאירוע שלכם:\n${link}\n\nבחרו את המנות המועדפות עליכם ואנחנו נדאג לכל השאר.\nלכל שאלה, אנחנו כאן.\n\nצוות פסאו ✦`;
     const encoded = encodeURIComponent(msg);
     window.open(`https://wa.me/?text=${encoded}`, "_blank");
-  }, [clientName, eventType, eventDate, eventTime, guestCount, childCount, eventMode, activeStations, activeTablesStations, includeSushi, saveToCrm]);
+  }, [clientName, eventType, eventDate, eventTime, guestCount, childCount, eventMode, activeStations, activeTablesStations, includeSushi, tablesAvailable, saveToCrm]);
 
   const shareWhatsApp = useCallback(async () => {
     const fmtDate = eventDate ? eventDate.split("-").reverse().join("-") : "";
@@ -1417,8 +1430,10 @@ function App() {
   const totV = Math.round(tot * 1.18);
 
   const byCat = useMemo(() => {
+    const excludeKeys = new Set([...STATIONS_CONFIG.map(s=>s.key), ...TABLES_STATIONS_CONFIG.map(s=>s.key), "סושי שולחנות"]);
     const r = {};
     for (const [cat,items] of Object.entries(MENU_DB)) {
+      if (excludeKeys.has(cat)) continue;
       const s = [...items.filter(i=>sel.has(i.id)), ...customs.filter(c=>c.category===cat&&sel.has(c.id))];
       if (s.length > 0) r[cat] = s;
     }
@@ -1569,50 +1584,34 @@ function App() {
                 );
               })}
             </>) : (<>
-              <div style={{ fontSize: 13, fontWeight: 700, color: F.gold, marginBottom: 16 }}>בחירת קטגוריות לתפריט</div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
-                {TABLES_STATIONS_CONFIG.map(s => {
-                  const active = activeTablesStations.includes(s.key);
-                  return (
-                    <button key={s.key} onClick={() => setActiveTablesStations(prev => active ? prev.filter(k => k !== s.key) : [...prev, s.key])} style={{ padding: "6px 14px", borderRadius: 20, border: `1px solid ${active ? F.gold : F.br}`, background: active ? "rgba(200,169,110,0.1)" : "transparent", color: active ? F.gold : F.dm, fontFamily: FN.body, fontSize: 12, fontWeight: 500, cursor: "pointer" }}>
-                      {active ? "✓ " : ""}{s.label} ({s.minSelect})
-                    </button>
-                  );
-                })}
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20, padding: "10px 14px", background: F.bg, borderRadius: 8, border: `1px solid ${F.br}` }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: F.gold, marginBottom: 6 }}>התאמת תפריט ללקוח</div>
+              <div style={{ fontSize: 11, color: F.dm, marginBottom: 16 }}>סמן את המנות שהלקוח יראה. הלקוח יבחר מהן לפי ההגבלות.</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16, padding: "10px 14px", background: F.bg, borderRadius: 8, border: `1px solid ${F.br}` }}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, fontWeight: 500 }}>סושי</div>
-                  <div style={{ fontSize: 10, color: F.dm }}>הוסף עמדת סושי לבחירת הלקוח</div>
+                  <div style={{ fontSize: 13, fontWeight: 500 }}>עמדת סושי</div>
+                  <div style={{ fontSize: 10, color: F.dm }}>הוסף סושי לבחירת הלקוח (3 מנות)</div>
                 </div>
                 <div onClick={() => setIncludeSushi(!includeSushi)} style={{ width: 42, height: 24, borderRadius: 12, position: "relative", cursor: "pointer", background: includeSushi ? F.gold : F.br, transition: "background 0.2s" }}>
                   <div style={{ width: 20, height: 20, borderRadius: "50%", background: "white", position: "absolute", top: 2, right: includeSushi ? 20 : 2, transition: "right 0.2s" }} />
                 </div>
               </div>
-              {[...TABLES_STATIONS_CONFIG.filter(s => activeTablesStations.includes(s.key)), ...(includeSushi ? [{ key: "סושי שולחנות", label: "סושי", subtitle: "3 מנות לבחירה", minSelect: 3, maxSelect: 3, img: "sushi" }] : [])].map(station => {
+              {[...TABLES_STATIONS_CONFIG, ...(includeSushi ? [{ key: "סושי שולחנות", label: "סושי", subtitle: "3 מנות לבחירה", minSelect: 3, maxSelect: 3 }] : [])].map(station => {
                 const items = MENU_DB[station.key] || [];
-                const selCount = items.filter(i => sel.has(i.id)).length;
+                const availCount = items.filter(i => tablesAvailable.has(i.id)).length;
                 return (
                   <div key={station.key} style={{ marginBottom: 20 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, paddingBottom: 6, borderBottom: "1px solid rgba(200,169,110,0.15)" }}>
                       <div>
                         <div style={{ fontSize: 13, fontWeight: 700, color: "#e8e2d8" }}>{station.label}</div>
-                        <div style={{ fontSize: 10, color: F.dm, marginTop: 2 }}>{station.subtitle}</div>
+                        <div style={{ fontSize: 10, color: F.dm, marginTop: 2 }}>הלקוח יבחר {station.minSelect} · {availCount} מנות זמינות</div>
                       </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <div style={{ fontSize: 11, fontWeight: 600, color: selCount >= station.minSelect ? "#4ade80" : F.gold }}>{selCount}/{station.maxSelect}</div>
-                        <svg width="28" height="28" viewBox="0 0 36 36">
-                          <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(200,169,110,0.15)" strokeWidth="3" />
-                          <circle cx="18" cy="18" r="15" fill="none" stroke={selCount >= station.minSelect ? "#4ade80" : F.gold} strokeWidth="3" strokeDasharray={`${(selCount / station.maxSelect) * 94.2} 94.2`} strokeLinecap="round" transform="rotate(-90 18 18)" style={{ transition: "stroke-dasharray 0.4s ease" }} />
-                        </svg>
-                      </div>
+                      <button onClick={() => { const ids = items.map(i=>i.id); const allOn = ids.every(id=>tablesAvailable.has(id)); setTablesAvailable(p => { const n = new Set(p); ids.forEach(id => allOn ? n.delete(id) : n.add(id)); return n; }); }} style={{ padding: "4px 10px", borderRadius: 4, border: `1px solid ${F.br}`, background: "none", color: F.dm, fontFamily: FN.body, fontSize: 10, cursor: "pointer" }}>{items.every(i=>tablesAvailable.has(i.id)) ? "הסר הכל" : "סמן הכל"}</button>
                     </div>
                     {items.map(item => {
-                      const isSelected = sel.has(item.id);
-                      const atMax = selCount >= station.maxSelect && !isSelected;
+                      const avail = tablesAvailable.has(item.id);
                       return (
-                        <div key={item.id} onClick={() => { if (atMax && !isSelected) return; tog(item.id); }} style={{ display: "flex", gap: 10, padding: "7px 0", cursor: atMax ? "not-allowed" : "pointer", opacity: atMax ? 0.35 : 1 }}>
-                          <div style={{ width: 20, height: 20, borderRadius: 4, flexShrink: 0, marginTop: 1, display: "flex", alignItems: "center", justifyContent: "center", background: isSelected?F.gold:F.bg, border: `1.5px solid ${isSelected?F.gold:F.br}`, fontSize: 12, fontWeight: 700, color: F.bg }}>{isSelected && "✓"}</div>
+                        <div key={item.id} onClick={() => togAvail(item.id)} style={{ display: "flex", gap: 10, padding: "7px 0", cursor: "pointer", opacity: avail ? 1 : 0.4 }}>
+                          <div style={{ width: 20, height: 20, borderRadius: 4, flexShrink: 0, marginTop: 1, display: "flex", alignItems: "center", justifyContent: "center", background: avail ? "#4ade80" : F.bg, border: `1.5px solid ${avail ? "#4ade80" : F.br}`, fontSize: 12, fontWeight: 700, color: "#1a1a1a" }}>{avail && "✓"}</div>
                           <div style={{flex:1}}>
                             <div style={{ fontSize: 13, fontWeight: 500 }}>{item.name}</div>
                             {item.desc && <div style={{ fontSize: 10.5, color: F.dm, lineHeight: 1.5, marginTop: 2 }}>{item.desc}</div>}

@@ -1430,8 +1430,10 @@ function App() {
   const totV = Math.round(tot * 1.18);
 
   const byCat = useMemo(() => {
+    const excludeKeys = new Set([...STATIONS_CONFIG.map(s=>s.key), ...TABLES_STATIONS_CONFIG.map(s=>s.key), "סושי שולחנות"]);
     const r = {};
     for (const [cat,items] of Object.entries(MENU_DB)) {
+      if (excludeKeys.has(cat)) continue;
       const s = [...items.filter(i=>sel.has(i.id)), ...customs.filter(c=>c.category===cat&&sel.has(c.id))];
       if (s.length > 0) r[cat] = s;
     }
