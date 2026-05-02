@@ -870,6 +870,28 @@ function CrmView() {
                     <div style={{ fontSize: 12, color: "#ccc" }}>{subModal.notes}</div>
                   </div>
                 )}
+                <button onClick={() => {
+                  const allItems = Object.values(MENU_DB).flat();
+                  const selectedIds = new Set();
+                  if (subModal.selections) {
+                    Object.values(subModal.selections).forEach(dishes => {
+                      dishes.forEach(name => {
+                        const found = allItems.find(i => i.name === name);
+                        if (found) selectedIds.add(found.id);
+                      });
+                    });
+                  }
+                  setClientName(subModal.clientName || "");
+                  setEventType(subModal.eventType || "");
+                  setEventDate(subModal.eventDate || "");
+                  setSel(selectedIds);
+                  setSubModal(null);
+                  setCrmTab("leads");
+                  setTab("preview");
+                  setPg(0);
+                }} style={{ width: "100%", marginTop: 16, padding: 14, background: "#c8a96e", color: "#1a1a1a", border: "none", borderRadius: 10, fontFamily: "'Heebo', sans-serif", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                  צור הצעת מחיר מבחירות הלקוח
+                </button>
               </div>
             </div>
           </div>
@@ -1372,7 +1394,7 @@ function App() {
     const fmtDate = eventDate ? eventDate.split("-").reverse().join("-") : "";
     const msg = `שלום ${clientName},\nשמחים שבחרתם בפסאו!\n\nהנה הקישור לבחירת התפריט לאירוע שלכם:\n${link}\n\nבחרו את המנות המועדפות עליכם ואנחנו נדאג לכל השאר.\nלכל שאלה, אנחנו כאן.\n\nצוות פסאו ✦`;
     const encoded = encodeURIComponent(msg);
-    window.open(`https://wa.me/?text=${encoded}`, "_blank");
+    window.open(`https://api.whatsapp.com/send?text=${encoded}`, "_blank");
   }, [clientName, eventType, eventDate, eventTime, guestCount, childCount, eventMode, activeStations, activeTablesStations, includeSushi, tablesAvailable, saveToCrm]);
 
   const shareWhatsApp = useCallback(async () => {
@@ -1491,7 +1513,7 @@ function App() {
                 <div style={{ fontSize: 14, fontWeight: 600, color: eventMode==="private"?F.gold:F.tx }}>אירוע פרטי</div>
                 <div style={{ fontSize: 11, color: F.dm, marginTop: 4 }}>80+ אורחים · תפריט עמדות</div>
               </div>
-              <div onClick={()=>setEventMode("tables")} style={{ padding: "16px 12px", background: eventMode==="tables"?"rgba(200,169,110,0.08)":F.bg, border: `${eventMode==="tables"?"2px":"1px"} solid ${eventMode==="tables"?F.gold:F.br}`, borderRadius: 10, cursor: "pointer", textAlign: "center", transition: "all 0.2s" }}>
+              <div onClick={()=>{setEventMode("tables");setSel(new Set());}} style={{ padding: "16px 12px", background: eventMode==="tables"?"rgba(200,169,110,0.08)":F.bg, border: `${eventMode==="tables"?"2px":"1px"} solid ${eventMode==="tables"?F.gold:F.br}`, borderRadius: 10, cursor: "pointer", textAlign: "center", transition: "all 0.2s" }}>
                 <div style={{ fontSize: 22, marginBottom: 6 }}>🍽️</div>
                 <div style={{ fontSize: 14, fontWeight: 600, color: eventMode==="tables"?F.gold:F.tx }}>שולחנות</div>
                 <div style={{ fontSize: 11, color: F.dm, marginTop: 4 }}>10-70 אורחים · הרמת כוסית, יום הולדת</div>
