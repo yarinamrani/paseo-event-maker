@@ -694,7 +694,7 @@ function CrmModal({ lead, onSave, onDelete, onClose }) {
               <div><label>סוג אירוע</label>
                 <select value={f.eventType} onChange={e=>u("eventType",e.target.value)}>
                   <option value="">בחר</option>
-                  {["הצעת נישואין","חתונה","יום הולדת","הרמת כוסית","חינה","בר/בת מצווה","אירוע חברה","השקה","ברית/הברית","אירוע פרטי","אחר"].map(t=><option key={t} value={t}>{t}</option>)}
+                  {["הצעת נישואין","חתונה","יום הולדת","מסיבת רווקות","הרמת כוסית","חינה","בר/בת מצווה","אירוע חברה","השקה","ברית/הברית","אירוע פרטי","אחר"].map(t=><option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
             </div>
@@ -1554,7 +1554,7 @@ function App() {
               <div><label style={lbl}>סוג אירוע</label>
                 <select style={{...inp, direction: "ltr", textAlign: "right", textAlignLast: "right", WebkitAppearance: "none", MozAppearance: "none", appearance: "none", backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "left 12px center", paddingLeft: 32 }} value={eventType} onChange={e=>setEventType(e.target.value)}>
                   <option value="">בחר סוג אירוע</option>
-                  {["הצעת נישואין","חתונה","יום הולדת","הרמת כוסית","חינה","בר/בת מצווה","אירוע חברה","השקה","אחר"].map(v=><option key={v} value={v}>{v}</option>)}
+                  {["הצעת נישואין","חתונה","יום הולדת","מסיבת רווקות","הרמת כוסית","חינה","בר/בת מצווה","אירוע חברה","השקה","אחר"].map(v=><option key={v} value={v}>{v}</option>)}
                 </select>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
