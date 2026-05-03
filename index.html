@@ -73,10 +73,10 @@
     .crm-del { background: none; color: #f87171; border: 1px solid rgba(248,113,113,0.3); border-radius: 6px; padding: 8px 14px; font-family: 'Heebo', sans-serif; font-size: 12px; cursor: pointer; margin-right: auto; }
     .crm-empty { text-align: center; padding: 40px 20px; color: #666; font-size: 14px; }
   </style>
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -1308,7 +1308,7 @@ function ClientMenuPage({ proposal }) {
   );
 }
 
-function App() {
+function App({ onLogout }) {
   const [tab, setTab] = useState("form");
   const [pg, setPg] = useState(0);
   const [eventMode, setEventMode] = useState(""); // "private" (80+) or "tables" (10-70)
@@ -1524,8 +1524,9 @@ function App() {
             {t.l}
           </button>
         ))}
-        <div style={{ padding: "8px 12px", display: "flex", alignItems: "center" }}>
+        <div style={{ padding: "8px 12px", display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontFamily: FN.brand, fontSize: 13, letterSpacing: 3, color: F.gold, direction: "ltr" }}>PASEO</span>
+          {onLogout && <button onClick={onLogout} style={{ background: "none", border: "none", color: "#666", fontSize: 11, cursor: "pointer", fontFamily: FN.body, padding: "2px 6px" }} title="התנתק">⏻</button>}
         </div>
       </div>
 
@@ -1786,14 +1787,29 @@ function App() {
     }
 
     const ADMIN_PASS = "1234";
+    const AUTH_KEY = "paseo_auth";
+    const AUTH_EXPIRY_DAYS = 7;
+
+    function checkAuth() {
+      try {
+        const raw = localStorage.getItem(AUTH_KEY);
+        if (!raw) return false;
+        const { ts } = JSON.parse(raw);
+        if (Date.now() - ts > AUTH_EXPIRY_DAYS * 86400000) { localStorage.removeItem(AUTH_KEY); return false; }
+        return true;
+      } catch { localStorage.removeItem(AUTH_KEY); return false; }
+    }
+    function setAuth() { localStorage.setItem(AUTH_KEY, JSON.stringify({ v: 1, ts: Date.now() })); }
+    function clearAuth() { localStorage.removeItem(AUTH_KEY); }
 
     function LoginGate({ children }) {
-      const [authed, setAuthed] = useState(() => localStorage.getItem("paseo_auth") === "1");
+      const [authed, setAuthed] = useState(checkAuth);
       const [pin, setPin] = useState("");
       const [err, setErr] = useState(false);
-      if (authed) return children;
+      const logout = () => { clearAuth(); setAuthed(false); };
+      if (authed) return React.cloneElement(children, { onLogout: logout });
       const tryLogin = () => {
-        if (pin === ADMIN_PASS) { localStorage.setItem("paseo_auth", "1"); setAuthed(true); }
+        if (pin === ADMIN_PASS) { setAuth(); setAuthed(true); }
         else { setErr(true); setPin(""); setTimeout(() => setErr(false), 1500); }
       };
       return (
