@@ -753,7 +753,7 @@ function CrmView() {
   useEffect(() => {
     crmSyncDown().then(data => { if (data && data.length) { const local = crmLoad(); const merged = [...data]; local.forEach(l => { if (!merged.find(m => m.id === l.id)) merged.push(l); }); merged.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)); setLeads(merged); } });
     // Load submissions
-    (async () => { try { const { data } = await supabase.from("submissions").select("*").order("submittedAt", { ascending: false }); if (data) setSubmissions(data); } catch(e) { console.warn("submissions load err", e); } })();
+    (async () => { try { const { data, error } = await supabase.from("submissions").select("*").order("submittedAt", { ascending: false }); if (error) console.error("submissions load error:", error); if (data) setSubmissions(data); } catch(e) { console.warn("submissions load err", e); } })();
   }, []);
 
   const stats = useMemo(() => {
@@ -1066,8 +1066,17 @@ function ClientMenuPage({ proposal }) {
         submittedAt: new Date().toISOString(),
         status: "client_submitted",
       };
-      await supabase.from("submissions").upsert([submission], { onConflict: "id" });
-    } catch(e) { console.warn("submission save err", e); }
+      const { error } = await supabase.from("submissions").upsert([submission], { onConflict: "id" });
+      if (error) {
+        console.error("Supabase submission error:", error);
+        alert("שגיאה בשמירה, נסו שוב מאוחר יותר");
+        return;
+      }
+    } catch(e) {
+      console.error("submission save err", e);
+      alert("שגיאה בשמירה, נסו שוב מאוחר יותר");
+      return;
+    }
 
     setSubmitted(true);
   };
