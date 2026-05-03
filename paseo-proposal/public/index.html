@@ -740,7 +740,7 @@ function CrmModal({ lead, onSave, onDelete, onClose }) {
   );
 }
 
-function CrmView() {
+function CrmView({ onLoadSubmission }) {
   const [leads, setLeads] = useState(crmLoad);
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState("all");
@@ -871,24 +871,10 @@ function CrmView() {
                   </div>
                 )}
                 <button onClick={() => {
-                  const allItems = Object.values(MENU_DB).flat();
-                  const selectedIds = new Set();
-                  if (subModal.selections) {
-                    Object.values(subModal.selections).forEach(dishes => {
-                      dishes.forEach(name => {
-                        const found = allItems.find(i => i.name === name);
-                        if (found) selectedIds.add(found.id);
-                      });
-                    });
+                  if (onLoadSubmission) {
+                    onLoadSubmission(subModal);
+                    setSubModal(null);
                   }
-                  setClientName(subModal.clientName || "");
-                  setEventType(subModal.eventType || "");
-                  setEventDate(subModal.eventDate || "");
-                  setSel(selectedIds);
-                  setSubModal(null);
-                  setCrmTab("leads");
-                  setTab("preview");
-                  setPg(0);
                 }} style={{ width: "100%", marginTop: 16, padding: 14, background: "#c8a96e", color: "#1a1a1a", border: "none", borderRadius: 10, fontFamily: "'Heebo', sans-serif", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
                   צור הצעת מחיר מבחירות הלקוח
                 </button>
@@ -1510,7 +1496,24 @@ function App() {
         </div>
       </div>
 
-      {tab === "crm" && <CrmView />}
+      {tab === "crm" && <CrmView onLoadSubmission={(sub) => {
+        const allItems = Object.values(MENU_DB).flat();
+        const selectedIds = new Set();
+        if (sub.selections) {
+          Object.values(sub.selections).forEach(dishes => {
+            dishes.forEach(name => {
+              const found = allItems.find(i => i.name === name);
+              if (found) selectedIds.add(found.id);
+            });
+          });
+        }
+        setClientName(sub.clientName || "");
+        setEventType(sub.eventType || "");
+        setEventDate(sub.eventDate || "");
+        setSel(selectedIds);
+        setTab("preview");
+        setPg(0);
+      }} />}
 
       {tab === "form" && (
         <div style={{ flex: 1, overflow: "auto", paddingBottom: 80 }}>
