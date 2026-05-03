@@ -1008,7 +1008,7 @@ function ClientMenuPage({ proposal }) {
   const defaultConfig = proposal.m === "tables" ? TABLES_STATIONS_CONFIG : STATIONS_CONFIG;
   const stationKeys = proposal.s || defaultConfig.map(s => s.key);
   const availableSet = proposal.avail ? new Set(proposal.avail) : null;
-  const stations = (proposal.m === "tables" ? TABLES_STATIONS_CONFIG : STATIONS_CONFIG).filter(s => stationKeys.includes(s.key) && MENU_DB[s.key]);
+  const stations = (proposal.m === "tables" ? TABLES_STATIONS_CONFIG : STATIONS_CONFIG).filter(s => stationKeys.includes(s.key) && MENU_DB[s.key] && (!availableSet || (MENU_DB[s.key] || []).some(i => availableSet.has(i.id))));
 
   const getCount = (stationKey) => {
     return (selections[stationKey] || []).length;
