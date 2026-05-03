@@ -1373,10 +1373,21 @@ function App() {
       s: stationsForLink,
       ...(isPrivate ? {} : { avail: [...tablesAvailable] }),
     };
-    // Encode proposal as base64 in URL
-    const data = btoa(unescape(encodeURIComponent(JSON.stringify(proposal))));
+    // Save to Supabase and use short code in URL
     const baseUrl = window.location.origin + window.location.pathname;
-    const link = `${baseUrl}?p=${data}`;
+    let link;
+    const shortCode = "P" + Array.from(crypto.getRandomValues(new Uint8Array(5)), b => b.toString(36)).join("").slice(0, 8);
+    try {
+      const { error } = await supabase.from("proposals").upsert([{ id: shortCode, data: proposal, createdAt: new Date().toISOString() }], { onConflict: "id" });
+      if (!error) {
+        link = `${baseUrl}?p=${shortCode}`;
+      }
+    } catch(e) { console.warn("proposal save err", e); }
+    // Fallback to base64 URL if Supabase failed
+    if (!link) {
+      const data = btoa(unescape(encodeURIComponent(JSON.stringify(proposal))));
+      link = `${baseUrl}?p=${data}`;
+    }
     setClientLink(link);
 
     // Also save to CRM leads
@@ -1750,35 +1761,55 @@ function App() {
 }
 
 
-    // Route: if ?client=PROPOSAL_ID is in URL, show client page
-        function Root() {
+    function parseProposalData(data) {
+      const activeKeys = data.s || (data.m === "tables" ? TABLES_STATIONS_CONFIG : STATIONS_CONFIG).map(s => s.key);
+      return {
+        clientName: data.n || "",
+        eventType: data.t || "",
+        eventDate: data.d || "",
+        eventTime: data.tm || "",
+        guestCount: data.g || "",
+        childCount: data.c || "",
+        m: data.m || "private",
+        s: activeKeys,
+        avail: data.avail || null,
+      };
+    }
+
+    function Root() {
       const params = new URLSearchParams(window.location.search);
       const encodedData = params.get("p");
+      const [proposal, setProposal] = useState(null);
+      const [loading, setLoading] = useState(!!encodedData);
+      const [notFound, setNotFound] = useState(false);
+
+      useEffect(() => {
+        if (!encodedData) { setLoading(false); return; }
+        if (encodedData.length < 50) {
+          (async () => {
+            try {
+              const { data, error } = await supabase.from("proposals").select("data").eq("id", encodedData).single();
+              if (!error && data && data.data) { setProposal(parseProposalData(data.data)); setLoading(false); return; }
+            } catch(e) { console.warn("proposal lookup err", e); }
+            setNotFound(true); setLoading(false);
+          })();
+        } else {
+          try {
+            const json = decodeURIComponent(escape(atob(encodedData)));
+            const parsed = JSON.parse(json);
+            setProposal(parseProposalData(parsed));
+          } catch(e) { console.warn("decode err", e); setNotFound(true); }
+          setLoading(false);
+        }
+      }, []);
 
       if (!encodedData) return <App />;
-
-      // Decode proposal from URL
-      let proposal = null;
-      try {
-        const json = decodeURIComponent(escape(atob(encodedData)));
-        const data = JSON.parse(json);
-        const activeKeys = data.s || (data.m === "tables" ? TABLES_STATIONS_CONFIG : STATIONS_CONFIG).map(s => s.key);
-        proposal = {
-          clientName: data.n || "",
-          eventType: data.t || "",
-          eventDate: data.d || "",
-          eventTime: data.tm || "",
-          guestCount: data.g || "",
-          childCount: data.c || "",
-          m: data.m || "private",
-          s: activeKeys,
-          avail: data.avail || null,
-        };
-      } catch(e) {
-        console.warn("decode err", e);
-      }
-
-      if (!proposal) return (
+      if (loading) return (
+        <div style={{ minHeight: "100vh", background: "#1a1a1a", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ textAlign: "center", color: "rgba(200,169,110,0.7)", fontFamily: "'Heebo', sans-serif", fontSize: 15 }}>טוען תפריט...</div>
+        </div>
+      );
+      if (notFound || !proposal) return (
         <div style={{ minHeight: "100vh", background: "#1a1a1a", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ textAlign: "center", color: "rgba(255,255,255,0.5)", fontFamily: "'Heebo', sans-serif" }}>
             <div style={{ fontSize: 18, marginBottom: 8 }}>הקישור לא נמצא</div>
