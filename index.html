@@ -1008,7 +1008,7 @@ function ClientMenuPage({ proposal }) {
   const defaultConfig = proposal.m === "tables" ? TABLES_STATIONS_CONFIG : STATIONS_CONFIG;
   const stationKeys = proposal.s || defaultConfig.map(s => s.key);
   const availableSet = proposal.avail ? new Set(proposal.avail) : null;
-  const stations = (proposal.m === "tables" ? [...TABLES_STATIONS_CONFIG, { key: "סושי שולחנות", label: "סושי", subtitle: "3 מנות לבחירה", minSelect: 3, maxSelect: 3, img: "sushi" }] : STATIONS_CONFIG).filter(s => stationKeys.includes(s.key) && MENU_DB[s.key]);
+  const stations = (proposal.m === "tables" ? TABLES_STATIONS_CONFIG : STATIONS_CONFIG).filter(s => stationKeys.includes(s.key) && MENU_DB[s.key]);
 
   const getCount = (stationKey) => {
     return (selections[stationKey] || []).length;
@@ -1314,15 +1314,14 @@ function App() {
   const [eventMode, setEventMode] = useState(""); // "private" (80+) or "tables" (10-70)
   const [activeStations, setActiveStations] = useState(STATIONS_CONFIG.map(s => s.key));
   const [activeTablesStations, setActiveTablesStations] = useState(TABLES_STATIONS_CONFIG.map(s => s.key));
-  const [includeSushi, setIncludeSushi] = useState(false);
   const allTablesDishIds = useMemo(() => {
     const ids = new Set();
-    [...TABLES_STATIONS_CONFIG, { key: "סושי שולחנות" }].forEach(s => (MENU_DB[s.key] || []).forEach(i => ids.add(i.id)));
+    TABLES_STATIONS_CONFIG.forEach(s => (MENU_DB[s.key] || []).forEach(i => ids.add(i.id)));
     return ids;
   }, []);
   const [tablesAvailable, setTablesAvailable] = useState(() => {
     const s = new Set();
-    [...TABLES_STATIONS_CONFIG, { key: "סושי שולחנות" }].forEach(st => (MENU_DB[st.key] || []).forEach(i => s.add(i.id)));
+    TABLES_STATIONS_CONFIG.forEach(st => (MENU_DB[st.key] || []).forEach(i => s.add(i.id)));
     return s;
   });
   const togAvail = useCallback((id) => { setTablesAvailable(p => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n; }); }, []);
@@ -1397,7 +1396,7 @@ function App() {
     const generateClientLink = useCallback(async () => {
     if (!clientName.trim()) { alert("נא להזין שם לקוח"); return; }
     const isPrivate = eventMode === "private";
-    const stationsForLink = isPrivate ? activeStations : [...activeTablesStations, ...(includeSushi ? ["סושי שולחנות"] : [])];
+    const stationsForLink = isPrivate ? activeStations : activeTablesStations;
     const proposal = {
       n: clientName.trim(),
       t: eventType,
@@ -1437,7 +1436,7 @@ function App() {
     const msg = `שלום ${clientName},\nשמחים שבחרתם בפסאו!\n\nהנה הקישור לבחירת התפריט לאירוע שלכם:\n${link}\n\nבחרו את המנות המועדפות עליכם ואנחנו נדאג לכל השאר.\nלכל שאלה, אנחנו כאן.\n\nצוות פסאו ✦`;
     const encoded = encodeURIComponent(msg);
     window.open(`https://api.whatsapp.com/send?text=${encoded}`, "_blank");
-  }, [clientName, eventType, eventDate, eventTime, guestCount, childCount, eventMode, activeStations, activeTablesStations, includeSushi, tablesAvailable, saveToCrm]);
+  }, [clientName, eventType, eventDate, eventTime, guestCount, childCount, eventMode, activeStations, activeTablesStations, tablesAvailable, saveToCrm]);
 
   const shareWhatsApp = useCallback(async () => {
     const fmtDate = eventDate ? eventDate.split("-").reverse().join("-") : "";
@@ -1495,7 +1494,7 @@ function App() {
 
   const byCat = useMemo(() => {
     const stationKeys = new Set(STATIONS_CONFIG.map(s=>s.key));
-    const tablesKeys = new Set([...TABLES_STATIONS_CONFIG.map(s=>s.key), "סושי שולחנות"]);
+    const tablesKeys = new Set(TABLES_STATIONS_CONFIG.map(s=>s.key));
     const hasTablesItems = [...tablesKeys].some(key => (MENU_DB[key] || []).some(i => sel.has(i.id)));
     const hasStationItems = [...stationKeys].some(key => (MENU_DB[key] || []).some(i => sel.has(i.id)));
     const excludeKeys = hasTablesItems ? stationKeys : hasStationItems ? tablesKeys : new Set([...stationKeys, ...tablesKeys]);
@@ -1531,7 +1530,7 @@ function App() {
       {tab === "crm" && <CrmView onLoadSubmission={(sub) => {
         const selectedIds = new Set();
         const labelToKey = {};
-        [...STATIONS_CONFIG, ...TABLES_STATIONS_CONFIG, { key: "סושי שולחנות", label: "סושי" }].forEach(c => { labelToKey[c.label] = c.key; });
+        [...STATIONS_CONFIG, ...TABLES_STATIONS_CONFIG].forEach(c => { labelToKey[c.label] = c.key; });
         if (sub.selections) {
           Object.entries(sub.selections).forEach(([label, dishes]) => {
             const key = labelToKey[label] || label;
@@ -1648,16 +1647,7 @@ function App() {
             </>) : (<>
               <div style={{ fontSize: 13, fontWeight: 700, color: F.gold, marginBottom: 6 }}>התאמת תפריט ללקוח</div>
               <div style={{ fontSize: 11, color: F.dm, marginBottom: 16 }}>סמן את המנות שהלקוח יראה. הלקוח יבחר מהן לפי ההגבלות.</div>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16, padding: "10px 14px", background: F.bg, borderRadius: 8, border: `1px solid ${F.br}` }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, fontWeight: 500 }}>עמדת סושי</div>
-                  <div style={{ fontSize: 10, color: F.dm }}>הוסף סושי לבחירת הלקוח (3 מנות)</div>
-                </div>
-                <div onClick={() => setIncludeSushi(!includeSushi)} style={{ width: 42, height: 24, borderRadius: 12, position: "relative", cursor: "pointer", background: includeSushi ? F.gold : F.br, transition: "background 0.2s" }}>
-                  <div style={{ width: 20, height: 20, borderRadius: "50%", background: "white", position: "absolute", top: 2, right: includeSushi ? 20 : 2, transition: "right 0.2s" }} />
-                </div>
-              </div>
-              {[...TABLES_STATIONS_CONFIG, ...(includeSushi ? [{ key: "סושי שולחנות", label: "סושי", subtitle: "3 מנות לבחירה", minSelect: 3, maxSelect: 3 }] : [])].map(station => {
+              {TABLES_STATIONS_CONFIG.map(station => {
                 const items = MENU_DB[station.key] || [];
                 const availCount = items.filter(i => tablesAvailable.has(i.id)).length;
                 return (
