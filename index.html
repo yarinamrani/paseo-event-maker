@@ -279,6 +279,13 @@ const MENU_DB = {
     { id: "te11", name: "פיש & ציפס", desc: "דג לבן בטמפורה ופנקו | צ'יפס אמריקאי" },
     { id: "te12", name: "נודלס", desc: "אטריות חיטה | גמבה | כרוב | רוטב פאד תאי | בוטנים | כוסברה" },
   ],
+  "פלטת בשרים": [
+    { id: "pb1", name: "מרגז", desc: "נקניקיות מרגז ביתיות על הגריל" },
+    { id: "pb2", name: "קבב", desc: "קבב בקר וטלה | תבלינים מזרחיים" },
+    { id: "pb3", name: "פרגיות", desc: "פרגיות צלויות על הפלאנצ'ה | תיבול הבית" },
+    { id: "pb4", name: "המבורגרים", desc: "המבורגר בקר | באן ביתי" },
+    { id: "pb5", name: "אנטריקוט", desc: "אנטריקוט על הגריל" },
+  ],
   "קינוחים שולחנות": [
     { id: "td1", name: "פטיפורים וקינוחי ביס פרווה", desc: "" },
     { id: "td2", name: "ברולה", desc: "תחתית קראמבל | קרם ברולה | קולי פסיפלורה" },
@@ -316,6 +323,7 @@ const TABLES_STATIONS_CONFIG = [
   { key: "סלטים", label: "סלטים", subtitle: "2 מנות לבחירה", minSelect: 2, maxSelect: 2, img: "terrace" },
   { key: "דג נא", label: "דג נא", subtitle: "מנה אחת לבחירה", minSelect: 1, maxSelect: 1, img: "sushi" },
   { key: "עיקריות", label: "עיקריות", subtitle: "4 מנות לבחירה", minSelect: 4, maxSelect: 4, img: "mains" },
+  { key: "פלטת בשרים", label: "פלטת בשרים", subtitle: "4-5 פריטים לבחירה", minSelect: 4, maxSelect: 5, img: "mains" },
   { key: "קינוחים שולחנות", label: "קינוחים", subtitle: "2 מנות לבחירה", minSelect: 2, maxSelect: 2, img: "cheers" },
 ];
 
@@ -396,7 +404,7 @@ const MENU_PHOTOS = {
 };
 
 // === PAGE 1: MENU (Stolero light style) ===
-function MenuPage({ menuTitle, menuType, categories, supplementPrice }) {
+function MenuPage({ menuType, categories, supplementPrice }) {
   const hasPremium = categories["תוספת פרימיום"]?.length > 0;
   const photoSet = MENU_PHOTOS[menuType] || MENU_PHOTOS["בשרי"];
   const photos = photoSet.strip;
@@ -432,7 +440,7 @@ function MenuPage({ menuTitle, menuType, categories, supplementPrice }) {
       <div style={{ width: contentW, display: "flex", flexDirection: "column", height: 1123, maxHeight: 1123, overflow: "hidden", direction: "rtl" }}>
         <div style={{ padding: topPad, textAlign: "center" }}>
           <Logo size={logoSize} />
-          <div style={{ fontFamily: FN.title, fontSize: titleFs, fontWeight: 700, color: S.title, margin: "6px 0 0" }}>{menuTitle}</div>
+          <div style={{ fontFamily: FN.title, fontSize: titleFs, fontWeight: 700, color: S.title, margin: "6px 0 0" }}>התפריט</div>
         </div>
         <div style={{ padding: contentPad, flex: 1, overflow: "hidden" }}>
           {Object.entries(categories).map(([cat, items]) => {
@@ -476,7 +484,7 @@ function MenuPage({ menuTitle, menuType, categories, supplementPrice }) {
 }
 
 // === PAGE 2: PRICING ===
-function PricingPage({ clientName, eventType, eventDate, eventTime, guestCount, pricePerGuest, childCount, pricePerChild, menuTitle, menuType, services, cocktailUpgrade, foodTotal, totalBeforeVat, totalWithVat, servicePct, drinkPackage }) {
+function PricingPage({ clientName, eventType, eventDate, eventTime, guestCount, pricePerGuest, childCount, pricePerChild, menuType, services, cocktailUpgrade, foodTotal, totalBeforeVat, totalWithVat, servicePct, drinkPackage }) {
   const td = { fontFamily: FN.body, fontSize: 10.5, fontWeight: 300, color: S.text, padding: "7px 5px", textAlign: "center", borderBottom: `1px solid ${S.line}` };
   const photoSet = MENU_PHOTOS[menuType] || MENU_PHOTOS["בשרי"];
   const photos = photoSet.pricing;
@@ -507,7 +515,7 @@ function PricingPage({ clientName, eventType, eventDate, eventTime, guestCount, 
             </tr></thead>
             <tbody>
               <tr>
-                <td style={{ ...td, textAlign: "right", fontWeight: 600 }}>{menuTitle}</td>
+                <td style={{ ...td, textAlign: "right", fontWeight: 600 }}>אירוח קולינרי</td>
                 <td style={td}>מבוגרים</td>
                 <td style={td}>{guestCount}</td>
                 <td style={td}>{fmt(parseInt(pricePerGuest) || 0)}</td>
@@ -515,7 +523,7 @@ function PricingPage({ clientName, eventType, eventDate, eventTime, guestCount, 
               </tr>
               {(parseInt(childCount)||0) > 0 && (
                 <tr>
-                  <td style={{ ...td, textAlign: "right", fontWeight: 600 }}>{menuTitle}</td>
+                  <td style={{ ...td, textAlign: "right", fontWeight: 600 }}>אירוח קולינרי</td>
                   <td style={td}>ילדים (עד גיל 13)</td>
                   <td style={td}>{childCount}</td>
                   <td style={td}>{fmt(parseInt(pricePerChild) || 0)}</td>
@@ -1297,8 +1305,7 @@ function App() {
   const [pricePerGuest, setPricePerGuest] = useState("350");
   const [childCount, setChildCount] = useState("");
   const [pricePerChild, setPricePerChild] = useState("");
-  const [menuTitle, setMenuTitle] = useState("תפריט בשרי");
-  const [menuType, setMenuType] = useState("בשרי");
+  const menuType = "בשרי";
   const [supplementPrice, setSupplementPrice] = useState("20");
   const [cocktailUpgrade, setCocktailUpgrade] = useState("2500");
   const [validDays, setValidDays] = useState("7");
@@ -1315,7 +1322,6 @@ function App() {
   const tog = useCallback((id) => { setSel(p => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n; }); }, []);
   const uSvc = useCallback((i,f,v) => { setServices(p => p.map((s,x) => x===i ? {...s,[f]:v} : s)); }, []);
   const addC = useCallback((cat) => { if (!cn.trim()) return; const id="c_"+Date.now(); setCustoms(p=>[...p,{id,name:cn,desc:cd,category:cat}]); setSel(p=>new Set([...p,id])); setCn(""); setCd(""); setShowCF(null); }, [cn,cd]);
-  const applyPreset = useCallback((type) => { const preset = PRESETS[type]; if (preset) setSel(new Set(preset)); }, []);
 
   const [crmSaved, setCrmSaved] = useState(false);
 
@@ -1554,11 +1560,6 @@ function App() {
                 <div><label style={lbl}>מחיר לילד ₪</label><input type="number" style={inp} value={pricePerChild} onChange={e=>setPricePerChild(e.target.value)} placeholder="0" /></div>
               </div>
               {eventMode !== "private" && <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <div><label style={lbl}>סוג תפריט</label>
-                  <select style={{...inp, direction: "ltr", textAlign: "right"}} value={menuType} onChange={e=>{const v=e.target.value;setMenuType(v);setMenuTitle(`תפריט ${v}`);applyPreset(v);}}>
-                    {["בשרי","חלבי","חלבי-פרימיום","אומינו כשר"].map(v=><option key={v} value={v}>{v}</option>)}
-                  </select>
-                </div>
                 <div><label style={lbl}>תוקף (ימים)</label><input type="number" style={inp} value={validDays} onChange={e=>setValidDays(e.target.value)} /></div>
               </div>}
               {eventMode !== "private" && <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -1698,8 +1699,8 @@ function App() {
             ))}
           </div>
           <Preview>
-            {pg < menuPages.length && <MenuPage menuTitle={menuTitle} menuType={menuType} categories={menuPages[pg]} supplementPrice={supplementPrice} />}
-            {pg === menuPages.length && <PricingPage clientName={clientName} eventType={eventType} eventDate={eventDate} eventTime={eventTime} guestCount={guestCount} pricePerGuest={pricePerGuest} childCount={childCount} pricePerChild={pricePerChild} menuTitle={menuTitle} menuType={menuType} services={services} cocktailUpgrade={cocktailUpgrade} foodTotal={foodT} totalBeforeVat={tot} totalWithVat={totV} servicePct={servicePct} drinkPackage={drinkPackage} />}
+            {pg < menuPages.length && <MenuPage menuType={menuType} categories={menuPages[pg]} supplementPrice={supplementPrice} />}
+            {pg === menuPages.length && <PricingPage clientName={clientName} eventType={eventType} eventDate={eventDate} eventTime={eventTime} guestCount={guestCount} pricePerGuest={pricePerGuest} childCount={childCount} pricePerChild={pricePerChild} menuType={menuType} services={services} cocktailUpgrade={cocktailUpgrade} foodTotal={foodT} totalBeforeVat={tot} totalWithVat={totV} servicePct={servicePct} drinkPackage={drinkPackage} />}
             {pg === menuPages.length + 1 && <TermsPage validDays={validDays} menuType={menuType} />}
           </Preview>
         </div>
@@ -1708,8 +1709,8 @@ function App() {
       {/* Print mode - all 3 pages stacked for PDF */}
       {printing && (
         <div id="print-area" style={{ position: "absolute", left: 0, top: 0, width: 794, background: "#fff", zIndex: 9999, overflow: "visible" }}>
-          {menuPages.map((cats, i) => <MenuPage key={i} menuTitle={menuTitle} menuType={menuType} categories={cats} supplementPrice={supplementPrice} />)}
-          <PricingPage clientName={clientName} eventType={eventType} eventDate={eventDate} eventTime={eventTime} guestCount={guestCount} pricePerGuest={pricePerGuest} childCount={childCount} pricePerChild={pricePerChild} menuTitle={menuTitle} menuType={menuType} services={services} cocktailUpgrade={cocktailUpgrade} foodTotal={foodT} totalBeforeVat={tot} totalWithVat={totV} servicePct={servicePct} drinkPackage={drinkPackage} />
+          {menuPages.map((cats, i) => <MenuPage key={i} menuType={menuType} categories={cats} supplementPrice={supplementPrice} />)}
+          <PricingPage clientName={clientName} eventType={eventType} eventDate={eventDate} eventTime={eventTime} guestCount={guestCount} pricePerGuest={pricePerGuest} childCount={childCount} pricePerChild={pricePerChild} menuType={menuType} services={services} cocktailUpgrade={cocktailUpgrade} foodTotal={foodT} totalBeforeVat={tot} totalWithVat={totV} servicePct={servicePct} drinkPackage={drinkPackage} />
           <TermsPage validDays={validDays} menuType={menuType} />
         </div>
       )}
