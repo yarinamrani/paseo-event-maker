@@ -1496,7 +1496,8 @@ function App() {
     const stationKeys = new Set(STATIONS_CONFIG.map(s=>s.key));
     const tablesKeys = new Set([...TABLES_STATIONS_CONFIG.map(s=>s.key), "סושי שולחנות"]);
     const hasTablesItems = [...tablesKeys].some(key => (MENU_DB[key] || []).some(i => sel.has(i.id)));
-    const excludeKeys = hasTablesItems ? stationKeys : new Set([...stationKeys, ...tablesKeys]);
+    const hasStationItems = [...stationKeys].some(key => (MENU_DB[key] || []).some(i => sel.has(i.id)));
+    const excludeKeys = hasTablesItems ? stationKeys : hasStationItems ? tablesKeys : new Set([...stationKeys, ...tablesKeys]);
     const r = {};
     for (const [cat,items] of Object.entries(MENU_DB)) {
       if (excludeKeys.has(cat)) continue;
