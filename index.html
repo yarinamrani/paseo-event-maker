@@ -249,7 +249,6 @@ const MENU_DB = {
     { id: "tv3", name: "צלחת חריפים", desc: "פלפל פדרון מטוגן | חריף ביתי | שמן זית | פלפל ירוק" },
     { id: "tv4", name: "פלאפל כרובית וכמהין", desc: "פלאפל כרובית במילוי גבינות וכמהין | גבינת קרם פרש | שמן ירוק | סלסה עגבניות" },
     { id: "tv5", name: "קרפצ'יו סלק וגבינת עזים", desc: "שמן זית ולימון | סילאן | גבינת עזים | מיקס אגוזים קלויים" },
-    { id: "tv6", name: "צ'יפס אמריקאי", desc: "" },
     { id: "tv7", name: "צלעות תירס", desc: "צלעות תירס מטוגנות | איולי פפריקה ודבש | בצל ירוק" },
     { id: "tv8", name: "קרפצ'יו פילה בקר", desc: "קרפצ'יו בקר | בלסמי מצומצם | שמן זית | אורוגולה | צלפים" },
   ],
@@ -290,6 +289,13 @@ const MENU_DB = {
     { id: "td5", name: "קינדר קוקי", desc: "עוגיית שוקו צ'יפס קינדר עם רוטב פיסטוק וגלידה וניל" },
     { id: "td6", name: "פאדג' שוקולד חמה", desc: "עוגת שוקולד חמה | קראמבל עוגיות | גלידה וניל" },
   ],
+  "ילדים שולחנות": [
+    { id: "tk1", name: "פיש אנד צ'יפס", desc: "דג בטמפורה | צ'יפס" },
+    { id: "tk2", name: "קריספי צ'יקן", desc: "נתחי עוף קריספי | צ'יפס" },
+    { id: "tk3", name: "מיני בורגרים", desc: "המבורגר בקר קטן | באן | צ'יפס" },
+    { id: "tk4", name: "פסטה עגבניות", desc: "ברוטב עגבניות" },
+    { id: "tk5", name: "פסטה רוזה", desc: "ברוטב שמנת עגבניות" },
+  ],
   "סושי שולחנות": [
     { id: "tsu1", name: "Luna", desc: "דניס טרי | מלפפון | אושינקו | מעטפת דניס | טוביקו ירוק | איולי יוזו" },
     { id: "tsu2", name: "ספיישל טרטר סלמון", desc: "מאקי אבוקדו | טרטר סלמון | נענע | כוסברה | ספייסי מיונז | טוביקו שחור" },
@@ -320,6 +326,7 @@ const TABLES_STATIONS_CONFIG = [
   { key: "דג נא", label: "דג נא", subtitle: "מנה אחת לבחירה", minSelect: 1, maxSelect: 1, img: "sushi" },
   { key: "עיקריות", label: "עיקריות", subtitle: "3 מנות לבחירה", minSelect: 3, maxSelect: 3, img: "mains" },
   { key: "קינוחים שולחנות", label: "קינוחים", subtitle: "2 מנות לבחירה", minSelect: 2, maxSelect: 2, img: "cheers" },
+  { key: "ילדים שולחנות", label: "תפריט ילדים (עד גיל 13)", subtitle: "2 מנות לבחירה", minSelect: 2, maxSelect: 2, img: "party" },
 ];
 
 const PRESETS = {
@@ -1564,10 +1571,6 @@ function App() {
               </div>
               {eventMode !== "private" && <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <div><label style={lbl}>תוקף (ימים)</label><input type="number" style={inp} value={validDays} onChange={e=>setValidDays(e.target.value)} /></div>
-              </div>}
-              {eventMode !== "private" && <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <div><label style={lbl}>תוספת פרימיום ₪</label><input type="number" style={inp} value={supplementPrice} onChange={e=>setSupplementPrice(e.target.value)} /></div>
-                <div><label style={lbl}>שדרוג קוקטיילים ₪</label><input type="number" style={inp} value={cocktailUpgrade} onChange={e=>setCocktailUpgrade(e.target.value)} /></div>
               </div>}
               {eventMode === "private" && <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <div><label style={lbl}>תוקף (ימים)</label><input type="number" style={inp} value={validDays} onChange={e=>setValidDays(e.target.value)} /></div>
