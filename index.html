@@ -1068,13 +1068,13 @@ function ClientMenuPage({ proposal }) {
       };
       const { error } = await supabase.from("submissions").upsert([submission], { onConflict: "id" });
       if (error) {
-        console.error("Supabase submission error:", error);
-        alert("שגיאה בשמירה, נסו שוב מאוחר יותר");
+        console.error("Supabase submission error:", JSON.stringify(error));
+        alert("שגיאה בשמירה: " + (error.message || error.details || JSON.stringify(error)));
         return;
       }
     } catch(e) {
       console.error("submission save err", e);
-      alert("שגיאה בשמירה, נסו שוב מאוחר יותר");
+      alert("שגיאה בשמירה: " + e.message);
       return;
     }
 
