@@ -1750,7 +1750,7 @@ function App() {
       try {
         const json = decodeURIComponent(escape(atob(encodedData)));
         const data = JSON.parse(json);
-        const activeKeys = data.s || STATIONS_CONFIG.map(s => s.key);
+        const activeKeys = data.s || (data.m === "tables" ? TABLES_STATIONS_CONFIG : STATIONS_CONFIG).map(s => s.key);
         proposal = {
           clientName: data.n || "",
           eventType: data.t || "",
@@ -1758,8 +1758,9 @@ function App() {
           eventTime: data.tm || "",
           guestCount: data.g || "",
           childCount: data.c || "",
-          eventMode: data.m || "private",
-          stations: STATIONS_CONFIG.filter(s => activeKeys.includes(s.key)),
+          m: data.m || "private",
+          s: activeKeys,
+          avail: data.avail || null,
         };
       } catch(e) {
         console.warn("decode err", e);
