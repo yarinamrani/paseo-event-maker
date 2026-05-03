@@ -402,16 +402,16 @@ function MenuPage({ menuTitle, menuType, categories, supplementPrice }) {
   const photos = photoSet.strip;
   const bottomPhotos = photoSet.bottom;
 
-  // Count total items to auto-scale
+  // Count total items with weight: items with descriptions take more space
   const totalItems = Object.entries(categories).reduce((s, [cat, items]) => cat === "תוספת פרימיום" ? s : s + items.length, 0) + (hasPremium ? categories["תוספת פרימיום"].length : 0);
   const totalCats = Object.keys(categories).filter(c => c !== "תוספת פרימיום").length + (hasPremium ? 1 : 0);
+  const descCount = Object.values(categories).flat().filter(i => i.desc).length;
+  const effectiveItems = totalItems + Math.ceil(descCount * 0.6) + totalCats;
 
-  // Dynamic sizing based on content density
-  // Available content heights: normal ~671px, dense ~798px, compact ~830px, extreme ~845px
-  // Per item with desc: normal ~41px, dense ~36px | without desc: compact ~20px, extreme ~18px
-  const dense = totalItems > 14;
-  const compact = totalItems > 20;
-  const extreme = totalItems > 32;
+  // Dynamic sizing based on content density (weighted)
+  const dense = effectiveItems > 14;
+  const compact = effectiveItems > 22;
+  const extreme = effectiveItems > 34;
   const hideDesc = compact;
   const logoSize = dense ? "sm" : "lg";
   const titleFs = extreme ? 20 : compact ? 22 : dense ? 26 : 30;
@@ -1471,29 +1471,8 @@ function App() {
     return r;
   }, [sel, customs]);
 
-  // Split menu into multiple pages if too many items
-  const menuPages = useMemo(() => {
-    const entries = Object.entries(byCat);
-    const weight = (items) => items.reduce((s, i) => s + (i.desc ? 2 : 1), 0);
-    const totalWeight = entries.reduce((s, [, items]) => s + weight(items), 0);
-    if (totalWeight <= 20) return [byCat];
-    const limit = Math.ceil(totalWeight / Math.ceil(totalWeight / 16));
-    const pages = [];
-    let current = {};
-    let count = 0;
-    for (const [cat, items] of entries) {
-      const w = weight(items);
-      if (count > 0 && count + w > limit && Object.keys(current).length > 0) {
-        pages.push(current);
-        current = {};
-        count = 0;
-      }
-      current[cat] = items;
-      count += w;
-    }
-    if (Object.keys(current).length > 0) pages.push(current);
-    return pages;
-  }, [byCat]);
+  // Always single menu page - MenuPage auto-scales font sizes to fit
+  const menuPages = useMemo(() => [byCat], [byCat]);
 
   const inp = { background: F.bg, border: `1px solid ${F.br}`, borderRadius: 6, padding: "9px 12px", fontFamily: FN.body, fontSize: 13, color: F.tx, direction: "rtl", outline: "none", width: "100%" };
   const lbl = { fontSize: 11, fontWeight: 500, color: F.dm, display: "block", marginBottom: 4 };
