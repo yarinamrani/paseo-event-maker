@@ -787,7 +787,8 @@ function CrmView({ onLoadSubmission }) {
     setLeads(p => { const i = p.findIndex(l => l.id === lead.id); if (i >= 0) { const n=[...p]; n[i]=lead; return n; } return [lead,...p]; });
     setModal(null);
   }, []);
-  const onDel = useCallback((id) => { setLeads(p => p.filter(l => l.id !== id)); setModal(null); }, []);
+  const onDel = useCallback((id) => { setLeads(p => p.filter(l => l.id !== id)); setModal(null); if (supabase) supabase.from("leads").delete().eq("id", id).then(() => {}); }, []);
+  const delSub = useCallback((id) => { if (!confirm("למחוק הגשה זו?")) return; setSubmissions(p => p.filter(s => s.id !== id)); setSubModal(null); if (supabase) supabase.from("submissions").delete().eq("id", id).then(() => {}); }, []);
 
   const exportExcel = useCallback(() => {
     const statusMap = { new: "ליד חדש", sent: "נשלחה הצעה", followup: "פולואפ", closed: "נסגר", cancelled: "בוטל", irrelevant: "לא רלוונטי" };
@@ -835,7 +836,10 @@ function CrmView({ onLoadSubmission }) {
             {submissions.map(sub => (
               <div key={sub.id} className="crm-card" onClick={() => setSubModal(sub)}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>{sub.clientName}</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>{sub.clientName}</div>
+                    <button onClick={e => { e.stopPropagation(); delSub(sub.id); }} style={{ background: "none", border: "none", color: "#666", fontSize: 16, cursor: "pointer", padding: "0 4px", lineHeight: 1 }} title="מחק">×</button>
+                  </div>
                   <span className="crm-badge crm-b-closed"><span className="bd"></span>הגיש בחירות</span>
                 </div>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap", fontSize: 11, color: "#888" }}>
@@ -887,6 +891,9 @@ function CrmView({ onLoadSubmission }) {
                 }} style={{ width: "100%", marginTop: 16, padding: 14, background: "#c8a96e", color: "#1a1a1a", border: "none", borderRadius: 10, fontFamily: "'Heebo', sans-serif", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
                   צור הצעת מחיר מבחירות הלקוח
                 </button>
+                <button onClick={() => delSub(subModal.id)} style={{ width: "100%", marginTop: 8, padding: 12, background: "none", color: "#f87171", border: "1px solid #f87171", borderRadius: 10, fontFamily: "'Heebo', sans-serif", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+                  מחק הגשה
+                </button>
               </div>
             </div>
           </div>
@@ -931,8 +938,9 @@ function CrmView({ onLoadSubmission }) {
             return (
               <div key={lead.id} className="crm-card" onClick={()=>setModal({...lead})}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
-                  <div>
+                  <div style={{display:"flex",alignItems:"center",gap:8}}>
                     <div style={{fontSize:15,fontWeight:600,color:"#fff"}}>{lead.clientName}</div>
+                    <button onClick={e => { e.stopPropagation(); if(confirm("למחוק ליד זה?")) onDel(lead.id); }} style={{ background: "none", border: "none", color: "#666", fontSize: 16, cursor: "pointer", padding: "0 4px", lineHeight: 1 }} title="מחק">×</button>
                     {lead.clientPhone && <div style={{fontSize:12,color:"#888",direction:"ltr",textAlign:"right"}}>{lead.clientPhone}</div>}
                   </div>
                   <CrmBadge status={lead.status} />
