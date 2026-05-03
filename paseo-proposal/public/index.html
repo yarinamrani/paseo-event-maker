@@ -1408,6 +1408,8 @@ function App() {
       s: stationsForLink,
       ...(isPrivate ? {} : { avail: [...tablesAvailable] }),
     };
+    // Open WhatsApp window immediately (before await) to avoid mobile popup blockers
+    const whatsappWin = window.open("about:blank", "_blank");
     // Save to Supabase and use short code in URL
     const baseUrl = window.location.origin + window.location.pathname;
     let link;
@@ -1431,11 +1433,11 @@ function App() {
     // Copy to clipboard
     try { await navigator.clipboard.writeText(link); setLinkCopied(true); setTimeout(() => setLinkCopied(false), 3000); } catch(e) { console.warn("clipboard err", e); }
 
-    // Open WhatsApp with link
-    const fmtDate = eventDate ? eventDate.split("-").reverse().join("-") : "";
+    // Navigate WhatsApp window to the link
     const msg = `שלום ${clientName},\nשמחים שבחרתם בפסאו!\n\nהנה הקישור לבחירת התפריט לאירוע שלכם:\n${link}\n\nבחרו את המנות המועדפות עליכם ואנחנו נדאג לכל השאר.\nלכל שאלה, אנחנו כאן.\n\nצוות פסאו ✦`;
     const encoded = encodeURIComponent(msg);
-    window.open(`https://api.whatsapp.com/send?text=${encoded}`, "_blank");
+    const waUrl = `https://api.whatsapp.com/send?text=${encoded}`;
+    if (whatsappWin) { whatsappWin.location.href = waUrl; } else { window.location.href = waUrl; }
   }, [clientName, eventType, eventDate, eventTime, guestCount, childCount, eventMode, activeStations, activeTablesStations, tablesAvailable, saveToCrm]);
 
   const shareWhatsApp = useCallback(async () => {
