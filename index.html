@@ -412,19 +412,19 @@ function MenuPage({ menuTitle, menuType, categories, supplementPrice }) {
   const dense = effectiveItems > 14;
   const compact = effectiveItems > 22;
   const extreme = effectiveItems > 34;
-  const hideDesc = compact;
+  const hideDesc = extreme;
   const logoSize = dense ? "sm" : "lg";
-  const titleFs = extreme ? 20 : compact ? 22 : dense ? 26 : 30;
-  const catFs = extreme ? 12 : compact ? 13 : dense ? 15 : 17;
-  const itemFs = extreme ? 11.5 : compact ? 12.5 : dense ? 14 : 16;
-  const descFs = dense ? 10 : 11;
-  const catMargin = extreme ? "4px 0 2px" : compact ? "6px 0 3px" : dense ? "10px 0 4px" : "14px 0 6px";
-  const itemMb = extreme ? 2 : compact ? 3 : dense ? 5 : 7;
-  const topPad = extreme ? "8px 20px 0" : compact ? "12px 20px 0" : dense ? "20px 20px 2px" : "36px 20px 4px";
-  const contentPad = extreme ? "2px 30px 0" : compact ? "2px 30px 0" : dense ? "4px 35px 0" : "6px 40px 0";
-  const bottomH = extreme ? 60 : compact ? 80 : dense ? 110 : 140;
-  const stripW = compact ? "35%" : "40%";
-  const contentW = compact ? "65%" : "60%";
+  const titleFs = extreme ? 18 : compact ? 20 : dense ? 24 : 30;
+  const catFs = extreme ? 10 : compact ? 11 : dense ? 13 : 17;
+  const itemFs = extreme ? 10 : compact ? 11 : dense ? 13 : 16;
+  const descFs = extreme ? 8 : compact ? 8.5 : dense ? 9.5 : 11;
+  const catMargin = extreme ? "3px 0 1px" : compact ? "4px 0 2px" : dense ? "6px 0 3px" : "14px 0 6px";
+  const itemMb = extreme ? 1 : compact ? 2 : dense ? 3 : 7;
+  const topPad = extreme ? "6px 20px 0" : compact ? "8px 20px 0" : dense ? "14px 20px 0" : "36px 20px 4px";
+  const contentPad = extreme ? "0px 25px 0" : compact ? "0px 28px 0" : dense ? "2px 32px 0" : "6px 40px 0";
+  const bottomH = extreme ? 50 : compact ? 60 : dense ? 80 : 140;
+  const stripW = compact ? "33%" : dense ? "36%" : "40%";
+  const contentW = compact ? "67%" : dense ? "64%" : "60%";
 
   return (
     <div style={page}>
