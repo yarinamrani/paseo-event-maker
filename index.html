@@ -1458,7 +1458,10 @@ function App() {
   const totV = Math.round(tot * 1.18);
 
   const byCat = useMemo(() => {
-    const excludeKeys = new Set([...STATIONS_CONFIG.map(s=>s.key), ...TABLES_STATIONS_CONFIG.map(s=>s.key), "סושי שולחנות"]);
+    const stationKeys = new Set(STATIONS_CONFIG.map(s=>s.key));
+    const tablesKeys = new Set([...TABLES_STATIONS_CONFIG.map(s=>s.key), "סושי שולחנות"]);
+    const hasTablesItems = [...tablesKeys].some(key => (MENU_DB[key] || []).some(i => sel.has(i.id)));
+    const excludeKeys = hasTablesItems ? stationKeys : new Set([...stationKeys, ...tablesKeys]);
     const r = {};
     for (const [cat,items] of Object.entries(MENU_DB)) {
       if (excludeKeys.has(cat)) continue;
@@ -1508,13 +1511,18 @@ function App() {
       </div>
 
       {tab === "crm" && <CrmView onLoadSubmission={(sub) => {
-        const allItems = Object.values(MENU_DB).flat();
         const selectedIds = new Set();
+        const labelToKey = {};
+        [...STATIONS_CONFIG, ...TABLES_STATIONS_CONFIG, { key: "סושי שולחנות", label: "סושי" }].forEach(c => { labelToKey[c.label] = c.key; });
         if (sub.selections) {
-          Object.values(sub.selections).forEach(dishes => {
+          Object.entries(sub.selections).forEach(([label, dishes]) => {
+            const key = labelToKey[label] || label;
+            const catItems = MENU_DB[key] || [];
             dishes.forEach(name => {
-              const found = allItems.find(i => i.name === name);
-              if (found) selectedIds.add(found.id);
+              const found = catItems.find(i => i.name === name);
+              if (found) { selectedIds.add(found.id); return; }
+              const fallback = Object.values(MENU_DB).flat().find(i => i.name === name);
+              if (fallback) selectedIds.add(fallback.id);
             });
           });
         }
