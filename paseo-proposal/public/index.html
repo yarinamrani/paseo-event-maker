@@ -1474,20 +1474,22 @@ function App() {
   // Split menu into multiple pages if too many items
   const menuPages = useMemo(() => {
     const entries = Object.entries(byCat);
-    const totalItems = entries.reduce((s, [, items]) => s + items.length, 0);
-    if (totalItems <= 18) return [byCat];
-    const limit = Math.ceil(totalItems / Math.ceil(totalItems / 15));
+    const weight = (items) => items.reduce((s, i) => s + (i.desc ? 2 : 1), 0);
+    const totalWeight = entries.reduce((s, [, items]) => s + weight(items), 0);
+    if (totalWeight <= 20) return [byCat];
+    const limit = Math.ceil(totalWeight / Math.ceil(totalWeight / 16));
     const pages = [];
     let current = {};
     let count = 0;
     for (const [cat, items] of entries) {
-      if (count > 0 && count + items.length > limit && Object.keys(current).length > 0) {
+      const w = weight(items);
+      if (count > 0 && count + w > limit && Object.keys(current).length > 0) {
         pages.push(current);
         current = {};
         count = 0;
       }
       current[cat] = items;
-      count += items.length;
+      count += w;
     }
     if (Object.keys(current).length > 0) pages.push(current);
     return pages;
