@@ -326,6 +326,263 @@ function checkMinSelect(configStr, configName) {
 if (stationsConfigStr) checkMinSelect(stationsConfigStr[1], "STATIONS_CONFIG");
 if (tablesConfigStr) checkMinSelect(tablesConfigStr[1], "TABLES_STATIONS_CONFIG");
 
+// ══════════════════════════════════════════════════
+// RUNTIME LOGIC TESTS — actually execute extracted code
+// ══════════════════════════════════════════════════
+section("17. Runtime: extract and evaluate data structures");
+
+let MENU_DB, STATIONS_CONFIG, TABLES_STATIONS_CONFIG, PRESETS, DEFAULT_SERVICES;
+try {
+  function extract(prefix, openBracket, closeBracket) {
+    const start = js.indexOf(prefix);
+    if (start < 0) throw new Error(`Cannot find "${prefix}"`);
+    const bodyStart = js.indexOf(openBracket, start);
+    let depth = 0, i = bodyStart;
+    for (; i < js.length; i++) {
+      if (js[i] === openBracket) depth++;
+      else if (js[i] === closeBracket) { depth--; if (depth === 0) break; }
+    }
+    return js.slice(bodyStart, i + 1);
+  }
+
+  MENU_DB = eval("(" + extract("const MENU_DB =", "{", "}") + ")");
+  STATIONS_CONFIG = eval("(" + extract("const STATIONS_CONFIG =", "[", "]") + ")");
+  TABLES_STATIONS_CONFIG = eval("(" + extract("const TABLES_STATIONS_CONFIG =", "[", "]") + ")");
+  PRESETS = eval("(" + extract("const PRESETS =", "{", "}") + ")");
+  DEFAULT_SERVICES = eval("(" + extract("const DEFAULT_SERVICES =", "[", "]") + ")");
+  ok("All data structures extracted and evaluated successfully");
+} catch (e) {
+  fail(`Failed to eval data structures: ${e.message}`);
+}
+
+if (MENU_DB && STATIONS_CONFIG && TABLES_STATIONS_CONFIG) {
+
+  // ─── 18. byCat logic simulation ───
+  section("18. Runtime: byCat mode detection");
+
+  function simulateByCat(selectedIds) {
+    const sel = new Set(selectedIds);
+    const stationKeys = new Set(STATIONS_CONFIG.map(s => s.key));
+    const tablesKeys = new Set(TABLES_STATIONS_CONFIG.map(s => s.key));
+    const hasTablesItems = [...tablesKeys].some(key => (MENU_DB[key] || []).some(i => sel.has(i.id)));
+    const hasStationItems = [...stationKeys].some(key => (MENU_DB[key] || []).some(i => sel.has(i.id)));
+    const excludeKeys = hasTablesItems ? stationKeys : hasStationItems ? tablesKeys : new Set([...stationKeys, ...tablesKeys]);
+    const r = {};
+    for (const [cat, items] of Object.entries(MENU_DB)) {
+      if (excludeKeys.has(cat)) continue;
+      const s = items.filter(i => sel.has(i.id));
+      if (s.length > 0) r[cat] = s;
+    }
+    return { result: r, hasTablesItems, hasStationItems };
+  }
+
+  // Test: select private station items → should show them in quote
+  const privateItems = (MENU_DB["מסתובבים"] || []).slice(0, 3).map(i => i.id);
+  const privateResult = simulateByCat(privateItems);
+  if (privateResult.hasStationItems && !privateResult.hasTablesItems) {
+    ok("Private items detected as private mode");
+  } else {
+    fail("Private items NOT detected correctly");
+  }
+  if (Object.keys(privateResult.result).length > 0 && privateResult.result["מסתובבים"]) {
+    ok("Private items appear in quote output");
+  } else {
+    fail("Private items MISSING from quote — byCat excludes them");
+  }
+
+  // Test: select tables items → should show them in quote
+  const tablesItems = (MENU_DB["ראשונות"] || []).slice(0, 3).map(i => i.id);
+  const tablesResult = simulateByCat(tablesItems);
+  if (tablesResult.hasTablesItems && !tablesResult.hasStationItems) {
+    ok("Tables items detected as tables mode");
+  } else {
+    fail("Tables items NOT detected correctly");
+  }
+  if (Object.keys(tablesResult.result).length > 0 && tablesResult.result["ראשונות"]) {
+    ok("Tables items appear in quote output");
+  } else {
+    fail("Tables items MISSING from quote — byCat excludes them");
+  }
+
+  // Test: no items selected → nothing shown (no crash)
+  const emptyResult = simulateByCat([]);
+  if (Object.keys(emptyResult.result).length === 0) {
+    ok("Empty selection produces empty quote (no crash)");
+  } else {
+    fail("Empty selection still produces items");
+  }
+
+  // Test: mixed mode (both private + tables IDs) — shouldn't happen but shouldn't crash
+  const mixedIds = [...privateItems, ...tablesItems];
+  const mixedResult = simulateByCat(mixedIds);
+  ok(`Mixed mode selection handled without crash (tables wins: ${mixedResult.hasTablesItems})`);
+
+  // ─── 19. Station item availability ───
+  section("19. Runtime: every station has items in MENU_DB");
+
+  STATIONS_CONFIG.forEach(s => {
+    const items = MENU_DB[s.key];
+    if (!items || items.length === 0) {
+      fail(`STATIONS_CONFIG "${s.key}" has no items in MENU_DB`);
+    } else {
+      const hasIds = items.every(i => i.id && i.name);
+      if (hasIds) ok(`"${s.key}": ${items.length} valid items`);
+      else fail(`"${s.key}": some items missing id or name`);
+    }
+  });
+
+  TABLES_STATIONS_CONFIG.forEach(s => {
+    const items = MENU_DB[s.key];
+    if (!items || items.length === 0) {
+      fail(`TABLES_STATIONS_CONFIG "${s.key}" has no items in MENU_DB`);
+    } else {
+      const hasIds = items.every(i => i.id && i.name);
+      if (hasIds) ok(`"${s.key}": ${items.length} valid items`);
+      else fail(`"${s.key}": some items missing id or name`);
+    }
+  });
+
+  // ─── 20. No cross-mode ID collisions ───
+  section("20. Runtime: no item ID collisions between modes");
+
+  const privateIds = new Set();
+  STATIONS_CONFIG.forEach(s => (MENU_DB[s.key] || []).forEach(i => privateIds.add(i.id)));
+  const tablesIds = new Set();
+  TABLES_STATIONS_CONFIG.forEach(s => (MENU_DB[s.key] || []).forEach(i => tablesIds.add(i.id)));
+  const collisions = [...privateIds].filter(id => tablesIds.has(id));
+  if (collisions.length === 0) {
+    ok(`No ID collisions: ${privateIds.size} private IDs, ${tablesIds.size} tables IDs`);
+  } else {
+    fail(`${collisions.length} IDs shared between private and tables: ${collisions.join(", ")} — byCat may misbehave`);
+  }
+
+  // ─── 21. Pricing calculation ───
+  section("21. Runtime: pricing calculations");
+
+  function calcPricing(guestCount, pricePerGuest, childCount, pricePerChild, services) {
+    const foodT = (parseInt(guestCount)||0)*(parseInt(pricePerGuest)||0) + (parseInt(childCount)||0)*(parseInt(pricePerChild)||0);
+    const svcT = services.reduce((s,v) => v.included ? s : s + (parseInt(v.qty)||0)*(parseInt(v.price)||0), 0);
+    const tot = foodT + svcT;
+    const totV = Math.round(tot * 1.18);
+    return { foodT, svcT, tot, totV };
+  }
+
+  // Basic pricing
+  const p1 = calcPricing("100", "350", "0", "0", DEFAULT_SERVICES);
+  if (p1.foodT === 35000) ok("100 guests × 350 = 35,000 food total");
+  else fail(`100 guests × 350 expected 35000, got ${p1.foodT}`);
+
+  if (p1.svcT === 2000) ok("Default services total = 2,000 (ניקיון + מנהל)");
+  else fail(`Default services expected 2000, got ${p1.svcT}`);
+
+  if (p1.totV === Math.round(37000 * 1.18)) ok(`VAT calc correct: ${p1.totV}`);
+  else fail(`VAT expected ${Math.round(37000 * 1.18)}, got ${p1.totV}`);
+
+  // With children
+  const p2 = calcPricing("40", "300", "10", "150", DEFAULT_SERVICES);
+  if (p2.foodT === 40*300 + 10*150) ok("40 adults + 10 kids pricing correct");
+  else fail(`Mixed pricing expected ${40*300+10*150}, got ${p2.foodT}`);
+
+  // Zero guests (edge case)
+  const p3 = calcPricing("0", "350", "", "", DEFAULT_SERVICES);
+  if (p3.foodT === 0) ok("Zero guests = 0 food total (no NaN)");
+  else fail(`Zero guests expected 0, got ${p3.foodT}`);
+
+  // Empty strings (edge case)
+  const p4 = calcPricing("", "", "", "", []);
+  if (p4.tot === 0 && p4.totV === 0) ok("Empty inputs = 0 totals (no NaN)");
+  else fail(`Empty inputs expected 0, got tot=${p4.tot} totV=${p4.totV}`);
+
+  // ─── 22. Guest count parsing from submission format ───
+  section("22. Runtime: guestCount parsing from CRM submissions");
+
+  function parseGuestCount(raw) {
+    const str = String(raw);
+    const gm = str.match(/^(\d+)/);
+    const cm = str.match(/\+\s*(\d+)\s*ילדים/);
+    return { guests: gm ? gm[1] : null, children: cm ? cm[1] : null };
+  }
+
+  const t1 = parseGuestCount("40");
+  if (t1.guests === "40" && t1.children === null) ok('Parse "40" → guests=40, children=null');
+  else fail(`Parse "40" failed: ${JSON.stringify(t1)}`);
+
+  const t2 = parseGuestCount("40 מבוגרים + 5 ילדים");
+  if (t2.guests === "40" && t2.children === "5") ok('Parse "40 מבוגרים + 5 ילדים" → guests=40, children=5');
+  else fail(`Parse "40 מבוגרים + 5 ילדים" failed: ${JSON.stringify(t2)}`);
+
+  const t3 = parseGuestCount("120 מבוגרים + 20 ילדים");
+  if (t3.guests === "120" && t3.children === "20") ok('Parse "120 מבוגרים + 20 ילדים" → guests=120, children=20');
+  else fail(`Parse multi-digit failed: ${JSON.stringify(t3)}`);
+
+  const t4 = parseGuestCount("");
+  if (t4.guests === null) ok('Parse "" → null (no crash)');
+  else fail(`Parse empty failed: ${JSON.stringify(t4)}`);
+
+  // ─── 23. Client page station filtering simulation ───
+  section("23. Runtime: client page station filter");
+
+  function simulateClientStations(mode, availableIds) {
+    const availableSet = availableIds ? new Set(availableIds) : null;
+    const config = mode === "tables" ? TABLES_STATIONS_CONFIG : STATIONS_CONFIG;
+    const stationKeys = config.map(s => s.key);
+    return config.filter(s =>
+      stationKeys.includes(s.key) &&
+      MENU_DB[s.key] &&
+      (!availableSet || (MENU_DB[s.key] || []).some(i => availableSet.has(i.id)))
+    );
+  }
+
+  // All items available
+  const allAvail = [];
+  TABLES_STATIONS_CONFIG.forEach(s => (MENU_DB[s.key] || []).forEach(i => allAvail.push(i.id)));
+  const fullStations = simulateClientStations("tables", allAvail);
+  if (fullStations.length === TABLES_STATIONS_CONFIG.length) {
+    ok(`All ${TABLES_STATIONS_CONFIG.length} tables stations visible when all items available`);
+  } else {
+    fail(`Expected ${TABLES_STATIONS_CONFIG.length} stations, got ${fullStations.length}`);
+  }
+
+  // Remove all items from one station → station should disappear
+  const partialAvail = allAvail.filter(id => !(MENU_DB["סושי שולחנות"] || []).some(i => i.id === id));
+  const partialStations = simulateClientStations("tables", partialAvail);
+  const hasSushi = partialStations.some(s => s.key === "סושי שולחנות");
+  if (!hasSushi) {
+    ok("Station with no available items is hidden from client");
+  } else {
+    fail("Station with no available items still showing — will block client submission");
+  }
+
+  // Empty availableSet → no stations (edge case)
+  const emptyStations = simulateClientStations("tables", []);
+  if (emptyStations.length === 0) {
+    ok("No available items = no stations shown (no crash)");
+  } else {
+    fail(`Empty availableSet still shows ${emptyStations.length} stations`);
+  }
+
+  // null availableSet (private mode) → all stations shown
+  const nullAvailStations = simulateClientStations("private", null);
+  if (nullAvailStations.length === STATIONS_CONFIG.length) {
+    ok("null availableSet (private mode) shows all stations");
+  } else {
+    fail(`null availableSet expected ${STATIONS_CONFIG.length} stations, got ${nullAvailStations.length}`);
+  }
+
+  // ─── 24. Duplicate item names within same category ───
+  section("24. Runtime: duplicate item names within categories");
+  let dupNameCount = 0;
+  for (const [cat, items] of Object.entries(MENU_DB)) {
+    const names = items.map(i => i.name);
+    const dupeNames = names.filter((n, i) => names.indexOf(n) !== i);
+    if (dupeNames.length > 0) {
+      dupeNames.forEach(n => fail(`"${cat}" has duplicate item name: "${n}"`));
+      dupNameCount += dupeNames.length;
+    }
+  }
+  if (dupNameCount === 0) ok("No duplicate item names within any category");
+}
+
 // ─── SUMMARY ───
 console.log(`\n${"─".repeat(50)}`);
 console.log(`\x1b[1mResults:\x1b[0m \x1b[32m${passed} passed\x1b[0m, \x1b[31m${failed} failed\x1b[0m, \x1b[33m${warnings} warnings\x1b[0m`);
