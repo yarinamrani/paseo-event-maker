@@ -1534,9 +1534,12 @@ function App({ onLogout }) {
         const selectedIds = new Set();
         const labelToKey = {};
         [...STATIONS_CONFIG, ...TABLES_STATIONS_CONFIG].forEach(c => { labelToKey[c.label] = c.key; });
+        const tablesStationKeys = new Set(TABLES_STATIONS_CONFIG.map(s => s.key));
+        let hasTablesItems = false;
         if (sub.selections) {
           Object.entries(sub.selections).forEach(([label, dishes]) => {
             const key = labelToKey[label] || label;
+            if (tablesStationKeys.has(key)) hasTablesItems = true;
             const catItems = MENU_DB[key] || [];
             dishes.forEach(name => {
               const found = catItems.find(i => i.name === name);
@@ -1550,7 +1553,23 @@ function App({ onLogout }) {
         setEventType(sub.eventType || "");
         setEventDate(sub.eventDate || "");
         setSel(selectedIds);
-        setTab("preview");
+        setEventMode(hasTablesItems ? "tables" : "private");
+        if (sub.guestCount) {
+          const gm = String(sub.guestCount).match(/^(\d+)/);
+          if (gm) setGuestCount(gm[1]);
+          const cm = String(sub.guestCount).match(/\+\s*(\d+)\s*ילדים/);
+          if (cm) setChildCount(cm[1]);
+        }
+        const leads = crmLoad();
+        const subName = (sub.clientName || "").trim();
+        const matchLead = leads.find(l => l.clientName === subName && l.eventDate === sub.eventDate) || leads.find(l => l.clientName === subName);
+        if (matchLead) {
+          if (matchLead.guestCount) setGuestCount(matchLead.guestCount);
+          if (matchLead.pricePerGuest) setPricePerGuest(matchLead.pricePerGuest);
+          if (matchLead.childCount) setChildCount(matchLead.childCount);
+          if (matchLead.pricePerChild) setPricePerChild(matchLead.pricePerChild);
+        }
+        setTab("form");
         setPg(0);
       }} />}
 
