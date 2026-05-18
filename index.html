@@ -1354,7 +1354,7 @@ function App({ onLogout }) {
 
   const tog = useCallback((id) => { setSel(p => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n; }); }, []);
   const uSvc = useCallback((i,f,v) => { setServices(p => p.map((s,x) => x===i ? {...s,[f]:v} : s)); }, []);
-  const addC = useCallback((cat) => { if (!cn.trim()) return; const id="c_"+Date.now(); setCustoms(p=>[...p,{id,name:cn,desc:cd,category:cat}]); setSel(p=>new Set([...p,id])); setCn(""); setCd(""); setShowCF(null); }, [cn,cd]);
+  const addC = useCallback((cat) => { if (!cn.trim()) return; const id="c_"+Date.now(); setCustoms(p=>[...p,{id,name:cn,desc:cd,category:cat}]); setSel(p=>new Set([...p,id])); if (eventMode === "tables") setTablesAvailable(p => { const n = new Set(p); n.add(id); return n; }); setCn(""); setCd(""); setShowCF(null); }, [cn,cd,eventMode]);
 
   const [crmSaved, setCrmSaved] = useState(false);
 
@@ -1654,7 +1654,7 @@ function App({ onLogout }) {
                         </svg>
                       </div>
                     </div>
-                    {items.map(item => {
+                    {[...items, ...customs.filter(c => c.category === station.key)].map(item => {
                       const isSelected = sel.has(item.id);
                       const atMax = selCount >= station.maxSelect && !isSelected;
                       return (
@@ -1667,6 +1667,18 @@ function App({ onLogout }) {
                         </div>
                       );
                     })}
+                    {showCF === station.key ? (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 6, padding: "8px 0" }}>
+                        <input style={inp} placeholder="שם מנה" value={cn} onChange={e=>setCn(e.target.value)} />
+                        <input style={inp} placeholder="תיאור (אופציונלי)" value={cd} onChange={e=>setCd(e.target.value)} />
+                        <div style={{ display: "flex", gap: 6 }}>
+                          <button onClick={() => addC(station.key)} style={{ flex: 1, padding: "8px 0", background: F.gold, color: "#1a1a1a", border: "none", borderRadius: 6, fontFamily: FN.body, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>הוסף</button>
+                          <button onClick={() => { setShowCF(null); setCn(""); setCd(""); }} style={{ padding: "8px 12px", background: "none", border: `1px solid ${F.br}`, borderRadius: 6, color: F.dm, fontFamily: FN.body, fontSize: 12, cursor: "pointer" }}>ביטול</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button onClick={() => setShowCF(station.key)} style={{ marginTop: 6, padding: "6px 12px", background: "none", border: `1px dashed ${F.br}`, borderRadius: 6, color: F.dm, fontFamily: FN.body, fontSize: 11, cursor: "pointer", width: "100%" }}>+ הוסף מנה ידנית</button>
+                    )}
                   </div>
                 );
               })}
@@ -1685,7 +1697,7 @@ function App({ onLogout }) {
                       </div>
                       <button onClick={() => { const ids = items.map(i=>i.id); const allOn = ids.every(id=>tablesAvailable.has(id)); setTablesAvailable(p => { const n = new Set(p); ids.forEach(id => allOn ? n.delete(id) : n.add(id)); return n; }); }} style={{ padding: "4px 10px", borderRadius: 4, border: `1px solid ${F.br}`, background: "none", color: F.dm, fontFamily: FN.body, fontSize: 10, cursor: "pointer" }}>{items.every(i=>tablesAvailable.has(i.id)) ? "הסר הכל" : "סמן הכל"}</button>
                     </div>
-                    {items.map(item => {
+                    {[...items, ...customs.filter(c => c.category === station.key)].map(item => {
                       const avail = tablesAvailable.has(item.id);
                       return (
                         <div key={item.id} onClick={() => togAvail(item.id)} style={{ display: "flex", gap: 10, padding: "7px 0", cursor: "pointer", opacity: avail ? 1 : 0.4 }}>
@@ -1697,6 +1709,18 @@ function App({ onLogout }) {
                         </div>
                       );
                     })}
+                    {showCF === station.key ? (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 6, padding: "8px 0" }}>
+                        <input style={inp} placeholder="שם מנה" value={cn} onChange={e=>setCn(e.target.value)} />
+                        <input style={inp} placeholder="תיאור (אופציונלי)" value={cd} onChange={e=>setCd(e.target.value)} />
+                        <div style={{ display: "flex", gap: 6 }}>
+                          <button onClick={() => addC(station.key)} style={{ flex: 1, padding: "8px 0", background: F.gold, color: "#1a1a1a", border: "none", borderRadius: 6, fontFamily: FN.body, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>הוסף</button>
+                          <button onClick={() => { setShowCF(null); setCn(""); setCd(""); }} style={{ padding: "8px 12px", background: "none", border: `1px solid ${F.br}`, borderRadius: 6, color: F.dm, fontFamily: FN.body, fontSize: 12, cursor: "pointer" }}>ביטול</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button onClick={() => setShowCF(station.key)} style={{ marginTop: 6, padding: "6px 12px", background: "none", border: `1px dashed ${F.br}`, borderRadius: 6, color: F.dm, fontFamily: FN.body, fontSize: 11, cursor: "pointer", width: "100%" }}>+ הוסף מנה ידנית</button>
+                    )}
                   </div>
                 );
               })}
