@@ -556,7 +556,7 @@ function PricingPage({ clientName, eventType, eventDate, eventTime, guestCount, 
                   <td style={td}>{fmt((parseInt(childCount)||0)*(parseInt(pricePerChild)||0))}</td>
                 </tr>
               )}
-              {services.map((s, i) => (
+              {services.filter(s => s.included || s.show !== false).map((s, i) => (
                 <tr key={i}>
                   <td style={{ ...td, textAlign: "right", fontWeight: 500 }}>{s.name}</td>
                   <td style={td}>{s.desc}</td>
@@ -1682,7 +1682,7 @@ function App({ onLogout }) {
       ...(isPrivate ? {} : { avail: [...tablesAvailable] }),
       ppg: pricePerGuest,
       ppc: pricePerChild,
-      svc: services.map(s => ({ n: s.name, i: s.included, q: s.qty, p: s.price, d: s.desc })),
+      svc: services.filter(s => s.included || s.show !== false).map(s => ({ n: s.name, i: s.included, q: s.qty, p: s.price, d: s.desc })),
       vd: validDays,
       dp: drinkPackage,
       sp: servicePct,
@@ -1770,7 +1770,7 @@ function App({ onLogout }) {
   }, [clientName, eventType, eventDate, guestCount, childCount]);
 
   const foodT = useMemo(() => ((parseInt(guestCount)||0)*(parseInt(pricePerGuest)||0)) + ((parseInt(childCount)||0)*(parseInt(pricePerChild)||0)), [guestCount,pricePerGuest,childCount,pricePerChild]);
-  const svcT = useMemo(() => services.reduce((s,v)=>v.included?s:s+(parseInt(v.qty)||0)*(parseInt(v.price)||0),0), [services]);
+  const svcT = useMemo(() => services.reduce((s,v)=>v.included || v.show === false?s:s+(parseInt(v.qty)||0)*(parseInt(v.price)||0),0), [services]);
   const tot = foodT + svcT;
   const totV = Math.round(tot * 1.18);
 
@@ -2010,20 +2010,32 @@ function App({ onLogout }) {
           <div style={{ padding: "20px 20px" }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: F.gold, marginBottom: 16 }}>שירותים</div>
             {services.map((s, i) => (
-              <div key={i} style={{ marginBottom: 14, paddingBottom: 10, borderBottom: "1px solid rgba(100,100,100,0.3)" }}>
+              <div key={i} style={{ marginBottom: 14, paddingBottom: 10, borderBottom: "1px solid rgba(100,100,100,0.3)", opacity: !s.included && s.show === false ? 0.45 : 1, transition: "opacity 0.2s" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                   <span style={{ fontSize: 13, fontWeight: 500 }}>{s.name}</span>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }} onClick={()=>uSvc(i,"included",!s.included)}>
-                    <span style={{ fontSize: 11, color: F.dm }}>כלול</span>
-                    <div style={{ width: 36, height: 20, borderRadius: 10, position: "relative", cursor: "pointer", background: s.included?F.gold:F.br, transition: "background 0.2s" }}>
-                      <div style={{ width: 16, height: 16, borderRadius: "50%", background: "white", position: "absolute", top: 2, right: s.included?18:2, transition: "right 0.2s" }} />
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    {!s.included && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }} onClick={()=>uSvc(i,"show",s.show === false ? true : false)}>
+                        <span style={{ fontSize: 10, color: s.show === false ? "#f87171" : F.dm }}>{s.show === false ? "מוסתר" : "מופיע"}</span>
+                        <div style={{ width: 32, height: 18, borderRadius: 9, position: "relative", background: s.show === false ? "#f87171" : "#4ade80", transition: "background 0.2s" }}>
+                          <div style={{ width: 14, height: 14, borderRadius: "50%", background: "white", position: "absolute", top: 2, right: s.show === false ? 2 : 16, transition: "right 0.2s" }} />
+                        </div>
+                      </div>
+                    )}
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }} onClick={()=>uSvc(i,"included",!s.included)}>
+                      <span style={{ fontSize: 11, color: F.dm }}>כלול</span>
+                      <div style={{ width: 36, height: 20, borderRadius: 10, position: "relative", background: s.included?F.gold:F.br, transition: "background 0.2s" }}>
+                        <div style={{ width: 16, height: 16, borderRadius: "50%", background: "white", position: "absolute", top: 2, right: s.included?18:2, transition: "right 0.2s" }} />
+                      </div>
                     </div>
                   </div>
                 </div>
-                <div style={{ marginTop: 4 }}>
-                  <input style={{...inp,padding:"6px 8px",fontSize:11}} value={s.desc} onChange={e=>uSvc(i,"desc",e.target.value)} placeholder="תיאור (למשל: בקבוק אחד לכל אורח)" />
-                </div>
-                {!s.included && (
+                {(s.included || s.show !== false) && (
+                  <div style={{ marginTop: 4 }}>
+                    <input style={{...inp,padding:"6px 8px",fontSize:11}} value={s.desc} onChange={e=>uSvc(i,"desc",e.target.value)} placeholder="תיאור (למשל: בקבוק אחד לכל אורח)" />
+                  </div>
+                )}
+                {!s.included && s.show !== false && (
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 4 }}>
                     <div><label style={{...lbl,fontSize:10}}>כמות</label><input type="number" style={{...inp,padding:"6px 8px",fontSize:12}} value={s.qty} onChange={e=>uSvc(i,"qty",e.target.value)} /></div>
                     <div><label style={{...lbl,fontSize:10}}>מחיר</label><input type="number" style={{...inp,padding:"6px 8px",fontSize:12}} value={s.price} onChange={e=>uSvc(i,"price",e.target.value)} /></div>
