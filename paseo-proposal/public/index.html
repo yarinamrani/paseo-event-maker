@@ -1135,9 +1135,16 @@ function ClientQuotePage({ proposal, onApprove }) {
             </div>
 
             {/* Total */}
-            <div style={{ background: "rgba(200,169,110,0.08)", padding: "16px 18px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontFamily: FN.title, fontSize: 16, color: "#c8a96e" }}>{showVat ? "סה\"כ כולל מע\"מ" : "סה\"כ (לא כולל מע\"מ)"}</span>
-              <span style={{ fontFamily: FN.title, fontSize: 22, color: "#c8a96e", direction: "ltr" }}>{(showVat ? totalWithVat : totalBeforeVat).toLocaleString("he-IL")} ₪</span>
+            <div style={{ background: "rgba(200,169,110,0.08)", padding: "16px 18px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontFamily: FN.title, fontSize: 16, color: "#c8a96e" }}>{showVat ? "סה\"כ כולל מע\"מ" : "סה\"כ (לא כולל מע\"מ)"}</span>
+                <span style={{ fontFamily: FN.title, fontSize: 22, color: "#c8a96e", direction: "ltr" }}>{(showVat ? totalWithVat : totalBeforeVat).toLocaleString("he-IL")} ₪</span>
+              </div>
+              {g > 0 && svcList.length > 0 && (
+                <div style={{ textAlign: "center", marginTop: 8, fontSize: 11, color: "rgba(200,169,110,0.5)" }}>
+                  כולל {svcList.length} שירותים · מחיר לסועד בלבד <span dir="ltr">{ppg.toLocaleString("he-IL")} ₪</span> · השאר עלינו
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -1146,10 +1153,13 @@ function ClientQuotePage({ proposal, onApprove }) {
       {/* Included Services */}
       {svcList.length > 0 && (
         <div style={{ padding: "24px 16px 0" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, justifyContent: "center", marginBottom: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, justifyContent: "center", marginBottom: 6 }}>
             <div style={{ flex: 1, height: 1, background: "rgba(200,169,110,0.2)" }} />
             <div style={{ fontFamily: FN.title, fontSize: 18, color: "#c8a96e" }}>כלול בחבילה</div>
             <div style={{ flex: 1, height: 1, background: "rgba(200,169,110,0.2)" }} />
+          </div>
+          <div style={{ textAlign: "center", marginBottom: 14 }}>
+            <span style={{ fontSize: 12, color: "rgba(74,222,128,0.7)" }}>{svcList.length + (drinkLabel ? 1 : 0)} שירותים כלולים ללא עלות נוספת</span>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
             {svcList.map((s, i) => (
@@ -1184,10 +1194,34 @@ function ClientQuotePage({ proposal, onApprove }) {
         </div>
       )}
 
+      {/* Venue Highlights */}
+      <div style={{ padding: "28px 16px 0" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, justifyContent: "center", marginBottom: 16 }}>
+          <div style={{ flex: 1, height: 1, background: "rgba(200,169,110,0.2)" }} />
+          <div style={{ fontFamily: FN.title, fontSize: 18, color: "#c8a96e" }}>למה פסאו?</div>
+          <div style={{ flex: 1, height: 1, background: "rgba(200,169,110,0.2)" }} />
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          {[
+            { icon: "★", title: "גג פתוח", desc: "נוף פנורמי ואווירה ייחודית" },
+            { icon: "♨", title: "שף במקום", desc: "הכנה טרייה מול האורחים" },
+            { icon: "♫", title: "מערכת סאונד", desc: "הגברה ותאורה מקצועית" },
+            { icon: "◆", title: "התאמה אישית", desc: "תפריט מותאם לכל אירוע" },
+          ].map((h, i) => (
+            <div key={i} style={{ background: "rgba(200,169,110,0.04)", border: "1px solid rgba(200,169,110,0.08)", borderRadius: 12, padding: "14px 12px", textAlign: "center" }}>
+              <div style={{ fontSize: 20, marginBottom: 6 }}>{h.icon}</div>
+              <div style={{ fontFamily: FN.title, fontSize: 14, color: "#c8a96e", marginBottom: 4 }}>{h.title}</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.5 }}>{h.desc}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Validity */}
       <div style={{ padding: "24px 16px 0", textAlign: "center" }}>
-        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", lineHeight: 1.8 }}>
-          תוקף הצעה זו הינו {validDaysNum} ימים מרגע קבלתה
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.15)", borderRadius: 20, padding: "8px 16px" }}>
+          <span style={{ fontSize: 12, color: "#f59e0b" }}>⏳</span>
+          <span style={{ fontSize: 12, color: "rgba(245,158,11,0.8)" }}>תוקף הצעה זו הינו {validDaysNum} ימים מרגע קבלתה</span>
         </div>
       </div>
 
