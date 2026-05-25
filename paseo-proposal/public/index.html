@@ -1017,7 +1017,7 @@ function ClientQuotePage({ proposal, onApprove }) {
   const serviceAmount = Math.round(foodTotal * sp / 100);
   const totalBeforeVat = foodTotal + serviceAmount;
   const showVat = proposal.includeVat !== false;
-  const vat = showVat ? Math.round(totalBeforeVat * 0.17) : 0;
+  const vat = showVat ? Math.round(totalBeforeVat * 0.18) : 0;
   const totalWithVat = totalBeforeVat + vat;
   const fmtDate = proposal.eventDate ? proposal.eventDate.split("-").reverse().join("/") : "";
   const validDaysNum = parseInt(proposal.validDays) || 7;
@@ -1128,7 +1128,7 @@ function ClientQuotePage({ proposal, onApprove }) {
               )}
               {showVat && (
                 <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                  <span style={{ fontSize: 14, color: "rgba(255,255,255,0.7)" }}>מע"מ (17%)</span>
+                  <span style={{ fontSize: 14, color: "rgba(255,255,255,0.7)" }}>מע"מ (18%)</span>
                   <span style={{ fontSize: 14, fontWeight: 600, color: "#e8e2d8", direction: "ltr" }}>{vat.toLocaleString("he-IL")} ₪</span>
                 </div>
               )}
