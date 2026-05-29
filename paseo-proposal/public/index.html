@@ -1002,10 +1002,151 @@ function CrmView({ onLoadSubmission }) {
 }
 
 /* ══════════════════════════════════════════════════════════
+   SIGNATURE PAD COMPONENT
+   ══════════════════════════════════════════════════════════ */
+function SignaturePad({ onSave, onCancel, proposal }) {
+  const canvasRef = useRef(null);
+  const [drawing, setDrawing] = useState(false);
+  const [hasDrawn, setHasDrawn] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const getPos = (e) => {
+    const rect = canvasRef.current.getBoundingClientRect();
+    const touch = e.touches ? e.touches[0] : e;
+    return { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
+  };
+
+  const startDraw = (e) => {
+    e.preventDefault();
+    const ctx = canvasRef.current.getContext("2d");
+    const pos = getPos(e);
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+    setDrawing(true);
+    setHasDrawn(true);
+  };
+
+  const draw = (e) => {
+    if (!drawing) return;
+    e.preventDefault();
+    const ctx = canvasRef.current.getContext("2d");
+    const pos = getPos(e);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.strokeStyle = "#c8a96e";
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.stroke();
+  };
+
+  const endDraw = () => setDrawing(false);
+
+  const clearPad = () => {
+    const ctx = canvasRef.current.getContext("2d");
+    ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    setHasDrawn(false);
+  };
+
+  const handleSave = async () => {
+    if (!hasDrawn || !termsAccepted) return;
+    setSaving(true);
+    const signatureData = canvasRef.current.toDataURL("image/png");
+    try {
+      await supabase.from("submissions").upsert([{
+        id: "SIG" + Date.now(),
+        clientName: proposal.clientName,
+        eventType: proposal.eventType,
+        eventDate: proposal.eventDate,
+        guestCount: proposal.childCount ? `${proposal.guestCount} מבוגרים + ${proposal.childCount} ילדים` : proposal.guestCount,
+        status: "quote_approved",
+        signature: signatureData,
+        submittedAt: new Date().toISOString(),
+        notes: `אישור הצעת מחיר — ${proposal.pricePerGuest} ₪ לסועד`,
+      }], { onConflict: "id" });
+    } catch(e) { console.warn("signature save err", e); }
+    setSaving(false);
+    onSave();
+  };
+
+  const fmtDate = proposal.eventDate ? proposal.eventDate.split("-").reverse().join("/") : "";
+  const g = parseInt(proposal.guestCount) || 0;
+  const ppg = parseFloat(proposal.pricePerGuest) || 0;
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+      <div style={{ background: "#1a1a1a", borderRadius: 20, border: "1px solid rgba(200,169,110,0.2)", maxWidth: 440, width: "100%", maxHeight: "95vh", overflow: "auto", direction: "rtl" }}>
+
+        <div style={{ padding: "24px 20px 0", textAlign: "center" }}>
+          <div style={{ fontFamily: FN.title, fontSize: 22, color: "#c8a96e", marginBottom: 8 }}>אישור הצעת מחיר</div>
+          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.8, marginBottom: 16 }}>
+            {proposal.clientName && <span>לקוח: <strong style={{ color: "#e8e2d8" }}>{proposal.clientName}</strong> · </span>}
+            {fmtDate && <span>תאריך: <strong style={{ color: "#e8e2d8" }}>{fmtDate}</strong> · </span>}
+            {g > 0 && <span><strong style={{ color: "#e8e2d8" }}>{g}</strong> אורחים · </span>}
+            {ppg > 0 && <span><strong style={{ color: "#e8e2d8", direction: "ltr", display: "inline-block" }}>{ppg.toLocaleString("he-IL")} ₪</strong> לסועד</span>}
+          </div>
+        </div>
+
+        {/* Terms */}
+        <div style={{ padding: "0 20px", marginBottom: 16 }}>
+          <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(200,169,110,0.1)", borderRadius: 12, padding: "14px 16px", fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.9 }}>
+            <div style={{ fontWeight: 600, color: "rgba(255,255,255,0.7)", marginBottom: 6 }}>תנאים והגבלות:</div>
+            • שינוי בכמות האורחים מחייב עדכון של 7 ימי עסקים מראש<br/>
+            • מספר האורחים הסופי לחיוב ייקבע 72 שעות לפני האירוע<br/>
+            • ביטול האירוע עד 30 יום לפני — ללא חיוב, 14-30 יום — 50%, פחות מ-14 יום — חיוב מלא<br/>
+            • המחירים אינם כוללים שירותים שלא צוינו במפורש בהצעה
+          </div>
+        </div>
+
+        {/* Accept terms checkbox */}
+        <div style={{ padding: "0 20px", marginBottom: 16 }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }} onClick={() => setTermsAccepted(!termsAccepted)}>
+            <div style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, marginTop: 1, display: "flex", alignItems: "center", justifyContent: "center", background: termsAccepted ? "#c8a96e" : "transparent", border: `2px solid ${termsAccepted ? "#c8a96e" : "rgba(200,169,110,0.3)"}`, transition: "all 0.2s" }}>
+              {termsAccepted && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>}
+            </div>
+            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.6 }}>
+              אני מאשר/ת כי הפרטים לעיל נכונים ומסכים/ה לתנאי ההזמנה
+            </span>
+          </div>
+        </div>
+
+        {/* Signature canvas */}
+        <div style={{ padding: "0 20px", marginBottom: 12 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.6)" }}>חתימה:</span>
+            {hasDrawn && <button onClick={clearPad} style={{ background: "none", border: "none", color: "#f87171", fontSize: 12, cursor: "pointer", fontFamily: FN.body }}>נקה</button>}
+          </div>
+          <div style={{ background: "#232323", borderRadius: 12, border: `1.5px solid ${hasDrawn ? "rgba(200,169,110,0.3)" : "rgba(200,169,110,0.1)"}`, overflow: "hidden", touchAction: "none", transition: "border-color 0.2s" }}>
+            <canvas ref={canvasRef} width={400} height={160}
+              style={{ width: "100%", height: 160, display: "block", cursor: "crosshair" }}
+              onMouseDown={startDraw} onMouseMove={draw} onMouseUp={endDraw} onMouseLeave={endDraw}
+              onTouchStart={startDraw} onTouchMove={draw} onTouchEnd={endDraw}
+            />
+          </div>
+          {!hasDrawn && <div style={{ textAlign: "center", fontSize: 11, color: "rgba(255,255,255,0.25)", marginTop: 6 }}>חתמו כאן עם האצבע או העכבר</div>}
+        </div>
+
+        {/* Buttons */}
+        <div style={{ padding: "0 20px 24px" }}>
+          <button onClick={handleSave} disabled={!hasDrawn || !termsAccepted || saving}
+            style={{ width: "100%", background: hasDrawn && termsAccepted ? "linear-gradient(135deg, #c8a96e, #b8944e)" : "#444", color: hasDrawn && termsAccepted ? "#1a1a1a" : "#888", border: "none", borderRadius: 12, padding: "15px 24px", fontFamily: FN.title, fontSize: 17, fontWeight: 700, cursor: hasDrawn && termsAccepted ? "pointer" : "not-allowed", transition: "all 0.2s", opacity: saving ? 0.6 : 1 }}>
+            {saving ? "שומר..." : "אישור וחתימה"}
+          </button>
+          <button onClick={onCancel} style={{ width: "100%", marginTop: 8, background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontFamily: FN.body, fontSize: 13, cursor: "pointer", padding: 10 }}>
+            חזרה להצעה
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════
    CLIENT-FACING QUOTE PAGE (Step 1 of wizard)
    ══════════════════════════════════════════════════════════ */
 function ClientQuotePage({ proposal, onApprove }) {
   const [animIn, setAnimIn] = useState(false);
+  const [showSignature, setShowSignature] = useState(false);
   useEffect(() => { requestAnimationFrame(() => setAnimIn(true)); }, []);
 
   const g = parseInt(proposal.guestCount) || 0;
@@ -1228,9 +1369,18 @@ function ClientQuotePage({ proposal, onApprove }) {
       {/* Spacer for sticky CTA */}
       <div style={{ height: 140 }} />
 
+      {/* Signature Modal */}
+      {showSignature && (
+        <SignaturePad
+          proposal={proposal}
+          onSave={onApprove}
+          onCancel={() => setShowSignature(false)}
+        />
+      )}
+
       {/* Sticky bottom CTA */}
       <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 100, background: "linear-gradient(0deg, #1a1a1a 70%, transparent)", padding: "40px 16px 20px" }}>
-        <button onClick={onApprove} style={{ width: "100%", background: "linear-gradient(135deg, #c8a96e, #b8944e)", color: "#1a1a1a", border: "none", borderRadius: 14, padding: "16px 24px", fontFamily: FN.title, fontSize: 18, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 20px rgba(200,169,110,0.3)", transition: "transform 0.2s, box-shadow 0.2s" }}
+        <button onClick={() => setShowSignature(true)} style={{ width: "100%", background: "linear-gradient(135deg, #c8a96e, #b8944e)", color: "#1a1a1a", border: "none", borderRadius: 14, padding: "16px 24px", fontFamily: FN.title, fontSize: 18, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 20px rgba(200,169,110,0.3)", transition: "transform 0.2s, box-shadow 0.2s" }}
           onMouseDown={e => e.currentTarget.style.transform = "scale(0.98)"}
           onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
         >
