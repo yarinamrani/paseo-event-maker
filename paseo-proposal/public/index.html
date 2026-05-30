@@ -1883,16 +1883,16 @@ function App({ onLogout }) {
       link = `${baseUrl}?p=${data}`;
     }
     setClientLink(link);
-
     saveToCrm();
-
     try { await navigator.clipboard.writeText(link); setLinkCopied(true); setTimeout(() => setLinkCopied(false), 3000); } catch(e) { console.warn("clipboard err", e); }
+  }, [clientName, eventType, eventDate, eventTime, guestCount, childCount, eventMode, activeStations, activeTablesStations, tablesAvailable, pricePerGuest, pricePerChild, services, validDays, drinkPackage, servicePct, includeVat, saveToCrm]);
 
-    const msg = `שלום ${clientName},\nשמחים שבחרתם בפסאו!\n\nהכנו עבורכם הצעת מחיר מותאמת אישית:\n${link}\n\nבקישור תוכלו לצפות בהצעה ולבחור את התפריט לאירוע.\nלכל שאלה, אנחנו כאן.\n\nצוות פסאו ✦`;
-    const encoded = encodeURIComponent(msg);
-    const waUrl = `https://api.whatsapp.com/send?text=${encoded}`;
+    const sendClientWhatsApp = useCallback(() => {
+    if (!clientLink) return;
+    const msg = `שלום ${clientName},\nשמחים שבחרתם בפסאו!\n\nהכנו עבורכם הצעת מחיר מותאמת אישית:\n${clientLink}\n\nבקישור תוכלו לצפות בהצעה ולבחור את התפריט לאירוע.\nלכל שאלה, אנחנו כאן.\n\nצוות פסאו ✦`;
+    const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
     window.open(waUrl, "_blank") || (window.location.href = waUrl);
-  }, [clientName, eventType, eventDate, eventTime, guestCount, childCount, eventMode, activeStations, activeTablesStations, tablesAvailable, saveToCrm]);
+  }, [clientName, clientLink]);
 
   const shareWhatsApp = useCallback(async () => {
     const fmtDate = eventDate ? eventDate.split("-").reverse().join("-") : "";
@@ -2268,15 +2268,21 @@ function App({ onLogout }) {
         {tab === "form" ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {eventMode ? (<>
-              <button onClick={generateClientLink} style={{ width: "100%", background: F.gold, color: "#1e1e1e", border: "none", borderRadius: 8, padding: 13, fontFamily: FN.body, fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
-                {linkCopied ? "✓ הקישור הועתק!" : "צור קישור ושלח ללקוח"}
-              </button>
-              {clientLink && (
+              {!clientLink ? (
+                <button onClick={generateClientLink} style={{ width: "100%", background: F.gold, color: "#1e1e1e", border: "none", borderRadius: 8, padding: 13, fontFamily: FN.body, fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+                  הפק הצעת מחיר
+                </button>
+              ) : (<>
+                {linkCopied && <div style={{ textAlign: "center", fontSize: 12, color: "#4ade80", marginBottom: 4 }}>✓ הקישור הועתק!</div>}
                 <div style={{ display: "flex", gap: 8 }}>
-                  <input readOnly value={clientLink} style={{ flex: 1, background: F.bg, border: `1px solid ${F.br}`, borderRadius: 6, padding: "8px 10px", color: F.tx, fontFamily: FN.body, fontSize: 11, direction: "ltr" }} onClick={e => { e.target.select(); navigator.clipboard.writeText(clientLink); }} />
-                  <button onClick={() => setTab("preview")} style={{ padding: "8px 14px", background: "none", border: `1px solid ${F.br}`, borderRadius: 6, color: F.dm, fontFamily: FN.body, fontSize: 12, cursor: "pointer" }}>תצוגה מקדימה</button>
+                  <input readOnly value={clientLink} style={{ flex: 1, background: F.bg, border: `1px solid ${F.br}`, borderRadius: 6, padding: "8px 10px", color: F.tx, fontFamily: FN.body, fontSize: 11, direction: "ltr" }} onClick={e => { e.target.select(); navigator.clipboard.writeText(clientLink).then(() => { setLinkCopied(true); setTimeout(() => setLinkCopied(false), 2000); }); }} />
                 </div>
-              )}
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button onClick={sendClientWhatsApp} style={{ flex: 1, background: "#25D366", color: "#fff", border: "none", borderRadius: 8, padding: 12, fontFamily: FN.body, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>שלח בוואטסאפ</button>
+                  <button onClick={() => setTab("preview")} style={{ flex: 1, background: "none", border: `1px solid ${F.br}`, borderRadius: 8, padding: 12, color: F.dm, fontFamily: FN.body, fontSize: 12, cursor: "pointer" }}>תצוגה מקדימה</button>
+                </div>
+                <button onClick={() => { setClientLink(""); generateClientLink(); }} style={{ width: "100%", background: "none", border: `1px solid ${F.br}`, borderRadius: 8, padding: 10, color: F.dm, fontFamily: FN.body, fontSize: 12, cursor: "pointer" }}>הפק קישור חדש</button>
+              </>)}
             </>) : (
               <button onClick={()=>setTab("preview")} style={{ width: "100%", background: F.gold, color: "#1e1e1e", border: "none", borderRadius: 8, padding: 13, fontFamily: FN.body, fontSize: 14, fontWeight: 700, cursor: "pointer" }}>תצוגה מקדימה</button>
             )}
