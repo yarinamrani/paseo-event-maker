@@ -1868,9 +1868,6 @@ function App({ onLogout }) {
       sp: servicePct,
       iv: includeVat,
     };
-    // Open WhatsApp window immediately (before await) to avoid mobile popup blockers
-    const whatsappWin = window.open("about:blank", "_blank");
-    // Save to Supabase and use short code in URL
     const baseUrl = window.location.origin + window.location.pathname;
     let link;
     const shortCode = "P" + Array.from(crypto.getRandomValues(new Uint8Array(5)), b => b.toString(36)).join("").slice(0, 8);
@@ -1881,24 +1878,20 @@ function App({ onLogout }) {
         setLastProposalId(shortCode);
       }
     } catch(e) { console.warn("proposal save err", e); }
-    // Fallback to base64 URL if Supabase failed
     if (!link) {
       const data = btoa(unescape(encodeURIComponent(JSON.stringify(proposal))));
       link = `${baseUrl}?p=${data}`;
     }
     setClientLink(link);
 
-    // Also save to CRM leads
     saveToCrm();
 
-    // Copy to clipboard
     try { await navigator.clipboard.writeText(link); setLinkCopied(true); setTimeout(() => setLinkCopied(false), 3000); } catch(e) { console.warn("clipboard err", e); }
 
-    // Navigate WhatsApp window to the link
     const msg = `שלום ${clientName},\nשמחים שבחרתם בפסאו!\n\nהכנו עבורכם הצעת מחיר מותאמת אישית:\n${link}\n\nבקישור תוכלו לצפות בהצעה ולבחור את התפריט לאירוע.\nלכל שאלה, אנחנו כאן.\n\nצוות פסאו ✦`;
     const encoded = encodeURIComponent(msg);
     const waUrl = `https://api.whatsapp.com/send?text=${encoded}`;
-    if (whatsappWin) { whatsappWin.location.href = waUrl; } else { window.location.href = waUrl; }
+    window.open(waUrl, "_blank") || (window.location.href = waUrl);
   }, [clientName, eventType, eventDate, eventTime, guestCount, childCount, eventMode, activeStations, activeTablesStations, tablesAvailable, saveToCrm]);
 
   const shareWhatsApp = useCallback(async () => {
