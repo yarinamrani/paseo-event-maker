@@ -1166,7 +1166,6 @@ function SignaturePad({ onSave, onCancel, proposal }) {
    ══════════════════════════════════════════════════════════ */
 function ClientQuotePage({ proposal, onApprove }) {
   const [animIn, setAnimIn] = useState(false);
-  const [showSignature, setShowSignature] = useState(false);
   useEffect(() => { requestAnimationFrame(() => setAnimIn(true)); }, []);
 
   const g = parseInt(proposal.guestCount) || 0;
@@ -1389,22 +1388,13 @@ function ClientQuotePage({ proposal, onApprove }) {
       {/* Spacer for sticky CTA */}
       <div style={{ height: 140 }} />
 
-      {/* Signature Modal */}
-      {showSignature && (
-        <SignaturePad
-          proposal={proposal}
-          onSave={onApprove}
-          onCancel={() => setShowSignature(false)}
-        />
-      )}
-
       {/* Sticky bottom CTA */}
       <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 100, background: "linear-gradient(0deg, #1a1a1a 70%, transparent)", padding: "40px 16px 20px" }}>
-        <button onClick={() => setShowSignature(true)} style={{ width: "100%", background: "linear-gradient(135deg, #c8a96e, #b8944e)", color: "#1a1a1a", border: "none", borderRadius: 14, padding: "16px 24px", fontFamily: FN.title, fontSize: 18, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 20px rgba(200,169,110,0.3)", transition: "transform 0.2s, box-shadow 0.2s" }}
+        <button onClick={onApprove} style={{ width: "100%", background: "linear-gradient(135deg, #c8a96e, #b8944e)", color: "#1a1a1a", border: "none", borderRadius: 14, padding: "16px 24px", fontFamily: FN.title, fontSize: 18, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 20px rgba(200,169,110,0.3)", transition: "transform 0.2s, box-shadow 0.2s" }}
           onMouseDown={e => e.currentTarget.style.transform = "scale(0.98)"}
           onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
         >
-          אישור הצעה והמשך לבחירת תפריט ←
+          המשך לבחירת תפריט ←
         </button>
         <a href={`https://api.whatsapp.com/send?phone=${ADMIN_PHONE}&text=${encodeURIComponent("היי, קיבלתי את ההצעה ויש לי שאלה")}`}
           target="_blank" rel="noopener noreferrer"
@@ -1427,19 +1417,35 @@ function ClientQuotePage({ proposal, onApprove }) {
 }
 
 /* ══════════════════════════════════════════════════════════
-   CLIENT WIZARD — wraps Quote → Menu → Submitted
+   CLIENT WIZARD — Quote → Menu → Signature → Done
    ══════════════════════════════════════════════════════════ */
 function ClientWizard({ proposal }) {
   const [step, setStep] = useState("quote");
-  return step === "quote"
-    ? <ClientQuotePage proposal={proposal} onApprove={() => { setStep("menu"); window.scrollTo(0, 0); }} />
-    : <ClientMenuPage proposal={proposal} />;
+  const [menuData, setMenuData] = useState(null);
+
+  if (step === "quote") return <ClientQuotePage proposal={proposal} onApprove={() => { setStep("menu"); window.scrollTo(0, 0); }} />;
+  if (step === "menu") return <ClientMenuPage proposal={proposal} onComplete={(data) => { setMenuData(data); setStep("signature"); window.scrollTo(0, 0); }} />;
+  if (step === "signature") return <SignaturePad proposal={proposal} onSave={() => setStep("done")} onCancel={() => setStep("menu")} />;
+  return (
+    <div style={{ minHeight: "100vh", background: "#1a1a1a", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 40, textAlign: "center" }}>
+      <div style={{ width: 80, height: 80, borderRadius: "50%", background: "rgba(200,169,110,0.15)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#c8a96e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+      </div>
+      <div style={{ fontFamily: FN.title, fontSize: 24, color: "#c8a96e", marginBottom: 12 }}>ההזמנה אושרה בהצלחה</div>
+      <div style={{ fontFamily: FN.body, fontSize: 14, color: "rgba(255,255,255,0.6)", lineHeight: 1.8, maxWidth: 320 }}>
+        הבחירות שלכם התקבלו וההצעה נחתמה.<br/>הצוות שלנו כבר מתחיל לתכנן את החוויה המושלמת עבורכם.<br/>ניצור קשר בקרוב עם כל הפרטים הסופיים.
+      </div>
+      <div style={{ marginTop: 40, opacity: 0.4 }}>
+        <img src={IMG.logo} style={{ width: 80, height: 80, objectFit: "contain" }} />
+      </div>
+    </div>
+  );
 }
 
 /* ══════════════════════════════════════════════════════════
    CLIENT-FACING MENU SELECTION PAGE
    ══════════════════════════════════════════════════════════ */
-function ClientMenuPage({ proposal }) {
+function ClientMenuPage({ proposal, onComplete }) {
   const [selections, setSelections] = useState({});
   const [notes, setNotes] = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -1544,6 +1550,7 @@ function ClientMenuPage({ proposal }) {
       return;
     }
 
+    if (onComplete) { onComplete(); return; }
     setSubmitted(true);
   };
 
@@ -1727,7 +1734,7 @@ function ClientMenuPage({ proposal }) {
             </div>
             <div style={{ padding: "12px 20px 24px", borderTop: "1px solid rgba(200,169,110,0.15)", display: "flex", flexDirection: "column", gap: 10 }}>
               <button onClick={handleSubmit} disabled={!allComplete} style={{ width: "100%", padding: 14, borderRadius: 10, border: "none", background: allComplete ? "#c8a96e" : "rgba(200,169,110,0.3)", color: allComplete ? "#1a1a1a" : "rgba(255,255,255,0.3)", fontFamily: FN.body, fontSize: 15, fontWeight: 700, cursor: allComplete ? "pointer" : "not-allowed" }}>
-                אישור ושליחה
+                {onComplete ? "המשך לאישור וחתימה ←" : "אישור ושליחה"}
               </button>
               <button onClick={() => setShowSummary(false)} style={{ width: "100%", padding: 12, borderRadius: 10, background: "none", border: "1px solid rgba(200,169,110,0.3)", color: "#c8a96e", fontFamily: FN.body, fontSize: 13, cursor: "pointer" }}>
                 חזרה לעריכה
