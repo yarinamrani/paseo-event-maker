@@ -2080,7 +2080,7 @@ function App({ onLogout }) {
     if (!link) {
       console.error("Supabase save failed — falling back to base64 URL");
       const data = btoa(unescape(encodeURIComponent(JSON.stringify(proposal))));
-      link = `${baseUrl}?p=${data}`;
+      link = `${baseUrl}?p=${encodeURIComponent(data)}`;
       if (link.length > 2000) {
         alert("לא הצלחתי לשמור ב-DB. הלינק ארוך ועלול להיחתך בוואטסאפ. נסה שוב או שלח כ-PDF.");
       }
@@ -2609,7 +2609,8 @@ function App({ onLogout }) {
           })();
         } else {
           try {
-            const json = decodeURIComponent(escape(atob(encodedData)));
+            const fixed = encodedData.replace(/ /g, '+');
+            const json = decodeURIComponent(escape(atob(fixed)));
             const parsed = JSON.parse(json);
             setProposal(parseProposalData(parsed));
           } catch(e) { console.warn("decode err", e); setNotFound(true); }
