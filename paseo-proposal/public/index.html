@@ -2269,9 +2269,14 @@ function App({ onLogout }) {
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {eventMode ? (<>
               {!clientLink ? (
-                <button onClick={generateClientLink} style={{ width: "100%", background: F.gold, color: "#1e1e1e", border: "none", borderRadius: 8, padding: 13, fontFamily: FN.body, fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
-                  הפק הצעת מחיר
-                </button>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button onClick={generateClientLink} style={{ flex: 1, background: F.gold, color: "#1e1e1e", border: "none", borderRadius: 8, padding: 13, fontFamily: FN.body, fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+                    הפק קישור ללקוח
+                  </button>
+                  <button onClick={() => setTab("preview")} style={{ flex: 1, background: "#232323", color: F.gold, border: `1px solid ${F.gold}`, borderRadius: 8, padding: 13, fontFamily: FN.body, fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+                    תצוגה מקדימה
+                  </button>
+                </div>
               ) : (<>
                 {linkCopied && <div style={{ textAlign: "center", fontSize: 12, color: "#4ade80", marginBottom: 4 }}>✓ הקישור הועתק!</div>}
                 <div style={{ display: "flex", gap: 8 }}>
