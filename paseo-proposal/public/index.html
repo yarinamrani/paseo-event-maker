@@ -2619,18 +2619,28 @@ function App({ onLogout }) {
         if (encodedData.length < 50) {
           (async () => {
             try {
-              const { data, error } = await supabase.from("proposals").select("data").eq("id", encodedData).single();
+              const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 5000));
+              const fetchPromise = supabase.from("proposals").select("data").eq("id", encodedData).single();
+              const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
               if (!error && data && data.data) { setProposal({ ...parseProposalData(data.data), _proposalId: encodedData }); setLoading(false); return; }
-            } catch(e) { console.warn("proposal lookup err", e); }
+            } catch(e) { console.warn("proposal lookup err (DB may be paused):", e.message); }
             setNotFound(true); setLoading(false);
           })();
         } else {
           try {
             const fixed = encodedData.replace(/ /g, '+');
-            const json = decodeURIComponent(escape(atob(fixed)));
+            let json;
+            try {
+              json = decodeURIComponent(escape(atob(fixed)));
+            } catch(e1) {
+              json = atob(fixed);
+            }
             const parsed = JSON.parse(json);
             setProposal(parseProposalData(parsed));
-          } catch(e) { console.warn("decode err", e); setNotFound(true); }
+          } catch(e) {
+            console.error("decode err:", e, "data length:", encodedData.length, "first 50:", encodedData.slice(0, 50));
+            setNotFound(true);
+          }
           setLoading(false);
         }
       }, []);
