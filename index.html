@@ -1030,6 +1030,12 @@ function SignaturePad({ onSave, onCancel, proposal }) {
         }
       } catch(e) { console.warn("proposal sig update err", e); }
     }
+    // Notify admin via WhatsApp
+    try {
+      const adminPhone = "972543332696";
+      const msg = `הצעת מחיר נחתמה!\n\nלקוח: ${proposal.clientName || "לא צוין"}\nאירוע: ${proposal.eventType || "לא צוין"}\nתאריך: ${proposal.eventDate ? proposal.eventDate.split("-").reverse().join("/") : "לא צוין"}\nאורחים: ${proposal.guestCount || "לא צוין"}\n\nנחתם בתאריך: ${signDate}`;
+      window.open(`https://api.whatsapp.com/send?phone=${adminPhone}&text=${encodeURIComponent(msg)}`, "_blank");
+    } catch(e) { console.warn("admin notify err", e); }
     setSaving(false);
     onSave();
   };
@@ -1362,15 +1368,252 @@ function ClientQuotePage({ proposal, onApprove }) {
 }
 
 /* ══════════════════════════════════════════════════════════
+   CLIENT PROPOSAL VIEW — Read-only contract with menu + pricing
+   ══════════════════════════════════════════════════════════ */
+function ClientProposalPage({ proposal, onSign }) {
+  const [animIn, setAnimIn] = useState(false);
+  useEffect(() => { requestAnimationFrame(() => setAnimIn(true)); }, []);
+
+  const g = parseInt(proposal.guestCount) || 0;
+  const ppg = parseFloat(proposal.pricePerGuest) || 0;
+  const c = parseInt(proposal.childCount) || 0;
+  const ppc = parseFloat(proposal.pricePerChild) || 0;
+  const sp = parseFloat(proposal.servicePct) || 12;
+  const foodTotal = g * ppg + c * ppc;
+
+  const upgradeTotal = (proposal.selectedUpgrades || []).reduce((sum, uid) => {
+    const u = UPGRADE_OPTIONS.find(o => o.id === uid);
+    if (!u) return sum;
+    if (u.id === "sushi_station") return sum + g * (parseInt(proposal.sushiPrice) || 0);
+    return sum + g * (u.price || 0);
+  }, 0);
+
+  const totalFood = foodTotal + upgradeTotal;
+  const serviceAmount = Math.round(totalFood * sp / 100);
+  const totalBeforeVat = totalFood + serviceAmount;
+  const showVat = proposal.includeVat !== false;
+  const vat = showVat ? Math.round(totalBeforeVat * 0.18) : 0;
+  const totalWithVat = totalBeforeVat + vat;
+  const fmtDate = proposal.eventDate ? proposal.eventDate.split("-").reverse().join("/") : "";
+  const validDaysNum = parseInt(proposal.validDays) || 7;
+
+  const pkg = proposal.menuType && proposal.packageTier ? PACKAGE_MENUS[proposal.menuType]?.[proposal.packageTier] : null;
+  const menuTypeLabel = proposal.menuType === "dairy" ? "חלבי" : proposal.menuType === "meat" ? "בשרי" : "";
+  const packageLabel = pkg ? pkg.label : "";
+
+  const categories = {};
+  if (pkg) {
+    Object.entries(pkg).forEach(([catKey, cat]) => {
+      if (!cat || !cat.items) return;
+      const selected = proposal.selectedDishes?.[catKey] || [];
+      const items = selected.length > 0
+        ? cat.items.filter(item => selected.includes(item.id))
+        : cat.items;
+      if (items.length > 0) {
+        const label = CAT_LABELS_HE[catKey] || catKey;
+        categories[label] = items;
+      }
+    });
+  }
+
+  const upgradeItems = (proposal.selectedUpgrades || []).map(uid => {
+    const u = UPGRADE_OPTIONS.find(o => o.id === uid);
+    if (!u) return null;
+    const price = u.id === "sushi_station" ? (parseInt(proposal.sushiPrice) || 0) : u.price;
+    return { name: u.name, desc: u.desc || "", price };
+  }).filter(Boolean);
+
+  const svcList = (proposal.services || []).filter(s => s.i);
+  const ADMIN_PHONE = "972543332696";
+
+  return (
+    <div style={{ minHeight: "100vh", background: "#1a1a1a", color: "#e8e2d8", fontFamily: FN.body, direction: "rtl", opacity: animIn ? 1 : 0, transition: "opacity 0.6s ease" }}>
+
+      {/* Hero */}
+      <div style={{ position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", inset: 0, backgroundImage: `url(${IMG.venue})`, backgroundSize: "cover", backgroundPosition: "center", filter: "brightness(0.3)" }} />
+        <div style={{ position: "relative", padding: "50px 24px 35px", textAlign: "center" }}>
+          <img src={IMG.logo} style={{ width: 90, height: 90, objectFit: "contain", margin: "0 auto 16px", display: "block", borderRadius: 4, filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.5))" }} />
+          <div style={{ fontFamily: FN.title, fontSize: 28, color: "#c8a96e", marginBottom: 6, textShadow: "0 2px 8px rgba(0,0,0,0.5)" }}>
+            {proposal.clientName ? `${proposal.clientName}` : "הצעת מחיר"}
+          </div>
+          <div style={{ fontFamily: FN.body, fontSize: 14, color: "rgba(255,255,255,0.7)", fontWeight: 300, lineHeight: 1.8 }}>
+            הצעת מחיר מותאמת אישית
+          </div>
+        </div>
+      </div>
+
+      {/* Event Details */}
+      <div style={{ padding: "0 16px", marginTop: -12 }}>
+        <div style={{ background: "rgba(200,169,110,0.06)", border: "1px solid rgba(200,169,110,0.15)", borderRadius: 16, padding: "20px 18px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+            {proposal.eventType && <div style={{ textAlign: "center" }}><div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>סוג אירוע</div><div style={{ fontSize: 15, fontWeight: 600, color: "#c8a96e" }}>{proposal.eventType}</div></div>}
+            {fmtDate && <div style={{ textAlign: "center" }}><div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>תאריך</div><div style={{ fontSize: 15, fontWeight: 600, color: "#e8e2d8", direction: "ltr" }}>{fmtDate}</div></div>}
+            {proposal.eventTime && <div style={{ textAlign: "center" }}><div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>שעה</div><div style={{ fontSize: 15, fontWeight: 600, color: "#e8e2d8" }}>{proposal.eventTime}</div></div>}
+            {g > 0 && <div style={{ textAlign: "center" }}><div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>מספר אורחים</div><div style={{ fontSize: 15, fontWeight: 600, color: "#e8e2d8" }}>{g}{c > 0 ? ` + ${c} ילדים` : ""}</div></div>}
+          </div>
+        </div>
+      </div>
+
+      {/* Menu Section */}
+      {Object.keys(categories).length > 0 && (
+        <div style={{ padding: "24px 16px 0" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, justifyContent: "center", marginBottom: 6 }}>
+            <div style={{ flex: 1, height: 1, background: "rgba(200,169,110,0.2)" }} />
+            <div style={{ fontFamily: FN.title, fontSize: 18, color: "#c8a96e" }}>התפריט</div>
+            <div style={{ flex: 1, height: 1, background: "rgba(200,169,110,0.2)" }} />
+          </div>
+          {(packageLabel || menuTypeLabel) && (
+            <div style={{ textAlign: "center", marginBottom: 14 }}>
+              <span style={{ fontFamily: FN.brand, fontSize: 14, letterSpacing: 3, color: "rgba(200,169,110,0.7)", direction: "ltr" }}>{packageLabel}</span>
+              {menuTypeLabel && <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginRight: 8 }}> · {menuTypeLabel}</span>}
+            </div>
+          )}
+          <div style={{ background: "#232323", borderRadius: 14, overflow: "hidden", border: "1px solid rgba(200,169,110,0.1)", padding: "16px 18px" }}>
+            {Object.entries(categories).map(([cat, items]) => (
+              <div key={cat} style={{ marginBottom: 16 }}>
+                <div style={{ fontFamily: FN.title, fontSize: 15, fontWeight: 700, color: "#c8a96e", textAlign: "center", marginBottom: 8, paddingBottom: 6, borderBottom: "1px solid rgba(200,169,110,0.15)" }}>{cat}</div>
+                {items.map(item => (
+                  <div key={item.id} style={{ textAlign: "center", marginBottom: 6 }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: "#e8e2d8" }}>{item.name}</div>
+                    {item.desc && <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>{item.desc}</div>}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Upgrades */}
+      {upgradeItems.length > 0 && (
+        <div style={{ padding: "20px 16px 0" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, justifyContent: "center", marginBottom: 12 }}>
+            <div style={{ flex: 1, height: 1, background: "rgba(200,169,110,0.2)" }} />
+            <div style={{ fontFamily: FN.title, fontSize: 16, color: "#c8a96e" }}>שדרוגים</div>
+            <div style={{ flex: 1, height: 1, background: "rgba(200,169,110,0.2)" }} />
+          </div>
+          <div style={{ background: "#232323", borderRadius: 14, border: "1px solid rgba(200,169,110,0.1)", padding: "12px 18px" }}>
+            {upgradeItems.map((u, i) => (
+              <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: i < upgradeItems.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
+                <span style={{ fontSize: 13, color: "rgba(255,255,255,0.7)" }}>{u.name}{u.desc ? ` — ${u.desc}` : ""}</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: "#e8e2d8", direction: "ltr", flexShrink: 0, marginRight: 12 }}>{u.price} ₪ לאורח</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Pricing Breakdown */}
+      {ppg > 0 && (
+        <div style={{ padding: "24px 16px 0" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, justifyContent: "center", marginBottom: 16 }}>
+            <div style={{ flex: 1, height: 1, background: "rgba(200,169,110,0.2)" }} />
+            <div style={{ fontFamily: FN.title, fontSize: 18, color: "#c8a96e" }}>פירוט עלויות</div>
+            <div style={{ flex: 1, height: 1, background: "rgba(200,169,110,0.2)" }} />
+          </div>
+          <div style={{ background: "#232323", borderRadius: 14, overflow: "hidden", border: "1px solid rgba(200,169,110,0.1)" }}>
+            <div style={{ padding: "16px 18px 0" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                <span style={{ fontSize: 14, color: "rgba(255,255,255,0.7)" }}>{g} מבוגרים × <span dir="ltr">{ppg.toLocaleString("he-IL")} ₪</span></span>
+                <span style={{ fontSize: 14, fontWeight: 600, color: "#e8e2d8", direction: "ltr" }}>{(g * ppg).toLocaleString("he-IL")} ₪</span>
+              </div>
+              {c > 0 && ppc > 0 && (
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                  <span style={{ fontSize: 14, color: "rgba(255,255,255,0.7)" }}>{c} ילדים × <span dir="ltr">{ppc.toLocaleString("he-IL")} ₪</span></span>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: "#e8e2d8", direction: "ltr" }}>{(c * ppc).toLocaleString("he-IL")} ₪</span>
+                </div>
+              )}
+              {upgradeItems.map((u, i) => (
+                <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                  <span style={{ fontSize: 14, color: "rgba(255,255,255,0.7)" }}>{u.name} × {g}</span>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: "#e8e2d8", direction: "ltr" }}>{(g * u.price).toLocaleString("he-IL")} ₪</span>
+                </div>
+              ))}
+              {serviceAmount > 0 && (
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                  <span style={{ fontSize: 14, color: "rgba(255,255,255,0.7)" }}>דמי שירות ({sp}%)</span>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: "#e8e2d8", direction: "ltr" }}>{serviceAmount.toLocaleString("he-IL")} ₪</span>
+                </div>
+              )}
+              {showVat && (
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                  <span style={{ fontSize: 14, color: "rgba(255,255,255,0.7)" }}>מע"מ (18%)</span>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: "#e8e2d8", direction: "ltr" }}>{vat.toLocaleString("he-IL")} ₪</span>
+                </div>
+              )}
+            </div>
+            <div style={{ background: "rgba(200,169,110,0.08)", padding: "16px 18px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontFamily: FN.title, fontSize: 16, color: "#c8a96e" }}>{showVat ? "סה\"כ כולל מע\"מ" : "סה\"כ (לא כולל מע\"מ)"}</span>
+                <span style={{ fontFamily: FN.title, fontSize: 22, color: "#c8a96e", direction: "ltr" }}>{(showVat ? totalWithVat : totalBeforeVat).toLocaleString("he-IL")} ₪</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Included Services */}
+      {svcList.length > 0 && (
+        <div style={{ padding: "24px 16px 0" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, justifyContent: "center", marginBottom: 12 }}>
+            <div style={{ flex: 1, height: 1, background: "rgba(200,169,110,0.2)" }} />
+            <div style={{ fontFamily: FN.title, fontSize: 16, color: "#c8a96e" }}>כלול בחבילה</div>
+            <div style={{ flex: 1, height: 1, background: "rgba(200,169,110,0.2)" }} />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            {svcList.map((s, i) => (
+              <div key={i} style={{ background: "rgba(200,169,110,0.04)", border: "1px solid rgba(200,169,110,0.08)", borderRadius: 10, padding: "10px 14px", display: "flex", alignItems: "center", gap: 8 }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M20 6L9 17l-5-5"/></svg>
+                <span style={{ fontSize: 13, color: "rgba(255,255,255,0.8)" }}>{s.n}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Validity */}
+      <div style={{ padding: "24px 16px 0", textAlign: "center" }}>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.15)", borderRadius: 20, padding: "8px 16px" }}>
+          <span style={{ fontSize: 12, color: "rgba(245,158,11,0.8)" }}>תוקף הצעה זו הינו {validDaysNum} ימים מרגע קבלתה</span>
+        </div>
+      </div>
+
+      {/* Spacer + sticky CTA */}
+      <div style={{ height: 140 }} />
+      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 100, background: "linear-gradient(0deg, #1a1a1a 70%, transparent)", padding: "40px 16px 20px" }}>
+        <button onClick={onSign} style={{ width: "100%", background: "linear-gradient(135deg, #c8a96e, #b8944e)", color: "#1a1a1a", border: "none", borderRadius: 14, padding: "16px 24px", fontFamily: FN.title, fontSize: 18, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 20px rgba(200,169,110,0.3)" }}>
+          אישור וחתימה על ההצעה
+        </button>
+        <a href={`https://api.whatsapp.com/send?phone=${ADMIN_PHONE}&text=${encodeURIComponent("היי, קיבלתי את ההצעה ויש לי שאלה")}`}
+          target="_blank" rel="noopener noreferrer"
+          style={{ display: "block", textAlign: "center", marginTop: 10, fontSize: 13, color: "rgba(255,255,255,0.5)", textDecoration: "none" }}>
+          יש שאלה? דברו איתנו בוואטסאפ
+        </a>
+      </div>
+
+      <a href={`https://api.whatsapp.com/send?phone=${ADMIN_PHONE}`}
+        target="_blank" rel="noopener noreferrer"
+        style={{ position: "fixed", bottom: 100, left: 16, width: 48, height: 48, borderRadius: "50%", background: "#25D366", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(0,0,0,0.3)", zIndex: 99 }}>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      </a>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════
    CLIENT WIZARD — Quote → Menu → Signature → Done
+   (or Proposal → Signature → Done for package-based proposals)
    ══════════════════════════════════════════════════════════ */
 function ClientWizard({ proposal }) {
-  const [step, setStep] = useState("quote");
+  const hasPackage = proposal.menuType && proposal.packageTier;
+  const [step, setStep] = useState(hasPackage ? "proposal" : "quote");
   const [menuData, setMenuData] = useState(null);
 
+  if (step === "proposal") return <ClientProposalPage proposal={proposal} onSign={() => { setStep("signature"); window.scrollTo(0, 0); }} />;
   if (step === "quote") return <ClientQuotePage proposal={proposal} onApprove={() => { setStep("menu"); window.scrollTo(0, 0); }} />;
   if (step === "menu") return <ClientMenuPage proposal={proposal} onComplete={(data) => { setMenuData(data); setStep("signature"); window.scrollTo(0, 0); }} />;
-  if (step === "signature") return <SignaturePad proposal={proposal} onSave={() => setStep("done")} onCancel={() => setStep("menu")} />;
+  if (step === "signature") return <SignaturePad proposal={proposal} onSave={() => setStep("done")} onCancel={() => setStep(hasPackage ? "proposal" : "menu")} />;
   return (
     <div style={{ minHeight: "100vh", background: "#1a1a1a", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 40, textAlign: "center" }}>
       <div style={{ width: 80, height: 80, borderRadius: "50%", background: "rgba(200,169,110,0.15)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
@@ -1827,10 +2070,13 @@ function App({ onLogout }) {
 
     const sendClientWhatsApp = useCallback(() => {
     if (!clientLink) return;
-    const msg = `שלום ${clientName},\nשמחים שבחרתם בפסאו!\n\nהכנו עבורכם הצעת מחיר מותאמת אישית:\n${clientLink}\n\nבקישור תוכלו לצפות בהצעה ולבחור את התפריט לאירוע.\nלכל שאלה, אנחנו כאן.\n\nצוות פסאו ✦`;
+    const hasPackage = menuType && packageTier;
+    const msg = hasPackage
+      ? `שלום ${clientName},\nשמחים שבחרתם בפסאו!\n\nהכנו עבורכם הצעת מחיר מותאמת אישית:\n${clientLink}\n\nבקישור תוכלו לצפות בפירוט ההצעה ולחתום לאישור.\nלכל שאלה, אנחנו כאן.\n\nצוות פסאו`
+      : `שלום ${clientName},\nשמחים שבחרתם בפסאו!\n\nהכנו עבורכם הצעת מחיר מותאמת אישית:\n${clientLink}\n\nבקישור תוכלו לצפות בהצעה ולבחור את התפריט לאירוע.\nלכל שאלה, אנחנו כאן.\n\nצוות פסאו`;
     const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
     window.open(waUrl, "_blank") || (window.location.href = waUrl);
-  }, [clientName, clientLink]);
+  }, [clientName, clientLink, menuType, packageTier]);
 
   const shareWhatsApp = useCallback(async () => {
     const fmtDate = eventDate ? eventDate.split("-").reverse().join("-") : "";
@@ -2202,7 +2448,7 @@ function App({ onLogout }) {
               </button>
               {menuType && packageTier && !clientLink && (
                 <button onClick={generateClientLink} style={{ flex: 1, background: "#232323", color: F.gold, border: `1px solid ${F.gold}`, borderRadius: 8, padding: 13, fontFamily: FN.body, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-                  הפק קישור ללקוח
+                  שלח לינק לחתימה
                 </button>
               )}
             </div>
@@ -2259,6 +2505,11 @@ function App({ onLogout }) {
         m: data.m || "private",
         s: activeKeys,
         avail: data.avail || null,
+        menuType: data.mt || "",
+        packageTier: data.pt || "",
+        selectedDishes: data.sd || {},
+        selectedUpgrades: data.su || [],
+        sushiPrice: data.sp2 || "35",
         pricePerGuest: data.ppg || "",
         pricePerChild: data.ppc || "",
         services: data.svc || null,
