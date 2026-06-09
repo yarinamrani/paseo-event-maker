@@ -2031,37 +2031,59 @@ function App({ onLogout }) {
     if (!clientName.trim()) { alert("נא להזין שם לקוח"); return; }
     const proposal = {
       n: clientName.trim(),
-      t: eventType,
-      d: eventDate,
-      tm: eventTime,
-      g: guestCount,
-      c: childCount,
-      mt: menuType,
-      pt: packageTier,
-      sd: selectedDishes,
-      su: selectedUpgrades,
-      sp2: sushiPrice,
-      ppg: pricePerGuest,
-      ppc: pricePerChild,
-      svc: services.filter(s => s.included || s.show !== false).map(s => ({ n: s.name, i: s.included, q: s.qty, p: s.price, d: s.desc })),
-      vd: validDays,
-      dp: drinkPackage,
-      sp: servicePct,
-      iv: includeVat,
+      t: eventType || undefined,
+      d: eventDate || undefined,
+      tm: eventTime || undefined,
+      g: guestCount || undefined,
+      c: childCount || undefined,
+      mt: menuType || undefined,
+      pt: packageTier || undefined,
+      sd: Object.keys(selectedDishes).length ? selectedDishes : undefined,
+      su: selectedUpgrades.length ? selectedUpgrades : undefined,
+      sp2: sushiPrice && sushiPrice !== "35" ? sushiPrice : undefined,
+      ppg: pricePerGuest || undefined,
+      ppc: pricePerChild || undefined,
+      svc: services.filter(s => s.included || s.show !== false).map(s => {
+        const o = { n: s.name, i: s.included };
+        if (s.qty) o.q = s.qty;
+        if (s.price) o.p = s.price;
+        if (s.desc) o.d = s.desc;
+        return o;
+      }),
+      vd: validDays !== "7" ? validDays : undefined,
+      dp: drinkPackage !== "none" ? drinkPackage : undefined,
+      sp: servicePct !== "12" ? servicePct : undefined,
+      iv: includeVat ? undefined : false,
     };
+    Object.keys(proposal).forEach(k => proposal[k] === undefined && delete proposal[k]);
+
     const baseUrl = window.location.origin + window.location.pathname;
     let link;
     const shortCode = "P" + Array.from(crypto.getRandomValues(new Uint8Array(5)), b => b.toString(36)).join("").slice(0, 8);
-    try {
-      const { error } = await supabase.from("proposals").upsert([{ id: shortCode, data: proposal, createdAt: new Date().toISOString() }], { onConflict: "id" });
-      if (!error) {
-        link = `${baseUrl}?p=${shortCode}`;
-        setLastProposalId(shortCode);
-      }
-    } catch(e) { console.warn("proposal save err", e); }
+    for (let attempt = 0; attempt < 2 && !link; attempt++) {
+      try {
+        const row = { id: shortCode, data: proposal };
+        const { error } = await supabase.from("proposals").insert([row]);
+        if (error && error.code === "23505") {
+          const { error: e2 } = await supabase.from("proposals").update({ data: proposal }).eq("id", shortCode);
+          if (!e2) { link = `${baseUrl}?p=${shortCode}`; setLastProposalId(shortCode); }
+          else console.error("proposal update err:", JSON.stringify(e2));
+        } else if (!error) {
+          link = `${baseUrl}?p=${shortCode}`;
+          setLastProposalId(shortCode);
+        } else {
+          console.error("proposal insert err:", JSON.stringify(error));
+        }
+      } catch(e) { console.error("proposal save exception:", e); }
+      if (!link && attempt === 0) await new Promise(r => setTimeout(r, 1000));
+    }
     if (!link) {
+      console.error("Supabase save failed — falling back to base64 URL");
       const data = btoa(unescape(encodeURIComponent(JSON.stringify(proposal))));
       link = `${baseUrl}?p=${data}`;
+      if (link.length > 2000) {
+        alert("לא הצלחתי לשמור ב-DB. הלינק ארוך ועלול להיחתך בוואטסאפ. נסה שוב או שלח כ-PDF.");
+      }
     }
     setClientLink(link);
     saveToCrm();
