@@ -397,17 +397,17 @@ function MenuPage({ menuType, categories, packageLabel, packagePrice, menuTypeLa
   const extreme = effectiveItems > 46;
   const hideDesc = extreme;
   const logoSize = effectiveItems > 20 ? "sm" : "lg";
-  const titleFs = extreme ? 18 : compact ? 20 : dense ? 22 : 28;
-  const catFs = extreme ? 10 : compact ? 11 : dense ? 12 : 15;
-  const itemFs = extreme ? 10 : compact ? 11 : dense ? 12 : 14;
-  const descFs = extreme ? 8 : compact ? 8.5 : dense ? 9 : 10;
+  const titleFs = extreme ? 19 : compact ? 21 : dense ? 23 : 28;
+  const catFs = extreme ? 11 : compact ? 12 : dense ? 13 : 15;
+  const itemFs = extreme ? 11 : compact ? 11.5 : dense ? 12 : 14;
+  const descFs = extreme ? 9 : compact ? 9 : dense ? 9.5 : 10;
   const catMargin = extreme ? "3px 0 1px" : compact ? "4px 0 2px" : dense ? "5px 0 2px" : "10px 0 4px";
   const itemMb = extreme ? 1 : compact ? 2 : dense ? 2 : 5;
   const topPad = extreme ? "6px 20px 0" : compact ? "8px 20px 0" : dense ? "10px 20px 0" : "24px 20px 4px";
   const contentPad = extreme ? "0px 25px 0" : compact ? "0px 28px 0" : dense ? "2px 32px 0" : "4px 36px 0";
-  const bottomH = extreme ? 50 : compact ? 60 : dense ? 70 : 120;
-  const stripW = compact ? "33%" : dense ? "36%" : "40%";
-  const contentW = compact ? "67%" : dense ? "64%" : "60%";
+  const bottomH = extreme ? 0 : compact ? 64 : dense ? 80 : 120;
+  const stripW = "36%";
+  const contentW = "64%";
 
   return (
     <div style={page}>
@@ -422,7 +422,7 @@ function MenuPage({ menuType, categories, packageLabel, packagePrice, menuTypeLa
         <div style={{ padding: contentPad, flex: 1, overflow: "hidden" }}>
           {Object.entries(categories).map(([cat, items]) => (
             <div key={cat}>
-              <div style={{ fontFamily: FN.title, fontSize: catFs, fontWeight: 700, color: S.text, textAlign: "center", margin: catMargin, textDecoration: "underline", textUnderlineOffset: 5, textDecorationColor: S.line }}>{cat}</div>
+              <div style={{ fontFamily: FN.title, fontSize: catFs, fontWeight: 700, color: S.text, textAlign: "center", margin: catMargin, textDecoration: "underline", textUnderlineOffset: 5, textDecorationColor: "rgba(120,100,75,0.5)" }}>{cat}</div>
               {items.map((item) => (
                 <div key={item.id} style={{ textAlign: "center", marginBottom: itemMb }}>
                   <div style={{ fontFamily: FN.title, fontSize: itemFs, fontWeight: 700, color: S.titleBold }}>{item.name}</div>
@@ -432,11 +432,13 @@ function MenuPage({ menuType, categories, packageLabel, packagePrice, menuTypeLa
             </div>
           ))}
         </div>
-        {/* Bottom photos */}
-        <div style={{ display: "flex", gap: 3, padding: "4px 10px 0", marginTop: "auto", flexShrink: 0 }}>
-          <img src={bottomPhotos[0]} style={{ width: "50%", height: bottomH, objectFit: "cover", objectPosition: "center center", borderRadius: 2 }} />
-          <img src={bottomPhotos[1]} style={{ width: "50%", height: bottomH, objectFit: "cover", objectPosition: "center center", borderRadius: 2 }} />
-        </div>
+        {/* Bottom photos — hidden in extreme density (too small to add value) */}
+        {bottomH > 0 && (
+          <div style={{ display: "flex", gap: 3, padding: "4px 10px 0", marginTop: "auto", flexShrink: 0 }}>
+            <img src={bottomPhotos[0]} style={{ width: "50%", height: bottomH, objectFit: "cover", objectPosition: "center center", borderRadius: 2 }} />
+            <img src={bottomPhotos[1]} style={{ width: "50%", height: bottomH, objectFit: "cover", objectPosition: "center center", borderRadius: 2 }} />
+          </div>
+        )}
         <div style={{ textAlign: "center", padding: "6px 0 10px", flexShrink: 0 }}>
           <div style={{ fontFamily: FN.brand, fontSize: 8, letterSpacing: 3, color: S.dim, direction: "ltr" }}>PASEO · Rooftop Lounge & Dining</div>
         </div>
@@ -447,13 +449,13 @@ function MenuPage({ menuType, categories, packageLabel, packagePrice, menuTypeLa
 
 // === PAGE 2: PRICING ===
 function PricingPage({ clientName, eventType, eventDate, eventTime, guestCount, pricePerGuest, childCount, pricePerChild, menuType, services, cocktailUpgrade, foodTotal, totalBeforeVat, totalWithVat, servicePct, drinkPackage, includeVat = true, upgradeItems }) {
-  const td = { fontFamily: FN.body, fontSize: 10.5, fontWeight: 300, color: S.text, padding: "7px 5px", textAlign: "center", borderBottom: `1px solid ${S.line}` };
+  const td = { fontFamily: FN.body, fontSize: 10.5, fontWeight: 300, color: S.text, padding: "9px 7px", textAlign: "center", borderBottom: `1px solid ${S.line}` };
   const photoSet = MENU_PHOTOS[menuType] || MENU_PHOTOS["בשרי"];
   const photos = photoSet.pricing;
   return (
     <div style={page}>
-      <PhotoStrip images={photos} style={{ width: "38%", height: 1123 }} />
-      <div style={{ width: "62%", display: "flex", flexDirection: "column", height: 1123, maxHeight: 1123, overflow: "hidden", direction: "rtl" }}>
+      <PhotoStrip images={photos} style={{ width: "36%", height: 1123 }} />
+      <div style={{ width: "64%", display: "flex", flexDirection: "column", height: 1123, maxHeight: 1123, overflow: "hidden", direction: "rtl" }}>
         <div style={{ padding: "30px 20px 4px", textAlign: "center" }}>
           <Logo size="md" />
           <div style={{ fontFamily: FN.title, fontSize: 26, fontWeight: 700, color: S.title, margin: "6px 0 0" }}>הצעת מחיר</div>
@@ -472,7 +474,7 @@ function PricingPage({ clientName, eventType, eventDate, eventTime, guestCount, 
           <table style={{ width: "100%", borderCollapse: "collapse", direction: "rtl" }}>
             <thead><tr>
               {["שם פריט", "תיאור", "כמות", "מחיר", "סה''כ"].map((h) => (
-                <th key={h} style={{ fontFamily: FN.body, fontSize: 9.5, fontWeight: 600, color: S.titleBold, padding: "7px 5px", textAlign: "center", borderBottom: `1.5px solid ${S.title}` }}>{h}</th>
+                <th key={h} style={{ fontFamily: FN.body, fontSize: 9.5, fontWeight: 700, color: S.titleBold, padding: "9px 7px", textAlign: "center", borderBottom: `2px solid ${S.titleBold}` }}>{h}</th>
               ))}
             </tr></thead>
             <tbody>
@@ -498,7 +500,7 @@ function PricingPage({ clientName, eventType, eventDate, eventTime, guestCount, 
                   <td style={td}>{s.desc}</td>
                   <td style={td}>{s.included ? "-" : s.qty || "-"}</td>
                   <td style={td}>{s.included ? "-" : s.price || "-"}</td>
-                  <td style={td}>{s.included ? <span style={{ color: S.title, fontWeight: 600 }}>כלול</span> : fmt((parseInt(s.qty)||0)*(parseInt(s.price)||0))}</td>
+                  <td style={td}>{s.included ? <span style={{ color: S.accent, fontWeight: 700 }}>כלול</span> : fmt((parseInt(s.qty)||0)*(parseInt(s.price)||0))}</td>
                 </tr>
               ))}
               {upgradeItems && upgradeItems.map((u, i) => (
@@ -514,18 +516,18 @@ function PricingPage({ clientName, eventType, eventDate, eventTime, guestCount, 
           </table>
           {parseInt(cocktailUpgrade) > 0 && <div style={{ fontFamily: FN.body, fontSize: 11, color: S.text, textAlign: "center", margin: "16px 0" }}>שדרוג לעמדת קוקטיילים - בתוספת של {fmt(parseInt(cocktailUpgrade))} ש"ח</div>}
           {drinkPackage && drinkPackage !== "none" && (
-            <div style={{ fontFamily: FN.body, fontSize: 11, color: S.text, textAlign: "center", margin: "10px 0", padding: "8px 12px", background: "rgba(255,255,255,0.2)", borderRadius: 6 }}>
+            <div style={{ fontFamily: FN.body, fontSize: 11, color: S.text, textAlign: "center", margin: "10px 0", padding: "8px 12px", background: "#f0e6d8", borderRadius: 6 }}>
               {drinkPackage === "soft" && "חבילת שתייה קלה"}
               {drinkPackage === "alcohol" && "חבילת אלכוהול (בירות, יין וקוקטיילים)"}
               {drinkPackage === "both" && "חבילת שתייה קלה + אלכוהול (בירות, יין וקוקטיילים)"}
             </div>
           )}
-          <div style={{ maxWidth: 250, margin: "20px auto", border: `1.5px solid ${S.line}`, padding: "14px 18px", textAlign: "center", background: "rgba(255,255,255,0.3)" }}>
-            <div style={{ fontFamily: FN.body, fontSize: 11, color: S.text }}>סהכ״ ללא מע"מ</div>
-            <div style={{ fontFamily: FN.body, fontSize: 16, fontWeight: 700, color: S.titleBold, margin: "2px 0 10px" }}>{fmt(totalBeforeVat)} ש"ח</div>
+          <div style={{ maxWidth: 270, margin: "20px auto", borderTop: `2.5px solid ${S.titleBold}`, border: `1px solid ${S.line}`, borderTopWidth: 2.5, borderTopColor: S.titleBold, padding: "16px 20px", textAlign: "center", background: "#f5ede0", boxShadow: "0 2px 8px rgba(58,48,40,0.12)" }}>
+            <div style={{ fontFamily: FN.body, fontSize: 11, color: S.text }}>סה"כ ללא מע"מ</div>
+            <div style={{ fontFamily: FN.body, fontSize: 18, fontWeight: 700, color: S.titleBold, margin: "2px 0 10px" }}>{fmt(totalBeforeVat)} ש"ח</div>
             {includeVat && (<>
               <div style={{ fontFamily: FN.body, fontSize: 11, color: S.text }}>סה"כ עם מע"מ</div>
-              <div style={{ fontFamily: FN.body, fontSize: 16, fontWeight: 700, color: S.titleBold, margin: "2px 0" }}>{fmt(totalWithVat)} ש"ח</div>
+              <div style={{ fontFamily: FN.body, fontSize: 20, fontWeight: 700, color: S.titleBold, margin: "2px 0" }}>{fmt(totalWithVat)} ש"ח</div>
             </>)}
             {!includeVat && <div style={{ fontFamily: FN.body, fontSize: 9, color: S.dim, marginTop: 4 }}>* המחירים אינם כוללים מע"מ</div>}
             <div style={{ fontFamily: FN.body, fontSize: 9, color: S.dim, marginTop: 8 }}>לא כולל שירות {servicePct}%</div>
@@ -542,13 +544,13 @@ function PricingPage({ clientName, eventType, eventDate, eventTime, guestCount, 
 // === PAGE 3: TERMS ===
 function TermsPage({ validDays, menuType, signatureName, signatureImg, signatureDate }) {
   const ts = { fontFamily: FN.body, fontSize: 10.5, fontWeight: 300, color: S.desc, lineHeight: 1.7, marginBottom: 4 };
-  const tt = { fontFamily: FN.title, fontSize: 14, fontWeight: 700, color: S.titleBold, margin: "16px 0 4px", textDecoration: "underline", textUnderlineOffset: 5, textDecorationColor: S.line };
+  const tt = { fontFamily: FN.title, fontSize: 14, fontWeight: 700, color: S.titleBold, margin: "16px 0 4px", textDecoration: "underline", textUnderlineOffset: 5, textDecorationColor: "rgba(120,100,75,0.5)" };
   const photoSet = MENU_PHOTOS[menuType] || MENU_PHOTOS["בשרי"];
   const photos = photoSet.terms;
   return (
-    <div style={{...page, background: S.bgL}}>
-      <PhotoStrip images={photos} style={{ width: "35%", height: 1123 }} />
-      <div style={{ width: "65%", display: "flex", flexDirection: "column", height: 1123, maxHeight: 1123, overflow: "hidden", direction: "rtl" }}>
+    <div style={page}>
+      <PhotoStrip images={photos} style={{ width: "36%", height: 1123 }} />
+      <div style={{ width: "64%", display: "flex", flexDirection: "column", height: 1123, maxHeight: 1123, overflow: "hidden", direction: "rtl" }}>
         <div style={{ padding: "30px 20px 4px", textAlign: "center" }}>
           <Logo size="sm" />
           <div style={{ fontFamily: FN.title, fontSize: 24, fontWeight: 700, color: S.title, margin: "8px 0" }}>תנאים והסכמות</div>
@@ -570,17 +572,17 @@ function TermsPage({ validDays, menuType, signatureName, signatureImg, signature
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20, alignItems: "end" }}>
             <div style={{ textAlign: "center" }}>
               {signatureName && <div style={{ fontFamily: FN.body, fontSize: 11, color: S.titleBold, marginBottom: 4 }}>{signatureName}</div>}
-              <div style={{ width: "100%", height: 1, background: S.title, marginBottom: 5 }} />
+              <div style={{ width: "100%", height: 1.5, background: S.titleBold, marginBottom: 5 }} />
               <div style={{ fontFamily: FN.body, fontSize: 9.5, color: S.desc }}>שם</div>
             </div>
             <div style={{ textAlign: "center" }}>
               {signatureImg && <img src={signatureImg} style={{ height: 40, maxWidth: "100%", objectFit: "contain", marginBottom: 4 }} />}
-              <div style={{ width: "100%", height: 1, background: S.title, marginBottom: 5 }} />
+              <div style={{ width: "100%", height: 1.5, background: S.titleBold, marginBottom: 5 }} />
               <div style={{ fontFamily: FN.body, fontSize: 9.5, color: S.desc }}>חתימה</div>
             </div>
             <div style={{ textAlign: "center" }}>
               {signatureDate && <div style={{ fontFamily: FN.body, fontSize: 11, color: S.titleBold, marginBottom: 4 }}>{signatureDate}</div>}
-              <div style={{ width: "100%", height: 1, background: S.title, marginBottom: 5 }} />
+              <div style={{ width: "100%", height: 1.5, background: S.titleBold, marginBottom: 5 }} />
               <div style={{ fontFamily: FN.body, fontSize: 9.5, color: S.desc }}>תאריך</div>
             </div>
           </div>
@@ -642,7 +644,13 @@ const PROPOSALS_KEY = "paseo_proposals";
 const proposalLoad = () => { try { return JSON.parse(localStorage.getItem(PROPOSALS_KEY)) || []; } catch { return []; } };
 const proposalSave = (list) => { try { localStorage.setItem(PROPOSALS_KEY, JSON.stringify(list)); } catch(e) { console.warn("localStorage full", e); } proposalSyncUp(list); };
 const proposalSyncUp = async (proposals) => { try { await supabase.from("proposals").upsert(proposals, { onConflict: "id" }); } catch(e) { console.warn("proposal sync up err", e); } };
-const proposalSyncDown = async () => { try { const { data } = await supabase.from("proposals").select("*").order("createdAt", { ascending: false }); return data; } catch(e) { console.warn("proposal sync down err", e); return null; } };
+const proposalSyncDown = async () => {
+  try {
+    let { data, error } = await supabase.from("proposals").select("*").order("createdAt", { ascending: false });
+    if (error) ({ data } = await supabase.from("proposals").select("*"));
+    return data;
+  } catch(e) { console.warn("proposal sync down err", e); return null; }
+};
 const proposalId = () => "P" + Array.from(crypto.getRandomValues(new Uint8Array(6)), b => b.toString(36)).join("").slice(0, 8);
 
 function CrmBadge({ status }) {
@@ -736,16 +744,22 @@ function CrmView({ onLoadSubmission }) {
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState("all");
   const [modal, setModal] = useState(null);
-  const [crmTab, setCrmTab] = useState("leads"); // "leads" or "submissions"
+  const [crmTab, setCrmTab] = useState("leads"); // "leads" / "submissions" / "contracts"
   const [submissions, setSubmissions] = useState([]);
   const [subModal, setSubModal] = useState(null);
+  const [proposals, setProposals] = useState([]);
+  const [propModal, setPropModal] = useState(null);
 
   useEffect(() => { crmSave(leads); }, [leads]);
   useEffect(() => {
     crmSyncDown().then(data => { if (data && data.length) { const local = crmLoad(); const merged = [...data]; local.forEach(l => { if (!merged.find(m => m.id === l.id)) merged.push(l); }); merged.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)); setLeads(merged); } });
     // Load submissions
     (async () => { try { const { data, error } = await supabase.from("submissions").select("*").order("submittedAt", { ascending: false }); if (error) console.error("submissions load error:", error); if (data) setSubmissions(data); } catch(e) { console.warn("submissions load err", e); } })();
+    // Load all proposals (contracts)
+    (async () => { try { const data = await proposalSyncDown(); if (data) setProposals(data); } catch(e) { console.warn("proposals load err", e); } })();
   }, []);
+
+  const delProposal = useCallback((id) => { if (!confirm("למחוק הצעה זו?")) return; setProposals(p => p.filter(x => x.id !== id)); setPropModal(null); if (supabase) supabase.from("proposals").delete().eq("id", id).then(() => {}); }, []);
 
   const stats = useMemo(() => {
     const now = new Date(); now.setDate(1); now.setHours(0,0,0,0);
@@ -800,14 +814,107 @@ function CrmView({ onLoadSubmission }) {
 
   return (
     <div className="crm-wrap">
-      {/* CRM Tabs: Leads / Submissions */}
+      {/* CRM Tabs: Leads / Submissions / Contracts */}
       <div style={{ display: "flex", gap: 0, marginBottom: 12, borderRadius: 8, overflow: "hidden", border: "1px solid #333" }}>
         <button onClick={() => setCrmTab("leads")} style={{ flex: 1, padding: "10px 0", background: crmTab === "leads" ? "#c8a96e" : "#232323", color: crmTab === "leads" ? "#1a1a1a" : "#999", border: "none", fontFamily: "'Heebo', sans-serif", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>לידים</button>
         <button onClick={() => setCrmTab("submissions")} style={{ flex: 1, padding: "10px 0", background: crmTab === "submissions" ? "#c8a96e" : "#232323", color: crmTab === "submissions" ? "#1a1a1a" : "#999", border: "none", fontFamily: "'Heebo', sans-serif", fontSize: 13, fontWeight: 600, cursor: "pointer", position: "relative" }}>
-          הגשות לקוחות
+          הגשות
           {submissions.length > 0 && <span style={{ position: "absolute", top: 4, left: 8, width: 18, height: 18, borderRadius: "50%", background: "#4ade80", color: "#1a1a1a", fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{submissions.length}</span>}
         </button>
+        <button onClick={() => setCrmTab("contracts")} style={{ flex: 1, padding: "10px 0", background: crmTab === "contracts" ? "#c8a96e" : "#232323", color: crmTab === "contracts" ? "#1a1a1a" : "#999", border: "none", fontFamily: "'Heebo', sans-serif", fontSize: 13, fontWeight: 600, cursor: "pointer", position: "relative" }}>
+          חוזים
+          {proposals.filter(p => p.data?.sig).length > 0 && <span style={{ position: "absolute", top: 4, left: 8, width: 18, height: 18, borderRadius: "50%", background: "#c8a96e", color: "#1a1a1a", fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{proposals.filter(p => p.data?.sig).length}</span>}
+        </button>
       </div>
+
+      {/* Contracts (proposals) view */}
+      {crmTab === "contracts" && (<>
+        {proposals.length === 0 ? (
+          <div className="crm-empty">אין הצעות עדיין — הצעות שתפיק יופיעו כאן</div>
+        ) : (
+          <div className="crm-list">
+            {[...proposals].sort((a, b) => {
+              const aSig = a.data?.sig ? 1 : 0, bSig = b.data?.sig ? 1 : 0;
+              if (aSig !== bSig) return bSig - aSig;
+              return (b.createdAt || "").localeCompare(a.createdAt || "");
+            }).map(prop => {
+              const d = prop.data || {};
+              const signed = !!d.sig;
+              return (
+                <div key={prop.id} className="crm-card" onClick={() => setPropModal(prop)}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>{d.n || prop.id}</div>
+                      <button onClick={e => { e.stopPropagation(); delProposal(prop.id); }} style={{ background: "none", border: "none", color: "#666", fontSize: 16, cursor: "pointer", padding: "0 4px", lineHeight: 1 }} title="מחק">×</button>
+                    </div>
+                    {signed
+                      ? <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, color: "#4ade80", background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.3)", borderRadius: 12, padding: "3px 10px" }}>✓ חתום</span>
+                      : <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, color: "#facc15", background: "rgba(250,204,21,0.08)", border: "1px solid rgba(250,204,21,0.25)", borderRadius: 12, padding: "3px 10px" }}>ממתין לחתימה</span>}
+                  </div>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", fontSize: 11, color: "#888" }}>
+                    {d.t && <span>{d.t}</span>}
+                    {d.d && <span>· {d.d.split("-").reverse().join("/")}</span>}
+                    {d.g && <span>· {d.g} אורחים</span>}
+                    {d.ppg && <span>· {d.ppg} ₪ לסועד</span>}
+                    {signed && d.sigDate && <span style={{ color: "#4ade80" }}>· נחתם {d.sigDate}</span>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Contract detail modal */}
+        {propModal && (() => {
+          const d = propModal.data || {};
+          const signed = !!d.sig;
+          const link = `${window.location.origin}${window.location.pathname}?p=${propModal.id}`;
+          return (
+            <div className="crm-modal-bg" onClick={() => setPropModal(null)}>
+              <div className="crm-modal" onClick={e => e.stopPropagation()} style={{ maxHeight: "85vh" }}>
+                <div className="crm-mh">
+                  <h3>{d.n || propModal.id}</h3>
+                  <button className="crm-mx" onClick={() => setPropModal(null)}>×</button>
+                </div>
+                <div className="crm-mb" style={{ overflowY: "auto", maxHeight: "65vh" }}>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", fontSize: 12, color: "#888", marginBottom: 12 }}>
+                    {d.t && <span>{d.t}</span>}
+                    {d.d && <span>· {d.d.split("-").reverse().join("/")}</span>}
+                    {d.tm && <span>· {d.tm}</span>}
+                    {d.g && <span>· {d.g} אורחים{d.c ? ` + ${d.c} ילדים` : ""}</span>}
+                    {d.ppg && <span>· {d.ppg} ₪ לסועד</span>}
+                  </div>
+                  {d.mt && d.pt && (
+                    <div style={{ fontSize: 12, color: "#c8a96e", marginBottom: 12 }}>
+                      תפריט: {d.mt === "dairy" ? "חלבי" : "בשרי"} · {(PACKAGE_MENUS[d.mt]?.[d.pt]?.label) || d.pt}
+                    </div>
+                  )}
+                  {signed ? (
+                    <div style={{ background: "#fff", borderRadius: 10, padding: 12, marginBottom: 12, textAlign: "center" }}>
+                      <img src={d.sig} style={{ maxWidth: "100%", height: 80, objectFit: "contain" }} />
+                      <div style={{ fontSize: 12, color: "#333", marginTop: 6, fontWeight: 600 }}>{d.sigName}{d.sigDate ? ` · ${d.sigDate}` : ""}</div>
+                    </div>
+                  ) : (
+                    <div style={{ background: "rgba(250,204,21,0.06)", border: "1px solid rgba(250,204,21,0.2)", borderRadius: 10, padding: "12px 14px", marginBottom: 12, fontSize: 12, color: "#facc15", textAlign: "center" }}>
+                      ההצעה טרם נחתמה
+                    </div>
+                  )}
+                  <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                    <input readOnly value={link} style={{ flex: 1, background: "#1a1a1a", border: "1px solid #333", borderRadius: 6, padding: "8px 10px", color: "#999", fontSize: 11, direction: "ltr" }} onClick={e => { e.target.select(); navigator.clipboard.writeText(link).catch(() => {}); }} />
+                  </div>
+                  <a href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`שלום ${d.n || ""},\nהצעת המחיר שלכם מפסאו:\n${link}`)}`} target="_blank" rel="noopener noreferrer"
+                    style={{ display: "block", textAlign: "center", padding: 12, background: "#25D366", color: "#fff", borderRadius: 10, fontFamily: "'Heebo', sans-serif", fontSize: 14, fontWeight: 700, textDecoration: "none", marginBottom: 8 }}>
+                    שלח קישור בוואטסאפ
+                  </a>
+                  <button onClick={() => delProposal(propModal.id)} style={{ width: "100%", padding: 12, background: "none", color: "#f87171", border: "1px solid #f87171", borderRadius: 10, fontFamily: "'Heebo', sans-serif", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+                    מחק הצעה
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+      </>)}
 
       {/* Submissions view */}
       {crmTab === "submissions" && (<>
@@ -822,7 +929,9 @@ function CrmView({ onLoadSubmission }) {
                     <div style={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>{sub.clientName}</div>
                     <button onClick={e => { e.stopPropagation(); delSub(sub.id); }} style={{ background: "none", border: "none", color: "#666", fontSize: 16, cursor: "pointer", padding: "0 4px", lineHeight: 1 }} title="מחק">×</button>
                   </div>
-                  <span className="crm-badge crm-b-closed"><span className="bd"></span>הגיש בחירות</span>
+                  {sub.signature
+                    ? <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, color: "#4ade80", background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.3)", borderRadius: 12, padding: "3px 10px" }}>✓ חתום</span>
+                    : <span className="crm-badge crm-b-closed"><span className="bd"></span>הגיש בחירות</span>}
                 </div>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap", fontSize: 11, color: "#888" }}>
                   {sub.eventType && <span>{sub.eventType}</span>}
@@ -831,7 +940,7 @@ function CrmView({ onLoadSubmission }) {
                   <span>· {new Date(sub.submittedAt).toLocaleDateString("he-IL")}</span>
                 </div>
                 {sub.selections && <div style={{ marginTop: 8, fontSize: 11, color: "#666" }}>
-                  {Object.entries(sub.selections).map(([k, v]) => `${k}: ${v.length} מנות`).join(" · ")}
+                  {Object.entries(sub.selections).filter(([k, v]) => Array.isArray(v)).map(([k, v]) => `${k}: ${v.length} מנות`).join(" · ")}
                 </div>}
               </div>
             ))}
@@ -853,7 +962,7 @@ function CrmView({ onLoadSubmission }) {
                   {subModal.guestCount && <span>· {subModal.guestCount} אורחים</span>}
                   <span>· הוגש: {new Date(subModal.submittedAt).toLocaleString("he-IL")}</span>
                 </div>
-                {subModal.selections && Object.entries(subModal.selections).map(([station, dishes]) => (
+                {subModal.selections && Object.entries(subModal.selections).filter(([s, dishes]) => Array.isArray(dishes)).map(([station, dishes]) => (
                   <div key={station} style={{ marginBottom: 14 }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: "#c8a96e", marginBottom: 4 }}>{station}</div>
                     {dishes.map((d, i) => <div key={i} style={{ fontSize: 12, color: "#ccc", padding: "2px 0", paddingRight: 12 }}>• {d}</div>)}
@@ -863,6 +972,14 @@ function CrmView({ onLoadSubmission }) {
                   <div style={{ marginTop: 12, padding: 12, background: "#1a1a1a", borderRadius: 8 }}>
                     <div style={{ fontSize: 12, fontWeight: 600, color: "#c8a96e", marginBottom: 4 }}>הערות הלקוח:</div>
                     <div style={{ fontSize: 12, color: "#ccc" }}>{subModal.notes}</div>
+                  </div>
+                )}
+                {subModal.signature && (
+                  <div style={{ marginTop: 12 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: "#c8a96e", marginBottom: 6 }}>חתימת הלקוח:</div>
+                    <div style={{ background: "#fff", borderRadius: 8, padding: 10, textAlign: "center" }}>
+                      <img src={subModal.signature} style={{ maxWidth: "100%", height: 70, objectFit: "contain" }} />
+                    </div>
                   </div>
                 )}
                 <button onClick={() => {
@@ -965,6 +1082,18 @@ function SignaturePad({ onSave, onCancel, proposal }) {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // Scale canvas for retina displays so signatures aren't blurry/offset on iPhone
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = 160 * dpr;
+    const ctx = canvas.getContext("2d");
+    ctx.scale(dpr, dpr);
+  }, []);
+
   const getPos = (e) => {
     const rect = canvasRef.current.getBoundingClientRect();
     const touch = e.touches ? e.touches[0] : e;
@@ -997,8 +1126,9 @@ function SignaturePad({ onSave, onCancel, proposal }) {
   const endDraw = () => setDrawing(false);
 
   const clearPad = () => {
-    const ctx = canvasRef.current.getContext("2d");
-    ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     setHasDrawn(false);
   };
 
@@ -1007,6 +1137,7 @@ function SignaturePad({ onSave, onCancel, proposal }) {
     setSaving(true);
     const signatureData = canvasRef.current.toDataURL("image/png");
     const signDate = new Date().toLocaleDateString("he-IL");
+    const signTimestamp = new Date().toISOString();
     try {
       await supabase.from("submissions").upsert([{
         id: "SIG" + Date.now(),
@@ -1016,8 +1147,9 @@ function SignaturePad({ onSave, onCancel, proposal }) {
         guestCount: proposal.childCount ? `${proposal.guestCount} מבוגרים + ${proposal.childCount} ילדים` : proposal.guestCount,
         status: "quote_approved",
         signature: signatureData,
-        submittedAt: new Date().toISOString(),
-        notes: `אישור הצעת מחיר — ${proposal.pricePerGuest} ₪ לסועד`,
+        submittedAt: signTimestamp,
+        notes: `אישור הצעת מחיר — ${proposal.pricePerGuest} ₪ לסועד${proposal._proposalId ? ` — הצעה ${proposal._proposalId}` : ""}`,
+        selections: { proposalSnapshot: { n: proposal.clientName, t: proposal.eventType, d: proposal.eventDate, g: proposal.guestCount, c: proposal.childCount, ppg: proposal.pricePerGuest, ppc: proposal.pricePerChild, mt: proposal.menuType, pt: proposal.packageTier, sd: proposal.selectedDishes, su: proposal.selectedUpgrades, signedAt: signTimestamp } },
       }], { onConflict: "id" });
     } catch(e) { console.warn("signature save err", e); }
     // Also update the proposal record with signature
@@ -1025,19 +1157,13 @@ function SignaturePad({ onSave, onCancel, proposal }) {
       try {
         const { data: rec } = await supabase.from("proposals").select("data").eq("id", proposal._proposalId).single();
         if (rec && rec.data) {
-          const updated = { ...rec.data, sig: signatureData, sigDate: signDate, sigName: proposal.clientName };
+          const updated = { ...rec.data, sig: signatureData, sigDate: signDate, sigName: proposal.clientName, sigTs: signTimestamp };
           await supabase.from("proposals").update({ data: updated }).eq("id", proposal._proposalId);
         }
       } catch(e) { console.warn("proposal sig update err", e); }
     }
-    // Notify admin via WhatsApp
-    try {
-      const adminPhone = "972543332696";
-      const msg = `הצעת מחיר נחתמה!\n\nלקוח: ${proposal.clientName || "לא צוין"}\nאירוע: ${proposal.eventType || "לא צוין"}\nתאריך: ${proposal.eventDate ? proposal.eventDate.split("-").reverse().join("/") : "לא צוין"}\nאורחים: ${proposal.guestCount || "לא צוין"}\n\nנחתם בתאריך: ${signDate}`;
-      window.open(`https://api.whatsapp.com/send?phone=${adminPhone}&text=${encodeURIComponent(msg)}`, "_blank");
-    } catch(e) { console.warn("admin notify err", e); }
     setSaving(false);
-    onSave();
+    onSave({ signDate });
   };
 
   const fmtDate = proposal.eventDate ? proposal.eventDate.split("-").reverse().join("/") : "";
@@ -1088,10 +1214,10 @@ function SignaturePad({ onSave, onCancel, proposal }) {
             {hasDrawn && <button onClick={clearPad} style={{ background: "none", border: "none", color: "#f87171", fontSize: 12, cursor: "pointer", fontFamily: FN.body }}>נקה</button>}
           </div>
           <div style={{ background: "#232323", borderRadius: 12, border: `1.5px solid ${hasDrawn ? "rgba(200,169,110,0.3)" : "rgba(200,169,110,0.1)"}`, overflow: "hidden", touchAction: "none", transition: "border-color 0.2s" }}>
-            <canvas ref={canvasRef} width={400} height={160}
-              style={{ width: "100%", height: 160, display: "block", cursor: "crosshair" }}
+            <canvas ref={canvasRef}
+              style={{ width: "100%", height: 160, display: "block", cursor: "crosshair", touchAction: "none", WebkitUserSelect: "none" }}
               onMouseDown={startDraw} onMouseMove={draw} onMouseUp={endDraw} onMouseLeave={endDraw}
-              onTouchStart={startDraw} onTouchMove={draw} onTouchEnd={endDraw}
+              onTouchStart={startDraw} onTouchMove={draw} onTouchEnd={endDraw} onTouchCancel={endDraw}
             />
           </div>
           {!hasDrawn && <div style={{ textAlign: "center", fontSize: 11, color: "rgba(255,255,255,0.25)", marginTop: 6 }}>חתמו כאן עם האצבע או העכבר</div>}
@@ -1340,7 +1466,7 @@ function ClientQuotePage({ proposal, onApprove }) {
       <div style={{ height: 140 }} />
 
       {/* Sticky bottom CTA */}
-      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 100, background: "linear-gradient(0deg, #1a1a1a 70%, transparent)", padding: "40px 16px 20px" }}>
+      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 100, background: "linear-gradient(0deg, #1a1a1a 70%, transparent)", padding: "40px 16px 20px", paddingBottom: "calc(20px + env(safe-area-inset-bottom, 0px))" }}>
         <button onClick={onApprove} style={{ width: "100%", background: "linear-gradient(135deg, #c8a96e, #b8944e)", color: "#1a1a1a", border: "none", borderRadius: 14, padding: "16px 24px", fontFamily: FN.title, fontSize: 18, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 20px rgba(200,169,110,0.3)", transition: "transform 0.2s, box-shadow 0.2s" }}
           onMouseDown={e => e.currentTarget.style.transform = "scale(0.98)"}
           onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
@@ -1581,7 +1707,7 @@ function ClientProposalPage({ proposal, onSign }) {
 
       {/* Spacer + sticky CTA */}
       <div style={{ height: 140 }} />
-      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 100, background: "linear-gradient(0deg, #1a1a1a 70%, transparent)", padding: "40px 16px 20px" }}>
+      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 100, background: "linear-gradient(0deg, #1a1a1a 70%, transparent)", padding: "40px 16px 20px", paddingBottom: "calc(20px + env(safe-area-inset-bottom, 0px))" }}>
         <button onClick={onSign} style={{ width: "100%", background: "linear-gradient(135deg, #c8a96e, #b8944e)", color: "#1a1a1a", border: "none", borderRadius: 14, padding: "16px 24px", fontFamily: FN.title, fontSize: 18, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 20px rgba(200,169,110,0.3)" }}>
           אישור וחתימה על ההצעה
         </button>
@@ -1609,11 +1735,14 @@ function ClientWizard({ proposal }) {
   const hasPackage = proposal.menuType && proposal.packageTier;
   const [step, setStep] = useState(hasPackage ? "proposal" : "quote");
   const [menuData, setMenuData] = useState(null);
+  const [signInfo, setSignInfo] = useState(null);
 
   if (step === "proposal") return <ClientProposalPage proposal={proposal} onSign={() => { setStep("signature"); window.scrollTo(0, 0); }} />;
   if (step === "quote") return <ClientQuotePage proposal={proposal} onApprove={() => { setStep("menu"); window.scrollTo(0, 0); }} />;
   if (step === "menu") return <ClientMenuPage proposal={proposal} onComplete={(data) => { setMenuData(data); setStep("signature"); window.scrollTo(0, 0); }} />;
-  if (step === "signature") return <SignaturePad proposal={proposal} onSave={() => setStep("done")} onCancel={() => setStep(hasPackage ? "proposal" : "menu")} />;
+  if (step === "signature") return <SignaturePad proposal={proposal} onSave={(info) => { setSignInfo(info); setStep("done"); }} onCancel={() => setStep(hasPackage ? "proposal" : "menu")} />;
+
+  const notifyMsg = `הצעת מחיר נחתמה ✓\n\nלקוח: ${proposal.clientName || ""}\nאירוע: ${proposal.eventType || ""}\nתאריך: ${proposal.eventDate ? proposal.eventDate.split("-").reverse().join("/") : ""}\nאורחים: ${proposal.guestCount || ""}${signInfo?.signDate ? `\n\nנחתם: ${signInfo.signDate}` : ""}`;
   return (
     <div style={{ minHeight: "100vh", background: "#1a1a1a", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 40, textAlign: "center" }}>
       <div style={{ width: 80, height: 80, borderRadius: "50%", background: "rgba(200,169,110,0.15)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
@@ -1621,9 +1750,15 @@ function ClientWizard({ proposal }) {
       </div>
       <div style={{ fontFamily: FN.title, fontSize: 24, color: "#c8a96e", marginBottom: 12 }}>ההזמנה אושרה בהצלחה</div>
       <div style={{ fontFamily: FN.body, fontSize: 14, color: "rgba(255,255,255,0.6)", lineHeight: 1.8, maxWidth: 320 }}>
-        הבחירות שלכם התקבלו וההצעה נחתמה.<br/>הצוות שלנו כבר מתחיל לתכנן את החוויה המושלמת עבורכם.<br/>ניצור קשר בקרוב עם כל הפרטים הסופיים.
+        ההצעה נחתמה והפרטים נשמרו אצלנו.<br/>הצוות שלנו כבר מתחיל לתכנן את החוויה המושלמת עבורכם.<br/>ניצור קשר בקרוב עם כל הפרטים הסופיים.
       </div>
-      <div style={{ marginTop: 40, opacity: 0.4 }}>
+      <a href={`https://api.whatsapp.com/send?phone=972543332696&text=${encodeURIComponent(notifyMsg)}`}
+        target="_blank" rel="noopener noreferrer"
+        style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 28, background: "#25D366", color: "#fff", borderRadius: 12, padding: "13px 24px", fontFamily: FN.body, fontSize: 15, fontWeight: 700, textDecoration: "none" }}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        שלחו לנו אישור בוואטסאפ
+      </a>
+      <div style={{ marginTop: 32, opacity: 0.4 }}>
         <img src={IMG.logo} style={{ width: 80, height: 80, objectFit: "contain" }} />
       </div>
     </div>
@@ -2025,7 +2160,8 @@ function App({ onLogout }) {
 
   const [clientLink, setClientLink] = useState("");
   const [linkCopied, setLinkCopied] = useState(false);
-  const [lastProposalId, setLastProposalId] = useState(null);
+  const [lastProposalId, setLastProposalIdRaw] = useState(() => { try { return localStorage.getItem("paseo_last_proposal") || null; } catch { return null; } });
+  const setLastProposalId = (id) => { setLastProposalIdRaw(id); try { if (id) localStorage.setItem("paseo_last_proposal", id); } catch(e) {} };
 
     const generateClientLink = useCallback(async () => {
     if (!clientName.trim()) { alert("נא להזין שם לקוח"); return; }
@@ -2110,7 +2246,8 @@ function App({ onLogout }) {
       ? `שלום ${clientName},\nשמחים שבחרתם בפסאו!\n\nהכנו עבורכם הצעת מחיר מותאמת אישית:\n${clientLink}\n\nבקישור תוכלו לצפות בפירוט ההצעה ולחתום לאישור.\nלכל שאלה, אנחנו כאן.\n\nצוות פסאו`
       : `שלום ${clientName},\nשמחים שבחרתם בפסאו!\n\nהכנו עבורכם הצעת מחיר מותאמת אישית:\n${clientLink}\n\nבקישור תוכלו לצפות בהצעה ולבחור את התפריט לאירוע.\nלכל שאלה, אנחנו כאן.\n\nצוות פסאו`;
     const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
-    window.open(waUrl, "_blank") || (window.location.href = waUrl);
+    const win = window.open(waUrl, "_blank");
+    if (!win) window.location.href = waUrl;
   }, [clientName, clientLink, menuType, packageTier]);
 
   const shareWhatsApp = useCallback(async () => {
@@ -2474,7 +2611,7 @@ function App({ onLogout }) {
       )}
 
       {!printing && tab !== "crm" && (
-      <div style={{ position: "sticky", bottom: 0, padding: "10px 16px", background: F.sf, borderTop: `1px solid ${F.br}`, zIndex: 20 }}>
+      <div style={{ position: "sticky", bottom: 0, padding: "10px 16px", paddingBottom: "calc(10px + env(safe-area-inset-bottom, 0px))", background: F.sf, borderTop: `1px solid ${F.br}`, zIndex: 20 }}>
         {tab === "form" ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <div style={{ display: "flex", gap: 8 }}>
