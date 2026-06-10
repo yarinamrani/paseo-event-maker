@@ -2289,19 +2289,22 @@ function App({ onLogout }) {
       return;
     }
 
-    // Mobile: use native share to send PDF + text to WhatsApp
+    // Mobile only: native share sends PDF + text straight to WhatsApp.
+    // Desktop share sheets (macOS) don't include WhatsApp — skip to download flow.
+    const isMobileShare = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     const file = new File([pdfBlob], fname, { type: "application/pdf" });
-    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+    if (isMobileShare && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
       try {
         await navigator.share({ text: msg, files: [file] });
         return;
       } catch (e) { if (e.name === "AbortError") return; }
     }
 
-    // Desktop: download PDF + open WhatsApp with text
+    // Desktop: download PDF + open WhatsApp with text; user attaches the file manually
     const url = URL.createObjectURL(pdfBlob);
     const a = document.createElement("a"); a.href = url; a.download = fname; a.click();
     URL.revokeObjectURL(url);
+    alert("ה-PDF ירד לתיקיית ההורדות.\nוואטסאפ ייפתח עם ההודעה — גרור או צרף את קובץ ה-PDF לשיחה.");
     window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(msg), "_blank");
   }, [clientName, eventType, eventDate, guestCount, childCount]);
 
@@ -2750,9 +2753,63 @@ function App({ onLogout }) {
       );
     }
 
+    function DiagPage() {
+      const [results, setResults] = useState([]);
+      const add = (name, ok, detail) => setResults(r => [...r, { name, ok, detail }]);
+
+      useEffect(() => {
+        (async () => {
+          const testId = "PDIAG" + Date.now().toString(36).slice(-4);
+          // 1. Read proposals
+          try {
+            const { data, error } = await supabase.from("proposals").select("id").limit(3);
+            if (error) add("קריאה מטבלת proposals", false, `${error.code || ""} ${error.message}`);
+            else add("קריאה מטבלת proposals", true, `נמצאו ${data.length} רשומות: ${data.map(d => d.id).join(", ") || "(ריק)"}`);
+          } catch(e) { add("קריאה מטבלת proposals", false, e.message); }
+          // 2. Write test row
+          try {
+            const { error } = await supabase.from("proposals").upsert([{ id: testId, data: { n: "בדיקה" } }], { onConflict: "id" });
+            if (error) add("כתיבה לטבלת proposals", false, `${error.code || ""} ${error.message}`);
+            else add("כתיבה לטבלת proposals", true, `נכתבה רשומת בדיקה ${testId}`);
+          } catch(e) { add("כתיבה לטבלת proposals", false, e.message); }
+          // 3. Read back the test row
+          try {
+            const { data, error } = await supabase.from("proposals").select("data").eq("id", testId).single();
+            if (error || !data) add("קריאה חוזרת של רשומת הבדיקה", false, error ? `${error.code || ""} ${error.message}` : "לא נמצאה");
+            else add("קריאה חוזרת של רשומת הבדיקה", true, "הרשומה נקראה בהצלחה — הזרימה תקינה!");
+          } catch(e) { add("קריאה חוזרת של רשומת הבדיקה", false, e.message); }
+          // 4. Cleanup
+          try { await supabase.from("proposals").delete().eq("id", testId); } catch(e) {}
+          // 5. Other tables
+          for (const tbl of ["leads", "submissions"]) {
+            try {
+              const { data, error } = await supabase.from(tbl).select("id").limit(1);
+              if (error) add(`קריאה מטבלת ${tbl}`, false, `${error.code || ""} ${error.message}`);
+              else add(`קריאה מטבלת ${tbl}`, true, "תקין");
+            } catch(e) { add(`קריאה מטבלת ${tbl}`, false, e.message); }
+          }
+        })();
+      }, []);
+
+      return (
+        <div dir="rtl" style={{ minHeight: "100vh", background: "#1a1a1a", padding: 24, fontFamily: "'Heebo', sans-serif", color: "#eee" }}>
+          <h2 style={{ color: "#c8a96e", fontSize: 20, marginBottom: 16 }}>אבחון חיבור Supabase</h2>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginBottom: 20, direction: "ltr", textAlign: "left" }}>{SUPABASE_URL}</div>
+          {results.length === 0 && <div style={{ color: "rgba(200,169,110,0.7)" }}>מריץ בדיקות...</div>}
+          {results.map((r, i) => (
+            <div key={i} style={{ background: "#232323", borderRadius: 10, padding: "12px 16px", marginBottom: 10, border: `1px solid ${r.ok ? "rgba(74,222,128,0.3)" : "rgba(248,113,113,0.4)"}` }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: r.ok ? "#4ade80" : "#f87171" }}>{r.ok ? "✓" : "✗"} {r.name}</div>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", marginTop: 4 }}>{r.detail}</div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
     function Root() {
       const params = new URLSearchParams(window.location.search);
       const encodedData = params.get("p");
+      if (params.get("diag")) return <DiagPage />;
       const [proposal, setProposal] = useState(null);
       const [loading, setLoading] = useState(!!encodedData);
       const [notFound, setNotFound] = useState(false);
