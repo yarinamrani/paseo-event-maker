@@ -399,17 +399,17 @@ function MenuPage({ menuType, categories, packageLabel, packagePrice, menuTypeLa
   const extreme = effectiveItems > 46;
   const hideDesc = extreme;
   const logoSize = effectiveItems > 20 ? "sm" : "lg";
-  const titleFs = extreme ? 19 : compact ? 21 : dense ? 23 : 28;
-  const catFs = extreme ? 11 : compact ? 12 : dense ? 13 : 15;
-  const itemFs = extreme ? 11 : compact ? 11.5 : dense ? 12 : 14;
-  const descFs = extreme ? 9 : compact ? 9 : dense ? 9.5 : 10;
+  const titleFs = extreme ? 19 : compact ? 22 : dense ? 24 : 28;
+  const catFs = extreme ? 12 : compact ? 13 : dense ? 14 : 16;
+  const itemFs = extreme ? 12 : compact ? 12.5 : dense ? 13 : 15;
+  const descFs = extreme ? 9.5 : compact ? 10 : dense ? 10.5 : 11;
   const catMargin = extreme ? "3px 0 1px" : compact ? "4px 0 2px" : dense ? "5px 0 2px" : "10px 0 4px";
   const itemMb = extreme ? 1 : compact ? 2 : dense ? 2 : 5;
   const topPad = extreme ? "6px 20px 0" : compact ? "8px 20px 0" : dense ? "10px 20px 0" : "24px 20px 4px";
   const contentPad = extreme ? "0px 25px 0" : compact ? "0px 28px 0" : dense ? "2px 32px 0" : "4px 36px 0";
-  const bottomH = extreme ? 0 : compact ? 64 : dense ? 80 : 120;
-  const stripW = "36%";
-  const contentW = "64%";
+  const bottomH = extreme ? 0 : compact ? 100 : dense ? 130 : 170;
+  const stripW = "30%";
+  const contentW = "70%";
 
   return (
     <div style={page}>
@@ -428,7 +428,7 @@ function MenuPage({ menuType, categories, packageLabel, packagePrice, menuTypeLa
               {items.map((item) => (
                 <div key={item.id} style={{ textAlign: "center", marginBottom: itemMb }}>
                   <div style={{ fontFamily: FN.title, fontSize: itemFs, fontWeight: 700, color: S.titleBold }}>{item.name}</div>
-                  {item.desc && !hideDesc && <div style={{ fontFamily: FN.body, fontSize: descFs, fontWeight: 300, color: S.desc, lineHeight: 1.4, maxWidth: 400, margin: "0 auto" }}>{item.desc}</div>}
+                  {item.desc && !hideDesc && <div style={{ fontFamily: FN.body, fontSize: descFs, fontWeight: 300, color: S.desc, lineHeight: 1.4, maxWidth: 470, margin: "0 auto" }}>{item.desc}</div>}
                 </div>
               ))}
             </div>
@@ -456,8 +456,8 @@ function PricingPage({ clientName, eventType, eventDate, eventTime, guestCount, 
   const photos = photoSet.pricing;
   return (
     <div style={page}>
-      <PhotoStrip images={photos} style={{ width: "36%", height: 1123 }} />
-      <div style={{ width: "64%", display: "flex", flexDirection: "column", height: 1123, maxHeight: 1123, overflow: "hidden", direction: "rtl" }}>
+      <PhotoStrip images={photos} style={{ width: "30%", height: 1123 }} />
+      <div style={{ width: "70%", display: "flex", flexDirection: "column", height: 1123, maxHeight: 1123, overflow: "hidden", direction: "rtl" }}>
         <div style={{ padding: "30px 20px 4px", textAlign: "center" }}>
           <Logo size="md" />
           <div style={{ fontFamily: FN.title, fontSize: 26, fontWeight: 700, color: S.title, margin: "6px 0 0" }}>הצעת מחיר</div>
@@ -551,8 +551,8 @@ function TermsPage({ validDays, menuType, signatureName, signatureImg, signature
   const photos = photoSet.terms;
   return (
     <div style={page}>
-      <PhotoStrip images={photos} style={{ width: "36%", height: 1123 }} />
-      <div style={{ width: "64%", display: "flex", flexDirection: "column", height: 1123, maxHeight: 1123, overflow: "hidden", direction: "rtl" }}>
+      <PhotoStrip images={photos} style={{ width: "30%", height: 1123 }} />
+      <div style={{ width: "70%", display: "flex", flexDirection: "column", height: 1123, maxHeight: 1123, overflow: "hidden", direction: "rtl" }}>
         <div style={{ padding: "30px 20px 4px", textAlign: "center" }}>
           <Logo size="sm" />
           <div style={{ fontFamily: FN.title, fontSize: 24, fontWeight: 700, color: S.title, margin: "8px 0" }}>תנאים והסכמות</div>
