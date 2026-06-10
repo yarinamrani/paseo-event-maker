@@ -530,7 +530,7 @@ function PricingPage({ clientName, eventType, eventDate, eventTime, guestCount, 
               <div style={{ fontFamily: FN.body, fontSize: 20, fontWeight: 700, color: S.titleBold, margin: "2px 0" }}>{fmt(totalWithVat)} ש"ח</div>
             </>)}
             {!includeVat && <div style={{ fontFamily: FN.body, fontSize: 9, color: S.dim, marginTop: 4 }}>* המחירים אינם כוללים מע"מ</div>}
-            <div style={{ fontFamily: FN.body, fontSize: 9, color: S.dim, marginTop: 8 }}>לא כולל שירות {servicePct}%</div>
+            {parseFloat(servicePct) > 0 && <div style={{ fontFamily: FN.body, fontSize: 9, color: S.dim, marginTop: 8 }}>לא כולל שירות {servicePct}%</div>}
           </div>
         </div>
         <div style={{ textAlign: "center", padding: "8px 0 16px" }}>
@@ -1250,7 +1250,7 @@ function ClientQuotePage({ proposal, onApprove }) {
   const c = parseInt(proposal.childCount) || 0;
   const ppc = parseFloat(proposal.pricePerChild) || 0;
   const foodTotal = g * ppg + c * ppc;
-  const sp = parseFloat(proposal.servicePct) || 12;
+  const sp = parseFloat(proposal.servicePct) || 0;
   const serviceAmount = Math.round(foodTotal * sp / 100);
   const totalBeforeVat = foodTotal + serviceAmount;
   const showVat = proposal.includeVat !== false;
@@ -1504,7 +1504,7 @@ function ClientProposalPage({ proposal, onSign }) {
   const ppg = parseFloat(proposal.pricePerGuest) || 0;
   const c = parseInt(proposal.childCount) || 0;
   const ppc = parseFloat(proposal.pricePerChild) || 0;
-  const sp = parseFloat(proposal.servicePct) || 12;
+  const sp = parseFloat(proposal.servicePct) || 0;
   const foodTotal = g * ppg + c * ppc;
 
   const upgradeTotal = (proposal.selectedUpgrades || []).reduce((sum, uid) => {
@@ -2106,7 +2106,7 @@ function App({ onLogout }) {
   const [pricePerChild, setPricePerChild] = useState("");
   const [cocktailUpgrade, setCocktailUpgrade] = useState("0");
   const [validDays, setValidDays] = useState("7");
-  const [servicePct, setServicePct] = useState("12");
+  const [servicePct, setServicePct] = useState("0");
   const [drinkPackage, setDrinkPackage] = useState("none");
   const [includeVat, setIncludeVat] = useState(true);
   const [services, setServices] = useState(DEFAULT_SERVICES);
@@ -2196,7 +2196,7 @@ function App({ onLogout }) {
       sc: Object.keys(svcCustom).length ? svcCustom : undefined,
       vd: validDays !== "7" ? validDays : undefined,
       dp: drinkPackage !== "none" ? drinkPackage : undefined,
-      sp: servicePct !== "12" ? servicePct : undefined,
+      sp: servicePct && servicePct !== "0" ? servicePct : undefined,
       iv: includeVat ? undefined : false,
     };
     Object.keys(proposal).forEach(k => proposal[k] === undefined && delete proposal[k]);
@@ -2705,7 +2705,7 @@ function App({ onLogout }) {
         }) : null),
         validDays: data.vd || "7",
         drinkPackage: data.dp || "none",
-        servicePct: data.sp || "12",
+        servicePct: data.sp || "0",
         includeVat: data.iv !== false,
         signature: data.sig || null,
         signDate: data.sigDate || null,
