@@ -2216,8 +2216,14 @@ function App({ onLogout }) {
     try {
       const { error } = await supabase.from("proposals").upsert([{ id: shortCode, data: dbProposal }], { onConflict: "id" });
       if (!error) {
-        link = `${baseUrl}?p=${shortCode}`;
-        setLastProposalId(shortCode);
+        // Read-back verification
+        const { data: verify } = await supabase.from("proposals").select("id").eq("id", shortCode).single();
+        if (verify) {
+          link = `${baseUrl}?p=${shortCode}`;
+          setLastProposalId(shortCode);
+        } else {
+          dbError = { message: "Write succeeded but read-back failed — DB may be restoring" };
+        }
       } else {
         dbError = error;
         console.error("DB error:", JSON.stringify(error));
@@ -2755,12 +2761,15 @@ function App({ onLogout }) {
         if (!encodedData) { setLoading(false); return; }
         if (encodedData.length < 50) {
           (async () => {
-            try {
-              const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 5000));
-              const fetchPromise = supabase.from("proposals").select("data").eq("id", encodedData).single();
-              const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
-              if (!error && data && data.data) { setProposal({ ...parseProposalData(data.data), _proposalId: encodedData }); setLoading(false); return; }
-            } catch(e) { console.warn("proposal lookup err (DB may be paused):", e.message); }
+            for (let attempt = 0; attempt < 3; attempt++) {
+              try {
+                if (attempt > 0) await new Promise(r => setTimeout(r, 1500 * attempt));
+                const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 6000));
+                const fetchPromise = supabase.from("proposals").select("data").eq("id", encodedData).single();
+                const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
+                if (!error && data && data.data) { setProposal({ ...parseProposalData(data.data), _proposalId: encodedData }); setLoading(false); return; }
+              } catch(e) { console.warn(`proposal lookup attempt ${attempt + 1} err:`, e.message); }
+            }
             setNotFound(true); setLoading(false);
           })();
         } else {
@@ -2790,9 +2799,13 @@ function App({ onLogout }) {
       );
       if (notFound || !proposal) return (
         <div style={{ minHeight: "100vh", background: "#1a1a1a", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <div style={{ textAlign: "center", color: "rgba(255,255,255,0.5)", fontFamily: "'Heebo', sans-serif" }}>
-            <div style={{ fontSize: 18, marginBottom: 8 }}>הקישור לא נמצא</div>
-            <div style={{ fontSize: 13 }}>ייתכן שפג תוקפו או שהכתובת שגויה</div>
+          <div style={{ textAlign: "center", color: "rgba(255,255,255,0.5)", fontFamily: "'Heebo', sans-serif", padding: 24 }}>
+            <div style={{ fontSize: 22, marginBottom: 8, color: "#c8a96e" }}>הקישור לא נמצא</div>
+            <div style={{ fontSize: 14, marginBottom: 20, lineHeight: 1.6 }}>ייתכן שפג תוקפו או שהכתובת שגויה</div>
+            <a href="https://api.whatsapp.com/send?phone=972543332696&text=%D7%94%D7%99%D7%99%2C%20%D7%A7%D7%99%D7%91%D7%9C%D7%AA%D7%99%20%D7%A7%D7%99%D7%A9%D7%95%D7%A8%20%D7%9C%D7%94%D7%A6%D7%A2%D7%94%20%D7%90%D7%91%D7%9C%20%D7%94%D7%95%D7%90%20%D7%9C%D7%90%20%D7%A2%D7%95%D7%91%D7%93"
+              style={{ display: "inline-block", background: "#25D366", color: "#fff", padding: "10px 24px", borderRadius: 8, textDecoration: "none", fontFamily: "'Heebo', sans-serif", fontSize: 14, fontWeight: 600 }}>
+              פנו אלינו לקבלת קישור חדש
+            </a>
           </div>
         </div>
       );
