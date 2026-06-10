@@ -2276,11 +2276,10 @@ function App({ onLogout }) {
       if (el && el.children.length > 0) {
         const pdf = new window.jspdf.jsPDF("p", "mm", "a4");
         const pages = el.children;
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        const sc = isMobile ? 1.5 : 2;
+        const sc = 2;
         for (let i = 0; i < pages.length; i++) {
           const canvas = await window.html2canvas(pages[i], { scale: sc, useCORS: true, logging: false, width: 794, height: 1123, scrollX: 0, scrollY: 0 });
-          const imgData = canvas.toDataURL("image/jpeg", isMobile ? 0.85 : 0.95);
+          const imgData = canvas.toDataURL("image/jpeg", 0.93);
           if (i > 0) pdf.addPage();
           pdf.addImage(imgData, "JPEG", 0, 0, 210, 297);
         }
