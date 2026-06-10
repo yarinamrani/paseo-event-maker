@@ -1768,6 +1768,11 @@ function ClientWizard({ proposal }) {
 /* ══════════════════════════════════════════════════════════
    CLIENT-FACING MENU SELECTION PAGE
    ══════════════════════════════════════════════════════════ */
+/* Legacy stations flow — data moved to old-menu-backup.js; empty fallbacks keep old links from crashing */
+const STATIONS_CONFIG = [];
+const TABLES_STATIONS_CONFIG = [];
+const MENU_DB = {};
+
 function ClientMenuPage({ proposal, onComplete }) {
   const [selections, setSelections] = useState({});
   const [notes, setNotes] = useState("");
