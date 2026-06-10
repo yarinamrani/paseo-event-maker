@@ -2753,16 +2753,29 @@ function App({ onLogout }) {
       );
     }
 
-    function DiagPage() {
+    function DiagPage({ checkId }) {
       const [results, setResults] = useState([]);
       const add = (name, ok, detail) => setResults(r => [...r, { name, ok, detail }]);
 
       useEffect(() => {
         (async () => {
           const testId = "PDIAG" + Date.now().toString(36).slice(-4);
+          // 0. Specific proposal ID check
+          if (checkId) {
+            try {
+              const { data, error } = await supabase.from("proposals").select("*").eq("id", checkId).maybeSingle();
+              if (error) add(`בדיקת לינק ${checkId}`, false, `${error.code || ""} ${error.message}`);
+              else if (!data) add(`בדיקת לינק ${checkId}`, false, "הרשומה לא קיימת ב-DB — הלינק נוצר כשהשמירה נכשלה. יש להפיק לינק חדש.");
+              else {
+                add(`בדיקת לינק ${checkId}`, true, `הרשומה קיימת! נתונים: ${JSON.stringify(data.data).slice(0, 200)}`);
+                try { parseProposalData(data.data); add(`פענוח נתוני ${checkId}`, true, "הנתונים תקינים וניתנים להצגה"); }
+                catch(e) { add(`פענוח נתוני ${checkId}`, false, `שגיאת פענוח: ${e.message}`); }
+              }
+            } catch(e) { add(`בדיקת לינק ${checkId}`, false, e.message); }
+          }
           // 1. Read proposals
           try {
-            const { data, error } = await supabase.from("proposals").select("id").limit(3);
+            const { data, error } = await supabase.from("proposals").select("id").limit(20);
             if (error) add("קריאה מטבלת proposals", false, `${error.code || ""} ${error.message}`);
             else add("קריאה מטבלת proposals", true, `נמצאו ${data.length} רשומות: ${data.map(d => d.id).join(", ") || "(ריק)"}`);
           } catch(e) { add("קריאה מטבלת proposals", false, e.message); }
@@ -2809,10 +2822,12 @@ function App({ onLogout }) {
     function Root() {
       const params = new URLSearchParams(window.location.search);
       const encodedData = params.get("p");
-      if (params.get("diag")) return <DiagPage />;
+      const diagParam = params.get("diag");
+      if (diagParam) return <DiagPage checkId={diagParam.length > 2 ? diagParam : null} />;
       const [proposal, setProposal] = useState(null);
       const [loading, setLoading] = useState(!!encodedData);
       const [notFound, setNotFound] = useState(false);
+      const [failReason, setFailReason] = useState("");
 
       useEffect(() => {
         if (!encodedData) { setLoading(false); return; }
@@ -2822,10 +2837,15 @@ function App({ onLogout }) {
               try {
                 if (attempt > 0) await new Promise(r => setTimeout(r, 1500 * attempt));
                 const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 6000));
-                const fetchPromise = supabase.from("proposals").select("data").eq("id", encodedData).single();
+                const fetchPromise = supabase.from("proposals").select("data").eq("id", encodedData).maybeSingle();
                 const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
-                if (!error && data && data.data) { setProposal({ ...parseProposalData(data.data), _proposalId: encodedData }); setLoading(false); return; }
-              } catch(e) { console.warn(`proposal lookup attempt ${attempt + 1} err:`, e.message); }
+                if (!error && data && data.data) {
+                  try { setProposal({ ...parseProposalData(data.data), _proposalId: encodedData }); setLoading(false); return; }
+                  catch(pe) { setFailReason("שגיאת פענוח נתונים"); console.error("parse err:", pe); break; }
+                }
+                if (!error && !data) { setFailReason("הרשומה לא קיימת במאגר"); break; }
+                if (error) setFailReason(`שגיאה: ${error.code || error.message}`);
+              } catch(e) { setFailReason("שגיאת רשת"); console.warn(`proposal lookup attempt ${attempt + 1} err:`, e.message); }
             }
             setNotFound(true); setLoading(false);
           })();
@@ -2858,7 +2878,8 @@ function App({ onLogout }) {
         <div style={{ minHeight: "100vh", background: "#1a1a1a", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ textAlign: "center", color: "rgba(255,255,255,0.5)", fontFamily: "'Heebo', sans-serif", padding: 24 }}>
             <div style={{ fontSize: 22, marginBottom: 8, color: "#c8a96e" }}>הקישור לא נמצא</div>
-            <div style={{ fontSize: 14, marginBottom: 20, lineHeight: 1.6 }}>ייתכן שפג תוקפו או שהכתובת שגויה</div>
+            <div style={{ fontSize: 14, marginBottom: 8, lineHeight: 1.6 }}>ייתכן שפג תוקפו או שהכתובת שגויה</div>
+            {failReason && <div style={{ fontSize: 11, marginBottom: 20, color: "rgba(255,255,255,0.3)" }}>{failReason}</div>}
             <a href="https://api.whatsapp.com/send?phone=972543332696&text=%D7%94%D7%99%D7%99%2C%20%D7%A7%D7%99%D7%91%D7%9C%D7%AA%D7%99%20%D7%A7%D7%99%D7%A9%D7%95%D7%A8%20%D7%9C%D7%94%D7%A6%D7%A2%D7%94%20%D7%90%D7%91%D7%9C%20%D7%94%D7%95%D7%90%20%D7%9C%D7%90%20%D7%A2%D7%95%D7%91%D7%93"
               style={{ display: "inline-block", background: "#25D366", color: "#fff", padding: "10px 24px", borderRadius: 8, textDecoration: "none", fontFamily: "'Heebo', sans-serif", fontSize: 14, fontWeight: 600 }}>
               פנו אלינו לקבלת קישור חדש
