@@ -328,6 +328,12 @@ const PACKAGE_MENUS = {
   },
 };
 
+const KIDS_MENU = [
+  { id: "k1", name: "נאגטס עוף", desc: "" },
+  { id: "k2", name: "מיני המבורגרים", desc: "" },
+  { id: "k3", name: "פיש אנד ציפס", desc: "" },
+];
+
 const UPGRADE_OPTIONS = [
   { id: "wine_beer", name: "Wine & Beer", price: 45 },
   { id: "open_bar", name: "Open Bar", desc: "אלכוהול חופשי (אלכוהול סטנדרט)", price: 79 },
@@ -1572,6 +1578,9 @@ function ClientProposalPage({ proposal, onSign }) {
       }
     });
   }
+  if (proposal.kidsMenu && proposal.kidsMenu.length > 0) {
+    categories["תפריט ילדים"] = KIDS_MENU.filter(i => proposal.kidsMenu.includes(i.id));
+  }
 
   const upgradeItems = (proposal.selectedUpgrades || []).map(uid => {
     const u = UPGRADE_OPTIONS.find(o => o.id === uid);
@@ -2122,6 +2131,7 @@ function App({ onLogout }) {
   const [menuType, setMenuType] = useState(""); // "dairy" or "meat"
   const [packageTier, setPackageTier] = useState(""); // "classic", "premium", "deluxe"
   const [selectedDishes, setSelectedDishes] = useState({}); // { starters: ["ds1","ds2",...], rawBar: [...], ... }
+  const [selectedKidsMenu, setSelectedKidsMenu] = useState([]); // ["k1","k2","k3"]
   const [selectedUpgrades, setSelectedUpgrades] = useState([]); // ["wine_beer", "cocktail_bar"]
   const [sushiPrice, setSushiPrice] = useState("35");
   const [clientName, setClientName] = useState("");
@@ -2219,6 +2229,7 @@ function App({ onLogout }) {
       mt: menuType || undefined,
       pt: packageTier || undefined,
       sd: Object.keys(selectedDishes).length ? selectedDishes : undefined,
+      km: selectedKidsMenu.length ? selectedKidsMenu : undefined,
       su: selectedUpgrades.length ? selectedUpgrades : undefined,
       sp2: sushiPrice && sushiPrice !== "35" ? sushiPrice : undefined,
       ppg: pricePerGuest || undefined,
@@ -2279,7 +2290,7 @@ function App({ onLogout }) {
     setClientLink(link);
     saveToCrm();
     try { await navigator.clipboard.writeText(link); setLinkCopied(true); setTimeout(() => setLinkCopied(false), 3000); } catch(e) { console.warn("clipboard err", e); }
-  }, [clientName, eventType, eventDate, eventTime, guestCount, childCount, menuType, packageTier, selectedDishes, selectedUpgrades, sushiPrice, pricePerGuest, pricePerChild, services, validDays, drinkPackage, servicePct, includeVat, saveToCrm]);
+  }, [clientName, eventType, eventDate, eventTime, guestCount, childCount, menuType, packageTier, selectedDishes, selectedKidsMenu, selectedUpgrades, sushiPrice, pricePerGuest, pricePerChild, services, validDays, drinkPackage, servicePct, includeVat, saveToCrm]);
 
     const sendClientWhatsApp = useCallback(() => {
     if (!clientLink) return;
@@ -2383,8 +2394,11 @@ function App({ onLogout }) {
         r[label] = items;
       }
     });
+    if (selectedKidsMenu.length > 0) {
+      r["תפריט ילדים"] = KIDS_MENU.filter(i => selectedKidsMenu.includes(i.id));
+    }
     return r;
-  }, [menuType, packageTier, selectedDishes]);
+  }, [menuType, packageTier, selectedDishes, selectedKidsMenu]);
 
   const currentPkg = menuType && packageTier ? PACKAGE_MENUS[menuType]?.[packageTier] : null;
 
@@ -2537,6 +2551,22 @@ function App({ onLogout }) {
             })}
           </div>
           )}
+
+          {/* Kids Menu Section */}
+          <div style={{ padding: "20px 20px", borderBottom: `1px solid ${F.br}` }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: F.gold, marginBottom: 16 }}>תפריט ילדים</div>
+            {KIDS_MENU.map(item => {
+              const isSelected = selectedKidsMenu.includes(item.id);
+              return (
+                <div key={item.id} onClick={() => {
+                  if (isSelected) setSelectedKidsMenu(prev => prev.filter(id => id !== item.id));
+                  else setSelectedKidsMenu(prev => [...prev, item.id]);
+                }} style={{ padding: "10px 12px", marginBottom: 4, borderRadius: 8, cursor: "pointer", border: `1px solid ${isSelected ? F.gold : F.br}`, background: isSelected ? "rgba(200,169,110,0.08)" : "transparent", transition: "all 0.2s" }}>
+                  <div style={{ fontSize: 13, color: isSelected ? F.gold : F.tx, fontWeight: isSelected ? 600 : 400 }}>{item.name}</div>
+                </div>
+              );
+            })}
+          </div>
 
           {/* Upgrades Section */}
           <div style={{ padding: "20px 20px", borderBottom: `1px solid ${F.br}` }}>
@@ -2724,6 +2754,7 @@ function App({ onLogout }) {
         menuType: data.mt || "",
         packageTier: data.pt || "",
         selectedDishes: data.sd || {},
+        kidsMenu: data.km || [],
         selectedUpgrades: data.su || [],
         sushiPrice: data.sp2 || "35",
         pricePerGuest: data.ppg || "",
