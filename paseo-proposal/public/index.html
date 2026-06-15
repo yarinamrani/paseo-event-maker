@@ -2153,8 +2153,42 @@ function App({ onLogout }) {
   const [services, setServices] = useState(DEFAULT_SERVICES);
   const [printing, setPrinting] = useState(false);
 
+  const skipResetRef = useRef(false);
+
+  // Pre-fill from ?load= URL parameter
+  useEffect(() => {
+    const loadParam = new URLSearchParams(window.location.search).get("load");
+    if (!loadParam) return;
+    try {
+      const json = decodeURIComponent(escape(atob(loadParam.replace(/ /g, '+'))));
+      const d = JSON.parse(json);
+      skipResetRef.current = true;
+      if (d.n) setClientName(d.n);
+      if (d.t) setEventType(d.t);
+      if (d.d) setEventDate(d.d);
+      if (d.tm) setEventTime(d.tm);
+      if (d.g) setGuestCount(String(d.g));
+      if (d.c) setChildCount(String(d.c));
+      if (d.ppg) setPricePerGuest(String(d.ppg));
+      if (d.ppc) setPricePerChild(String(d.ppc));
+      if (d.mt) setMenuType(d.mt);
+      if (d.pt) setPackageTier(d.pt);
+      if (d.dp) setDrinkPackage(d.dp);
+      if (d.sp) setServicePct(String(d.sp));
+      if (d.iv === false) setIncludeVat(false);
+      if (d.vd) setValidDays(String(d.vd));
+      if (d.sd) setSelectedDishes(d.sd);
+      if (d.km) setSelectedKidsMenu(d.km);
+      if (d.su) setSelectedUpgrades(d.su);
+      if (d.svc) setServices(d.svc.map(s => ({ name: s.n, included: s.i, qty: s.q || "", price: s.p || "", desc: s.d || "" })));
+      setTab("preview");
+      window.history.replaceState({}, "", window.location.pathname);
+    } catch(e) { console.warn("load param error:", e); }
+  }, []);
+
   // When menuType or packageTier changes, reset selectedDishes and auto-fill price
   useEffect(() => {
+    if (skipResetRef.current) { skipResetRef.current = false; return; }
     if (menuType && packageTier) {
       const pkg = PACKAGE_MENUS[menuType]?.[packageTier];
       if (pkg) {
