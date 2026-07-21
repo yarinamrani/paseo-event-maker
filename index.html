@@ -2188,16 +2188,37 @@ function App({ onLogout }) {
 
   // Pre-fill from ?load= URL parameter
   useEffect(() => {
-    const loadParam = new URLSearchParams(window.location.search).get("load");
-    if (!loadParam) return;
-    try {
-      const json = decodeURIComponent(escape(atob(loadParam.replace(/ /g, '+'))));
-      const d = JSON.parse(json);
-      applyProposalData(d);
-      if (d.crm) window.__crmRef = d.crm; // PaseoCRM lead reference — reported back via postMessage on link creation
-      setTab("preview");
-      window.history.replaceState({}, "", window.location.pathname);
-    } catch(e) { console.warn("load param error:", e); }
+    const params = new URLSearchParams(window.location.search);
+    const loadParam = params.get("load");
+    if (loadParam) {
+      try {
+        const json = decodeURIComponent(escape(atob(loadParam.replace(/ /g, '+'))));
+        const d = JSON.parse(json);
+        applyProposalData(d);
+        if (d.crm) window.__crmRef = d.crm; // PaseoCRM lead reference — reported back via postMessage on link creation
+        setTab("preview");
+        window.history.replaceState({}, "", window.location.pathname);
+      } catch(e) { console.warn("load param error:", e); }
+      return;
+    }
+    // ?edit=<shortCode> — load a saved proposal from the DB for editing; sending keeps the same code/link
+    const editParam = params.get("edit");
+    if (editParam) {
+      (async () => {
+        try {
+          const { data } = await supabase.from("proposals").select("data").eq("id", editParam).maybeSingle();
+          if (data && data.data) {
+            applyProposalData(data.data);
+            setEditingProposalId(editParam);
+            if (data.data.sig) { setClientSignature(data.data.sig); setClientSignDate(data.data.sigDate || null); }
+            setTab("form");
+          } else {
+            alert("הצעה " + editParam + " לא נמצאה במאגר");
+          }
+        } catch(e) { console.warn("edit load err", e); alert("שגיאה בטעינת ההצעה"); }
+        window.history.replaceState({}, "", window.location.pathname);
+      })();
+    }
   }, []);
 
   // When menuType or packageTier changes, reset selectedDishes and auto-fill price
