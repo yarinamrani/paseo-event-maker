@@ -661,8 +661,9 @@ const CRM_STATUSES = [
 const CRM_SOURCES = ["אינסטגרם", "המלצה", "גוגל", "פייסבוק", "אתר", "טלפון", "אחר"];
 const CRM_CANCEL = ["מחיר גבוה", "בחרו מתחרה", "ביטול האירוע", "תאריך לא פנוי", "לא חזרו", "אחר"];
 /* ── Supabase Config ── */
-const SUPABASE_URL = "https://irlynipejmilibumedwm.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlybHluaXBlam1pbGlidW1lZHdtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDU2NTcsImV4cCI6MjA4OTc4MTY1N30.QK8VvdlA6tIkJxwQZs0K0o0VVX_PDUVL8MDqvtWqfX8";
+// Shared Supabase with PaseoCRM (the old EventMaker project hit the free-tier pause limit)
+const SUPABASE_URL = "https://vzeowbriddhvhpishmhn.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_c0zOl9f2zhkGAOb2Vs13dg_1jlnYxzt";
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const CRM_KEY = "paseo_crm_leads";
@@ -2181,6 +2182,7 @@ function App({ onLogout }) {
       if (d.km) setSelectedKidsMenu(d.km);
       if (d.su) setSelectedUpgrades(d.su);
       if (d.svc) setServices(d.svc.map(s => ({ name: s.n, included: s.i, qty: s.q || "", price: s.p || "", desc: s.d || "" })));
+      if (d.crm) window.__crmRef = d.crm; // PaseoCRM lead reference — reported back via postMessage on link creation
       setTab("preview");
       window.history.replaceState({}, "", window.location.pathname);
     } catch(e) { console.warn("load param error:", e); }
@@ -2323,6 +2325,23 @@ function App({ onLogout }) {
     }
     setClientLink(link);
     saveToCrm();
+    // Report back to PaseoCRM (if this tab was opened from a lead there)
+    try {
+      if (window.__crmRef && window.opener) {
+        window.opener.postMessage({
+          type: "paseo-em-proposal",
+          leadId: window.__crmRef.lead || window.__crmRef,
+          link,
+          clientName: clientName.trim(),
+          eventType: eventType || null,
+          eventDate: eventDate || null,
+          guests: parseInt(guestCount) || null,
+          kids: parseInt(childCount) || 0,
+          subtotal: tot,
+          total: totV,
+        }, "*");
+      }
+    } catch(e) { console.warn("crm notify err", e); }
     try { await navigator.clipboard.writeText(link); setLinkCopied(true); setTimeout(() => setLinkCopied(false), 3000); } catch(e) { console.warn("clipboard err", e); }
   }, [clientName, eventType, eventDate, eventTime, guestCount, childCount, menuType, packageTier, selectedDishes, selectedKidsMenu, selectedUpgrades, sushiPrice, pricePerGuest, pricePerChild, services, validDays, drinkPackage, servicePct, includeVat, saveToCrm]);
 
