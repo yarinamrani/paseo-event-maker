@@ -2392,6 +2392,7 @@ function App({ onLogout }) {
   }, [clientName, clientLink, menuType, packageTier]);
 
   const shareWhatsApp = useCallback(async () => {
+    if (clientName.trim()) saveToCrm(); // sending a proposal counts as a lead — save automatically
     const fmtDate = eventDate ? eventDate.split("-").reverse().join("-") : "";
     const msg = `*הצעת מחיר - PASEO*\n\nלקוח: ${clientName}\nסוג: ${eventType}\nתאריך: ${fmtDate}\nמבוגרים: ${guestCount}${(parseInt(childCount)||0) > 0 ? `\nילדים: ${childCount}` : ""}`;
     const fname = `הצעה-${clientName || "PASEO"}.pdf`;
@@ -2440,7 +2441,7 @@ function App({ onLogout }) {
     URL.revokeObjectURL(url);
     alert("ה-PDF ירד לתיקיית ההורדות.\nוואטסאפ ייפתח עם ההודעה — גרור או צרף את קובץ ה-PDF לשיחה.");
     window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(msg), "_blank");
-  }, [clientName, eventType, eventDate, guestCount, childCount]);
+  }, [clientName, eventType, eventDate, guestCount, childCount, saveToCrm]);
 
   // Compute upgrade totals
   const upgradeT = useMemo(() => {
