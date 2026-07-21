@@ -777,7 +777,7 @@ function CrmModal({ lead, onSave, onDelete, onClose }) {
   );
 }
 
-function CrmView({ onLoadSubmission }) {
+function CrmView({ onLoadSubmission, onEditProposal }) {
   const [leads, setLeads] = useState(crmLoad);
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState("all");
@@ -944,6 +944,11 @@ function CrmView({ onLoadSubmission }) {
                     style={{ display: "block", textAlign: "center", padding: 12, background: "#25D366", color: "#fff", borderRadius: 10, fontFamily: "'Heebo', sans-serif", fontSize: 14, fontWeight: 700, textDecoration: "none", marginBottom: 8 }}>
                     שלח קישור בוואטסאפ
                   </a>
+                  {onEditProposal && (
+                    <button onClick={() => { onEditProposal(propModal); setPropModal(null); }} style={{ width: "100%", padding: 12, background: "rgba(200,169,110,0.1)", color: "#c8a96e", border: "1px solid #c8a96e", borderRadius: 10, fontFamily: "'Heebo', sans-serif", fontSize: 14, fontWeight: 700, cursor: "pointer", marginBottom: 8 }}>
+                      ✏️ ערוך הצעה — הלינק ללקוח יישאר זהה
+                    </button>
+                  )}
                   <button onClick={() => delProposal(propModal.id)} style={{ width: "100%", padding: 12, background: "none", color: "#f87171", border: "1px solid #f87171", borderRadius: 10, fontFamily: "'Heebo', sans-serif", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
                     מחק הצעה
                   </button>
@@ -2155,6 +2160,31 @@ function App({ onLogout }) {
   const [printing, setPrinting] = useState(false);
 
   const skipResetRef = useRef(false);
+  const [editingProposalId, setEditingProposalId] = useState(null); // when set, "send link" updates this proposal instead of creating a new one
+
+  // Apply a compact proposal object (?load= payload or a saved proposals.data row) onto the form
+  const applyProposalData = useCallback((d) => {
+    skipResetRef.current = true;
+    if (d.n) setClientName(d.n);
+    if (d.t) setEventType(d.t);
+    if (d.d) setEventDate(d.d);
+    if (d.tm) setEventTime(d.tm);
+    if (d.g) setGuestCount(String(d.g));
+    if (d.c) setChildCount(String(d.c));
+    if (d.ppg) setPricePerGuest(String(d.ppg));
+    if (d.ppc) setPricePerChild(String(d.ppc));
+    if (d.mt) setMenuType(d.mt);
+    if (d.pt) setPackageTier(d.pt);
+    if (d.dp) setDrinkPackage(d.dp);
+    if (d.sp) setServicePct(String(d.sp));
+    if (d.iv === false) setIncludeVat(false);
+    if (d.vd) setValidDays(String(d.vd));
+    if (d.sd) setSelectedDishes(d.sd);
+    if (d.km) setSelectedKidsMenu(d.km);
+    if (d.su) setSelectedUpgrades(d.su);
+    if (d.sp2) setSushiPrice(String(d.sp2));
+    if (d.svc) setServices(d.svc.map(s => ({ name: s.n, included: s.i, qty: s.q || "", price: s.p || "", desc: s.d || "" })));
+  }, []);
 
   // Pre-fill from ?load= URL parameter
   useEffect(() => {
@@ -2163,25 +2193,7 @@ function App({ onLogout }) {
     try {
       const json = decodeURIComponent(escape(atob(loadParam.replace(/ /g, '+'))));
       const d = JSON.parse(json);
-      skipResetRef.current = true;
-      if (d.n) setClientName(d.n);
-      if (d.t) setEventType(d.t);
-      if (d.d) setEventDate(d.d);
-      if (d.tm) setEventTime(d.tm);
-      if (d.g) setGuestCount(String(d.g));
-      if (d.c) setChildCount(String(d.c));
-      if (d.ppg) setPricePerGuest(String(d.ppg));
-      if (d.ppc) setPricePerChild(String(d.ppc));
-      if (d.mt) setMenuType(d.mt);
-      if (d.pt) setPackageTier(d.pt);
-      if (d.dp) setDrinkPackage(d.dp);
-      if (d.sp) setServicePct(String(d.sp));
-      if (d.iv === false) setIncludeVat(false);
-      if (d.vd) setValidDays(String(d.vd));
-      if (d.sd) setSelectedDishes(d.sd);
-      if (d.km) setSelectedKidsMenu(d.km);
-      if (d.su) setSelectedUpgrades(d.su);
-      if (d.svc) setServices(d.svc.map(s => ({ name: s.n, included: s.i, qty: s.q || "", price: s.p || "", desc: s.d || "" })));
+      applyProposalData(d);
       if (d.crm) window.__crmRef = d.crm; // PaseoCRM lead reference — reported back via postMessage on link creation
       setTab("preview");
       window.history.replaceState({}, "", window.location.pathname);
@@ -2190,8 +2202,9 @@ function App({ onLogout }) {
 
   // When menuType or packageTier changes, reset selectedDishes and auto-fill price
   useEffect(() => {
-    if (skipResetRef.current) { skipResetRef.current = false; return; }
     if (menuType && packageTier) {
+      // Skip exactly one reset after a programmatic prefill (?load= / edit-proposal), so loaded dishes survive
+      if (skipResetRef.current) { skipResetRef.current = false; return; }
       const pkg = PACKAGE_MENUS[menuType]?.[packageTier];
       if (pkg) {
         setPricePerGuest(String(pkg.price));
@@ -2282,7 +2295,8 @@ function App({ onLogout }) {
     const baseUrl = window.location.origin + window.location.pathname;
     let link;
     let dbError = null;
-    const shortCode = "P" + Array.from(crypto.getRandomValues(new Uint8Array(5)), b => b.toString(36)).join("").slice(0, 8);
+    // Editing an existing proposal keeps its short code — the client's link stays the same
+    const shortCode = editingProposalId || ("P" + Array.from(crypto.getRandomValues(new Uint8Array(5)), b => b.toString(36)).join("").slice(0, 8));
 
     // Also store full svc array in DB version (no size concern)
     const dbProposal = { ...proposal };
@@ -2343,7 +2357,7 @@ function App({ onLogout }) {
       }
     } catch(e) { console.warn("crm notify err", e); }
     try { await navigator.clipboard.writeText(link); setLinkCopied(true); setTimeout(() => setLinkCopied(false), 3000); } catch(e) { console.warn("clipboard err", e); }
-  }, [clientName, eventType, eventDate, eventTime, guestCount, childCount, menuType, packageTier, selectedDishes, selectedKidsMenu, selectedUpgrades, sushiPrice, pricePerGuest, pricePerChild, services, validDays, drinkPackage, servicePct, includeVat, saveToCrm]);
+  }, [clientName, eventType, eventDate, eventTime, guestCount, childCount, menuType, packageTier, selectedDishes, selectedKidsMenu, selectedUpgrades, sushiPrice, pricePerGuest, pricePerChild, services, validDays, drinkPackage, servicePct, includeVat, editingProposalId, saveToCrm]);
 
     const sendClientWhatsApp = useCallback(() => {
     if (!clientLink) return;
@@ -2503,10 +2517,22 @@ function App({ onLogout }) {
           setClientSignDate(null);
         }
         setTab("form");
+      }} onEditProposal={(prop) => {
+        applyProposalData(prop.data || {});
+        setEditingProposalId(prop.id);
+        setClientLink("");
+        if ((prop.data || {}).sig) { setClientSignature(prop.data.sig); setClientSignDate(prop.data.sigDate || null); }
+        setTab("form");
       }} />}
 
       {tab === "form" && (
         <div style={{ flex: 1, overflow: "auto", paddingBottom: 80 }}>
+          {editingProposalId && (
+            <div style={{ margin: "14px 20px 0", padding: "10px 14px", background: "rgba(200,169,110,0.1)", border: "1px solid rgba(200,169,110,0.4)", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+              <div style={{ fontSize: 12, color: F.gold }}>✏️ עורך הצעה קיימת <b dir="ltr">{editingProposalId}</b> — שליחה תעדכן את אותו לינק</div>
+              <button onClick={() => setEditingProposalId(null)} style={{ background: "none", border: `1px solid ${F.br}`, color: F.dm, borderRadius: 6, padding: "4px 10px", fontSize: 11, cursor: "pointer", fontFamily: FN.body, whiteSpace: "nowrap" }}>הצעה חדשה</button>
+            </div>
+          )}
           <div style={{ padding: "20px 20px", borderBottom: `1px solid ${F.br}` }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: F.gold, marginBottom: 16 }}>סוג תפריט</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
