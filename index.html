@@ -2378,6 +2378,16 @@ function App({ onLogout }) {
     // Report back to PaseoCRM (if this tab was opened from a lead there)
     try {
       if (window.__crmRef && window.opener) {
+        // resolve selected dish names so the CRM can fill the production sheet (דף הפקה)
+        const courseMap = { starters: "starter", rawBar: "rawbar", mains: "main", desserts: "dessert" };
+        const pkgDef = menuType && packageTier ? PACKAGE_MENUS[menuType]?.[packageTier] : null;
+        const menuOut = [];
+        if (openingBread) menuOut.push({ course: "starter", name: "לחם הבית ומטבלים (לפתיחה)" });
+        if (pkgDef) Object.entries(pkgDef).forEach(([catKey, cat]) => {
+          if (!courseMap[catKey] || !cat.items) return;
+          const sel = selectedDishes[catKey] || [];
+          cat.items.filter(it => sel.includes(it.id)).forEach(it => menuOut.push({ course: courseMap[catKey], name: it.name }));
+        });
         window.opener.postMessage({
           type: "paseo-em-proposal",
           leadId: window.__crmRef.lead || window.__crmRef,
@@ -2385,8 +2395,15 @@ function App({ onLogout }) {
           clientName: clientName.trim(),
           eventType: eventType || null,
           eventDate: eventDate || null,
+          hours: eventTime || null,
           guests: parseInt(guestCount) || null,
           kids: parseInt(childCount) || 0,
+          perPerson: parseInt(pricePerGuest) || null,
+          perChild: parseInt(pricePerChild) || null,
+          track: menuType || null,
+          pkg: packageTier || null,
+          menu: menuOut,
+          kidsMenu: selectedKidsMenu.length ? KIDS_MENU.filter(k => selectedKidsMenu.includes(k.id)).map(k => k.name).join(", ") : null,
           subtotal: tot,
           total: totV,
         }, "*");
