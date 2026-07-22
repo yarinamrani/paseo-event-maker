@@ -338,6 +338,7 @@ const UPGRADE_OPTIONS = [
   { id: "wine_beer", name: "Wine & Beer", price: 45 },
   { id: "open_bar", name: "Open Bar", desc: "אלכוהול חופשי (אלכוהול סטנדרט)", price: 79 },
   { id: "cocktail_bar", name: "Cocktail Bar", desc: "הוספת בר קוקטיילים", price: 35, requires: ["wine_beer", "open_bar"] },
+  { id: "premium_alcohol", name: "Top Shelf Upgrade", desc: "משקאות פרימיום לאורך כל האירוע, בהזמנת Open Bar", price: 30, requires: ["open_bar"] },
   { id: "sushi_station", name: "Sushi Station", desc: "זמין באירועים בהשכרת המקום המלא בלבד", priceRange: "25-45" },
 ];
 
