@@ -1573,6 +1573,7 @@ function ClientProposalPage({ proposal, onSign }) {
   const packageLabel = pkg ? pkg.label : "";
 
   const categories = {};
+  if (pkg && proposal.openingBread) categories["לפתיחה"] = [{ id: "ob1", name: "לחם הבית ומטבלים", desc: "מוגש לשולחן לפתיחת האירוע" }];
   if (pkg) {
     Object.entries(pkg).forEach(([catKey, cat]) => {
       if (!cat || !cat.items) return;
@@ -2140,6 +2141,7 @@ function App({ onLogout }) {
   const [packageTier, setPackageTier] = useState(""); // "classic", "premium", "deluxe"
   const [selectedDishes, setSelectedDishes] = useState({}); // { starters: ["ds1","ds2",...], rawBar: [...], ... }
   const [selectedKidsMenu, setSelectedKidsMenu] = useState([]); // ["k1","k2","k3"]
+  const [openingBread, setOpeningBread] = useState(true); // לחם הבית ומטבלים — כלול לפתיחת האירוע
   const [selectedUpgrades, setSelectedUpgrades] = useState([]); // ["wine_beer", "cocktail_bar"]
   const [sushiPrice, setSushiPrice] = useState("35");
   const [clientName, setClientName] = useState("");
@@ -2183,6 +2185,7 @@ function App({ onLogout }) {
     if (d.vd) setValidDays(String(d.vd));
     if (d.sd) setSelectedDishes(d.sd);
     if (d.km) setSelectedKidsMenu(d.km);
+    setOpeningBread(d.ob !== false);
     if (d.su) setSelectedUpgrades(d.su);
     if (d.sp2) setSushiPrice(String(d.sp2));
     if (d.svc) setServices(
@@ -2310,6 +2313,7 @@ function App({ onLogout }) {
       pt: packageTier || undefined,
       sd: Object.keys(selectedDishes).length ? selectedDishes : undefined,
       km: selectedKidsMenu.length ? selectedKidsMenu : undefined,
+      ob: openingBread ? undefined : false,
       su: selectedUpgrades.length ? selectedUpgrades : undefined,
       sp2: sushiPrice && sushiPrice !== "35" ? sushiPrice : undefined,
       ppg: pricePerGuest || undefined,
@@ -2388,7 +2392,7 @@ function App({ onLogout }) {
       }
     } catch(e) { console.warn("crm notify err", e); }
     try { await navigator.clipboard.writeText(link); setLinkCopied(true); setTimeout(() => setLinkCopied(false), 3000); } catch(e) { console.warn("clipboard err", e); }
-  }, [clientName, eventType, eventDate, eventTime, guestCount, childCount, menuType, packageTier, selectedDishes, selectedKidsMenu, selectedUpgrades, sushiPrice, pricePerGuest, pricePerChild, services, validDays, drinkPackage, servicePct, includeVat, editingProposalId, saveToCrm]);
+  }, [clientName, eventType, eventDate, eventTime, guestCount, childCount, menuType, packageTier, selectedDishes, selectedKidsMenu, openingBread, selectedUpgrades, sushiPrice, pricePerGuest, pricePerChild, services, validDays, drinkPackage, servicePct, includeVat, editingProposalId, saveToCrm]);
 
     const sendClientWhatsApp = useCallback(() => {
     if (!clientLink) return;
@@ -2484,6 +2488,7 @@ function App({ onLogout }) {
     const pkg = PACKAGE_MENUS[menuType]?.[packageTier];
     if (!pkg) return {};
     const r = {};
+    if (openingBread) r["לפתיחה"] = [{ id: "ob1", name: "לחם הבית ומטבלים", desc: "מוגש לשולחן לפתיחת האירוע" }];
     Object.entries(pkg).forEach(([catKey, cat]) => {
       if (!CAT_LABELS[catKey]) return;
       const selIds = selectedDishes[catKey] || [];
@@ -2497,7 +2502,7 @@ function App({ onLogout }) {
       r["תפריט ילדים"] = KIDS_MENU.filter(i => selectedKidsMenu.includes(i.id));
     }
     return r;
-  }, [menuType, packageTier, selectedDishes, selectedKidsMenu]);
+  }, [menuType, packageTier, selectedDishes, selectedKidsMenu, openingBread]);
 
   const currentPkg = menuType && packageTier ? PACKAGE_MENUS[menuType]?.[packageTier] : null;
 
@@ -2636,6 +2641,16 @@ function App({ onLogout }) {
           {menuType && packageTier && currentPkg && (
           <div style={{ padding: "20px 20px", borderBottom: `1px solid ${F.br}` }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: F.gold, marginBottom: 16 }}>בחירת מנות — {currentPkg.label}</div>
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <span style={{ fontFamily: FN.title, fontSize: 15, color: F.gold }}>לפתיחה</span>
+                <span style={{ background: "rgba(200,169,110,0.15)", borderRadius: 12, padding: "3px 10px", fontSize: 11, color: F.gold }}>בוחרים 1 · {openingBread ? 1 : 0}/1</span>
+              </div>
+              <div onClick={() => setOpeningBread(o => !o)} style={{ padding: "10px 12px", marginBottom: 4, borderRadius: 8, cursor: "pointer", border: `1px solid ${openingBread ? F.gold : F.br}`, background: openingBread ? "rgba(200,169,110,0.08)" : "transparent", transition: "all 0.2s" }}>
+                <div style={{ fontSize: 13, color: openingBread ? F.gold : F.tx, fontWeight: openingBread ? 600 : 400 }}>לחם הבית ומטבלים</div>
+                <div style={{ fontSize: 11, color: F.dm, marginTop: 2 }}>מוגש לשולחן לפתיחת האירוע · כלול</div>
+              </div>
+            </div>
             {Object.entries(currentPkg).filter(([k]) => CAT_LABELS[k]).map(([catKey, cat]) => {
               const selected = selectedDishes[catKey] || [];
               return (
@@ -2866,6 +2881,7 @@ function App({ onLogout }) {
         packageTier: data.pt || "",
         selectedDishes: data.sd || {},
         kidsMenu: data.km || [],
+        openingBread: data.ob !== false,
         selectedUpgrades: data.su || [],
         sushiPrice: data.sp2 || "35",
         pricePerGuest: data.ppg || "",
