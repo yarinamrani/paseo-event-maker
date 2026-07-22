@@ -329,10 +329,15 @@ const PACKAGE_MENUS = {
 };
 
 const KIDS_MENU = [
+  { id: "k3", name: "פיש אנד צ'יפס", desc: "" },
   { id: "k1", name: "נאגטס עוף", desc: "" },
-  { id: "k2", name: "מיני המבורגרים", desc: "" },
-  { id: "k3", name: "פיש אנד ציפס", desc: "" },
+  { id: "k2", name: "בורגרים", desc: "" },
+  { id: "k4", name: "פסטה עגבניות", desc: "" },
+  { id: "k5", name: "פסטה רוזה", desc: "" },
+  { id: "k6", name: "פיצה נפוליטנה", desc: "" },
+  { id: "k7", name: "פיצה ביאנקה", desc: "" },
 ];
+const KIDS_CHOOSE = 2; // בוחרים 2 · ילדים מתחת לגיל 13
 
 const UPGRADE_OPTIONS = [
   { id: "wine_beer", name: "Wine & Beer", price: 45 },
@@ -487,7 +492,7 @@ function MenuPage({ menuType, categories, packageLabel, packagePrice, menuTypeLa
 }
 
 // === PAGE 2: PRICING ===
-function PricingPage({ clientName, eventType, eventDate, eventTime, guestCount, pricePerGuest, childCount, pricePerChild, menuType, services, cocktailUpgrade, foodTotal, totalBeforeVat, totalWithVat, servicePct, drinkPackage, includeVat = true, upgradeItems }) {
+function PricingPage({ clientName, eventType, eventDate, eventTime, guestCount, pricePerGuest, childCount, pricePerChild, menuType, services, cocktailUpgrade, foodTotal, totalBeforeVat, totalWithVat, servicePct, drinkPackage, vatMode = "add", upgradeItems }) {
   const td = { fontFamily: FN.body, fontSize: 10.5, fontWeight: 300, color: S.text, padding: "9px 7px", textAlign: "center", borderBottom: `1px solid ${S.line}` };
   const photoSet = MENU_PHOTOS[menuType] || MENU_PHOTOS["בשרי"];
   const photos = photoSet.pricing;
@@ -546,9 +551,9 @@ function PricingPage({ clientName, eventType, eventDate, eventTime, guestCount, 
                 <tr key={"upg"+i}>
                   <td style={{ ...td, textAlign: "right", fontWeight: 500 }}>{u.name}</td>
                   <td style={td}>{u.desc || ""}</td>
-                  <td style={td}>{guestCount}</td>
+                  <td style={td}>{u.fixed ? 1 : guestCount}</td>
                   <td style={td}>{u.price}</td>
-                  <td style={td}>{fmt((parseInt(guestCount)||0)*(parseInt(u.price)||0))}</td>
+                  <td style={td}>{fmt(u.fixed ? (parseInt(u.price)||0) : (parseInt(guestCount)||0)*(parseInt(u.price)||0))}</td>
                 </tr>
               ))}
             </tbody>
@@ -562,13 +567,21 @@ function PricingPage({ clientName, eventType, eventDate, eventTime, guestCount, 
             </div>
           )}
           <div style={{ maxWidth: 270, margin: "20px auto", borderTop: `2.5px solid ${S.titleBold}`, border: `1px solid ${S.line}`, borderTopWidth: 2.5, borderTopColor: S.titleBold, padding: "16px 20px", textAlign: "center", background: "#f5ede0", boxShadow: "0 2px 8px rgba(58,48,40,0.12)" }}>
-            <div style={{ fontFamily: FN.body, fontSize: 11, color: S.text }}>סה"כ ללא מע"מ</div>
-            <div style={{ fontFamily: FN.body, fontSize: 18, fontWeight: 700, color: S.titleBold, margin: "2px 0 10px" }}>{fmt(totalBeforeVat)} ש"ח</div>
-            {includeVat && (<>
+            {vatMode === "add" && (<>
+              <div style={{ fontFamily: FN.body, fontSize: 11, color: S.text }}>סה"כ ללא מע"מ</div>
+              <div style={{ fontFamily: FN.body, fontSize: 18, fontWeight: 700, color: S.titleBold, margin: "2px 0 10px" }}>{fmt(totalBeforeVat)} ש"ח</div>
               <div style={{ fontFamily: FN.body, fontSize: 11, color: S.text }}>סה"כ עם מע"מ</div>
               <div style={{ fontFamily: FN.body, fontSize: 20, fontWeight: 700, color: S.titleBold, margin: "2px 0" }}>{fmt(totalWithVat)} ש"ח</div>
             </>)}
-            {!includeVat && <div style={{ fontFamily: FN.body, fontSize: 9, color: S.dim, marginTop: 4 }}>* המחירים אינם כוללים מע"מ</div>}
+            {vatMode === "included" && (<>
+              <div style={{ fontFamily: FN.body, fontSize: 11, color: S.text }}>סה"כ כולל מע"מ</div>
+              <div style={{ fontFamily: FN.body, fontSize: 20, fontWeight: 700, color: S.titleBold, margin: "2px 0" }}>{fmt(totalWithVat)} ש"ח</div>
+            </>)}
+            {vatMode === "none" && (<>
+              <div style={{ fontFamily: FN.body, fontSize: 11, color: S.text }}>סה"כ</div>
+              <div style={{ fontFamily: FN.body, fontSize: 20, fontWeight: 700, color: S.titleBold, margin: "2px 0" }}>{fmt(totalBeforeVat)} ש"ח</div>
+              <div style={{ fontFamily: FN.body, fontSize: 9, color: S.dim, marginTop: 4 }}>* המחירים אינם כוללים מע"מ</div>
+            </>)}
             {parseFloat(servicePct) > 0 && <div style={{ fontFamily: FN.body, fontSize: 9, color: S.dim, marginTop: 8 }}>לא כולל שירות {servicePct}%</div>}
           </div>
         </div>
@@ -1299,7 +1312,8 @@ function ClientQuotePage({ proposal, onApprove }) {
   const sp = parseFloat(proposal.servicePct) || 0;
   const serviceAmount = Math.round(foodTotal * sp / 100);
   const totalBeforeVat = foodTotal + serviceAmount;
-  const showVat = proposal.includeVat !== false;
+  const vatMode = proposal.vatMode || "add";
+  const showVat = vatMode === "add";
   const vat = showVat ? Math.round(totalBeforeVat * 0.18) : 0;
   const totalWithVat = totalBeforeVat + vat;
   const fmtDate = proposal.eventDate ? proposal.eventDate.split("-").reverse().join("/") : "";
@@ -1420,7 +1434,7 @@ function ClientQuotePage({ proposal, onApprove }) {
             {/* Total */}
             <div style={{ background: "rgba(200,169,110,0.08)", padding: "16px 18px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontFamily: FN.title, fontSize: 16, color: "#c8a96e" }}>{showVat ? "סה\"כ כולל מע\"מ" : "סה\"כ (לא כולל מע\"מ)"}</span>
+                <span style={{ fontFamily: FN.title, fontSize: 16, color: "#c8a96e" }}>{vatMode === "none" ? "סה\"כ (לא כולל מע\"מ)" : "סה\"כ כולל מע\"מ"}</span>
                 <span style={{ fontFamily: FN.title, fontSize: 22, color: "#c8a96e", direction: "ltr" }}>{(showVat ? totalWithVat : totalBeforeVat).toLocaleString("he-IL")} ₪</span>
               </div>
               {g > 0 && svcList.length > 0 && (
@@ -1560,10 +1574,12 @@ function ClientProposalPage({ proposal, onSign }) {
     return sum + g * (u.price || 0);
   }, 0);
 
-  const totalFood = foodTotal + upgradeTotal;
+  const customTotal = (proposal.customAdds || []).reduce((s, ca) => s + (parseInt(ca.price)||0) * (ca.per === "fixed" ? 1 : g), 0);
+  const totalFood = foodTotal + upgradeTotal + customTotal;
   const serviceAmount = Math.round(totalFood * sp / 100);
   const totalBeforeVat = totalFood + serviceAmount;
-  const showVat = proposal.includeVat !== false;
+  const vatMode = proposal.vatMode || "add";
+  const showVat = vatMode === "add";
   const vat = showVat ? Math.round(totalBeforeVat * 0.18) : 0;
   const totalWithVat = totalBeforeVat + vat;
   const fmtDate = proposal.eventDate ? proposal.eventDate.split("-").reverse().join("/") : "";
@@ -1597,7 +1613,10 @@ function ClientProposalPage({ proposal, onSign }) {
     if (!u) return null;
     const price = u.id === "sushi_station" ? (parseInt(proposal.sushiPrice) || 0) : u.price;
     return { name: u.name, desc: u.desc || "", price };
-  }).filter(Boolean);
+  }).filter(Boolean).concat(
+    (proposal.customAdds || []).filter(ca => ca.name && (parseInt(ca.price)||0) > 0)
+      .map(ca => ({ name: ca.name, desc: ca.per === "fixed" ? "מחיר קבוע" : "", price: parseInt(ca.price)||0, fixed: ca.per === "fixed" }))
+  );
 
   const svcList = (proposal.services || []).filter(s => s.i);
   const ADMIN_PHONE = "972543332696";
@@ -1673,7 +1692,7 @@ function ClientProposalPage({ proposal, onSign }) {
             {upgradeItems.map((u, i) => (
               <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: i < upgradeItems.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
                 <span style={{ fontSize: 13, color: "rgba(255,255,255,0.7)" }}>{u.name}{u.desc ? ` — ${u.desc}` : ""}</span>
-                <span style={{ fontSize: 13, fontWeight: 600, color: "#e8e2d8", direction: "ltr", flexShrink: 0, marginRight: 12 }}>{u.price} ₪ לאורח</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: "#e8e2d8", direction: "ltr", flexShrink: 0, marginRight: 12 }}>{u.price} ₪{u.fixed ? "" : " לאורח"}</span>
               </div>
             ))}
           </div>
@@ -1702,8 +1721,8 @@ function ClientProposalPage({ proposal, onSign }) {
               )}
               {upgradeItems.map((u, i) => (
                 <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                  <span style={{ fontSize: 14, color: "rgba(255,255,255,0.7)" }}>{u.name} × {g}</span>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: "#e8e2d8", direction: "ltr" }}>{(g * u.price).toLocaleString("he-IL")} ₪</span>
+                  <span style={{ fontSize: 14, color: "rgba(255,255,255,0.7)" }}>{u.name}{u.fixed ? "" : ` × ${g}`}</span>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: "#e8e2d8", direction: "ltr" }}>{(u.fixed ? u.price : g * u.price).toLocaleString("he-IL")} ₪</span>
                 </div>
               ))}
               {serviceAmount > 0 && (
@@ -2143,6 +2162,7 @@ function App({ onLogout }) {
   const [selectedDishes, setSelectedDishes] = useState({}); // { starters: ["ds1","ds2",...], rawBar: [...], ... }
   const [selectedKidsMenu, setSelectedKidsMenu] = useState([]); // ["k1","k2","k3"]
   const [openingBread, setOpeningBread] = useState(true); // לחם הבית ומטבלים — כלול לפתיחת האירוע
+  const [customAdds, setCustomAdds] = useState([]); // תוספות בתשלום מותאמות: [{name, price, per: "guest"|"fixed"}]
   const [selectedUpgrades, setSelectedUpgrades] = useState([]); // ["wine_beer", "cocktail_bar"]
   const [sushiPrice, setSushiPrice] = useState("35");
   const [clientName, setClientName] = useState("");
@@ -2155,12 +2175,12 @@ function App({ onLogout }) {
   const [guestCount, setGuestCount] = useState("100");
   const [pricePerGuest, setPricePerGuest] = useState("");
   const [childCount, setChildCount] = useState("");
-  const [pricePerChild, setPricePerChild] = useState("");
+  const [pricePerChild, setPricePerChild] = useState("140");
   const [cocktailUpgrade, setCocktailUpgrade] = useState("0");
   const [validDays, setValidDays] = useState("7");
   const [servicePct, setServicePct] = useState("0");
   const [drinkPackage, setDrinkPackage] = useState("none");
-  const [includeVat, setIncludeVat] = useState(true);
+  const [vatMode, setVatMode] = useState("add"); // "add" = +18%, "included" = המחיר כולל מע"מ, "none" = לא מציגים מע"מ
   const [services, setServices] = useState(DEFAULT_SERVICES);
   const [printing, setPrinting] = useState(false);
 
@@ -2182,7 +2202,8 @@ function App({ onLogout }) {
     if (d.pt) setPackageTier(d.pt);
     if (d.dp) setDrinkPackage(d.dp);
     if (d.sp) setServicePct(String(d.sp));
-    if (d.iv === false) setIncludeVat(false);
+    setVatMode(d.vm === "inc" ? "included" : (d.iv === false ? "none" : "add"));
+    setCustomAdds(Array.isArray(d.ca) ? d.ca : []);
     if (d.vd) setValidDays(String(d.vd));
     if (d.sd) setSelectedDishes(d.sd);
     if (d.km) setSelectedKidsMenu(d.km);
@@ -2324,7 +2345,9 @@ function App({ onLogout }) {
       vd: validDays !== "7" ? validDays : undefined,
       dp: drinkPackage !== "none" ? drinkPackage : undefined,
       sp: servicePct && servicePct !== "0" ? servicePct : undefined,
-      iv: includeVat ? undefined : false,
+      iv: vatMode === "none" ? false : undefined,
+      vm: vatMode === "included" ? "inc" : undefined,
+      ca: customAdds.filter(c => c.name && (parseInt(c.price)||0) > 0).length ? customAdds.filter(c => c.name && (parseInt(c.price)||0) > 0) : undefined,
     };
     Object.keys(proposal).forEach(k => proposal[k] === undefined && delete proposal[k]);
 
@@ -2410,7 +2433,7 @@ function App({ onLogout }) {
       }
     } catch(e) { console.warn("crm notify err", e); }
     try { await navigator.clipboard.writeText(link); setLinkCopied(true); setTimeout(() => setLinkCopied(false), 3000); } catch(e) { console.warn("clipboard err", e); }
-  }, [clientName, eventType, eventDate, eventTime, guestCount, childCount, menuType, packageTier, selectedDishes, selectedKidsMenu, openingBread, selectedUpgrades, sushiPrice, pricePerGuest, pricePerChild, services, validDays, drinkPackage, servicePct, includeVat, editingProposalId, saveToCrm]);
+  }, [clientName, eventType, eventDate, eventTime, guestCount, childCount, menuType, packageTier, selectedDishes, selectedKidsMenu, openingBread, customAdds, selectedUpgrades, sushiPrice, pricePerGuest, pricePerChild, services, validDays, drinkPackage, servicePct, vatMode, editingProposalId, saveToCrm]);
 
     const sendClientWhatsApp = useCallback(() => {
     if (!clientLink) return;
@@ -2488,18 +2511,25 @@ function App({ onLogout }) {
 
   const foodT = useMemo(() => ((parseInt(guestCount)||0)*(parseInt(pricePerGuest)||0)) + ((parseInt(childCount)||0)*(parseInt(pricePerChild)||0)), [guestCount,pricePerGuest,childCount,pricePerChild]);
   const svcT = useMemo(() => services.reduce((s,v)=>v.included || v.show === false?s:s+(parseInt(v.qty)||0)*(parseInt(v.price)||0),0), [services]);
-  const tot = foodT + svcT + upgradeT;
-  const totV = Math.round(tot * 1.18);
+  const customT = useMemo(() => {
+    const g = parseInt(guestCount) || 0;
+    return customAdds.reduce((s, c) => s + (parseInt(c.price)||0) * (c.per === "fixed" ? 1 : g), 0);
+  }, [customAdds, guestCount]);
+  const tot = foodT + svcT + upgradeT + customT;
+  const totV = vatMode === "add" ? Math.round(tot * 1.18) : tot;
 
   // Build upgrade line items for PricingPage
   const upgradeItems = useMemo(() => {
-    return selectedUpgrades.map(uid => {
+    const base = selectedUpgrades.map(uid => {
       const u = UPGRADE_OPTIONS.find(o => o.id === uid);
       if (!u) return null;
       const price = u.id === "sushi_station" ? (parseInt(sushiPrice) || 0) : u.price;
       return { name: u.name, desc: u.desc || "", price };
     }).filter(Boolean);
-  }, [selectedUpgrades, sushiPrice]);
+    const customs = customAdds.filter(c => c.name && (parseInt(c.price)||0) > 0)
+      .map(c => ({ name: c.name, desc: c.per === "fixed" ? "מחיר קבוע" : "", price: parseInt(c.price)||0, fixed: c.per === "fixed" }));
+    return [...base, ...customs];
+  }, [selectedUpgrades, sushiPrice, customAdds]);
 
   const byCat = useMemo(() => {
     if (!menuType || !packageTier) return {};
@@ -2643,12 +2673,12 @@ function App({ onLogout }) {
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <div><label style={lbl}>תוקף (ימים)</label><input type="number" style={inp} value={validDays} onChange={e=>setValidDays(e.target.value)} /></div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, paddingTop: 20 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }} onClick={()=>setIncludeVat(!includeVat)}>
-                    <span style={{ fontSize: 12, color: F.dm }}>כולל מע"מ</span>
-                    <div style={{ width: 36, height: 20, borderRadius: 10, position: "relative", background: includeVat?F.gold:F.br, transition: "background 0.2s" }}>
-                      <div style={{ width: 16, height: 16, borderRadius: "50%", background: "white", position: "absolute", top: 2, right: includeVat?18:2, transition: "right 0.2s" }} />
-                    </div>
+                <div style={{ paddingTop: 20 }}>
+                  <label style={{...lbl, marginBottom: 6}}>מע"מ</label>
+                  <div style={{ display: "flex", gap: 4 }}>
+                    {[["add",'+ 18%'],["included",'המחיר כולל'],["none",'ללא']].map(([k,l]) => (
+                      <button key={k} onClick={()=>setVatMode(k)} style={{ flex: 1, padding: "7px 4px", borderRadius: 7, border: `1px solid ${vatMode===k?F.gold:F.br}`, background: vatMode===k?"rgba(200,169,110,0.12)":"transparent", color: vatMode===k?F.gold:F.dm, fontSize: 11, fontWeight: vatMode===k?700:400, cursor: "pointer", fontFamily: FN.body }}>{l}</button>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -2696,16 +2726,36 @@ function App({ onLogout }) {
           </div>
           )}
 
+          {/* Custom paid additions */}
+          <div style={{ padding: "20px 20px", borderBottom: `1px solid ${F.br}` }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: F.gold, marginBottom: 4 }}>תוספות בתשלום</div>
+            <div style={{ fontSize: 11, color: F.dm, marginBottom: 12 }}>כל תוספת שתרצה — שם ומחיר · לאדם או סכום קבוע</div>
+            {customAdds.map((c, i) => (
+              <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 76px 92px 30px", gap: 6, marginBottom: 6, alignItems: "center" }}>
+                <input style={inp} value={c.name} onChange={e => setCustomAdds(p => p.map((x, j) => j === i ? { ...x, name: e.target.value } : x))} placeholder="שם התוספת" />
+                <input type="number" style={inp} value={c.price} onChange={e => setCustomAdds(p => p.map((x, j) => j === i ? { ...x, price: e.target.value } : x))} placeholder="₪" />
+                <button onClick={() => setCustomAdds(p => p.map((x, j) => j === i ? { ...x, per: x.per === "fixed" ? "guest" : "fixed" } : x))} style={{ padding: "8px 4px", borderRadius: 7, border: `1px solid ${F.br}`, background: "rgba(200,169,110,0.08)", color: F.gold, fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: FN.body }}>{c.per === "fixed" ? "סכום קבוע" : "לאדם"}</button>
+                <button onClick={() => setCustomAdds(p => p.filter((_, j) => j !== i))} style={{ background: "none", border: "none", color: "#f87171", fontSize: 17, cursor: "pointer", padding: 0 }}>×</button>
+              </div>
+            ))}
+            <button onClick={() => setCustomAdds(p => [...p, { name: "", price: "", per: "guest" }])} style={{ width: "100%", padding: 10, borderRadius: 8, border: `1px dashed ${F.br}`, background: "none", color: F.dm, fontSize: 12, cursor: "pointer", fontFamily: FN.body }}>+ הוסף תוספת</button>
+          </div>
+
           {/* Kids Menu Section */}
           <div style={{ padding: "20px 20px", borderBottom: `1px solid ${F.br}` }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: F.gold, marginBottom: 16 }}>תפריט ילדים</div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: F.gold }}>תפריט ספיישל לילדים</span>
+              <span style={{ background: "rgba(200,169,110,0.15)", borderRadius: 12, padding: "3px 10px", fontSize: 11, color: F.gold }}>בוחרים {KIDS_CHOOSE} · {selectedKidsMenu.length}/{KIDS_CHOOSE}</span>
+            </div>
+            <div style={{ fontSize: 11, color: F.dm, marginBottom: 12 }}>ילדים מתחת לגיל 13 · 140 ₪ לילד</div>
             {KIDS_MENU.map(item => {
               const isSelected = selectedKidsMenu.includes(item.id);
+              const atLimit = selectedKidsMenu.length >= KIDS_CHOOSE && !isSelected;
               return (
                 <div key={item.id} onClick={() => {
                   if (isSelected) setSelectedKidsMenu(prev => prev.filter(id => id !== item.id));
-                  else setSelectedKidsMenu(prev => [...prev, item.id]);
-                }} style={{ padding: "10px 12px", marginBottom: 4, borderRadius: 8, cursor: "pointer", border: `1px solid ${isSelected ? F.gold : F.br}`, background: isSelected ? "rgba(200,169,110,0.08)" : "transparent", transition: "all 0.2s" }}>
+                  else if (!atLimit) setSelectedKidsMenu(prev => [...prev, item.id]);
+                }} style={{ padding: "10px 12px", marginBottom: 4, borderRadius: 8, cursor: atLimit ? "not-allowed" : "pointer", border: `1px solid ${isSelected ? F.gold : F.br}`, background: isSelected ? "rgba(200,169,110,0.08)" : "transparent", opacity: atLimit ? 0.4 : 1, transition: "all 0.2s" }}>
                   <div style={{ fontSize: 13, color: isSelected ? F.gold : F.tx, fontWeight: isSelected ? 600 : 400 }}>{item.name}</div>
                 </div>
               );
@@ -2793,12 +2843,11 @@ function App({ onLogout }) {
               {(parseInt(childCount)||0) > 0 && <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", fontSize: 13 }}><span>ילדים ({childCount} × {fmt(parseInt(pricePerChild)||0)})</span><span>{fmt((parseInt(childCount)||0)*(parseInt(pricePerChild)||0))} ₪</span></div>}
               {upgradeT > 0 && <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", fontSize: 13 }}><span>שדרוגים</span><span>{fmt(upgradeT)} ₪</span></div>}
               <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", fontSize: 13 }}><span>שירותים</span><span>{fmt(svcT)} ₪</span></div>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", fontSize: 12, color: F.dm }}><span>סה"כ לפני מע"מ</span><span>{fmt(tot)} ₪</span></div>
-              {includeVat ? (
-                <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0 0", fontSize: 15, fontWeight: 700, color: F.gold, borderTop: `1px solid ${F.br}`, marginTop: 6 }}><span>סה"כ כולל מע"מ</span><span>{fmt(totV)} ₪</span></div>
-              ) : (
-                <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0 0", fontSize: 15, fontWeight: 700, color: F.gold, borderTop: `1px solid ${F.br}`, marginTop: 6 }}><span>סה"כ (לא כולל מע"מ)</span><span>{fmt(tot)} ₪</span></div>
-              )}
+              {customT > 0 && <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", fontSize: 13 }}><span>תוספות</span><span>{fmt(customT)} ₪</span></div>}
+              {vatMode === "add" && <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", fontSize: 12, color: F.dm }}><span>סה"כ לפני מע"מ</span><span>{fmt(tot)} ₪</span></div>}
+              <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0 0", fontSize: 15, fontWeight: 700, color: F.gold, borderTop: `1px solid ${F.br}`, marginTop: 6 }}>
+                <span>{vatMode === "none" ? 'סה"כ (לא כולל מע"מ)' : 'סה"כ כולל מע"מ'}</span><span>{fmt(totV)} ₪</span>
+              </div>
             </div>
           </div>
         </div>
@@ -2813,7 +2862,7 @@ function App({ onLogout }) {
           </div>
           <Preview>
             {pg < menuPages.length && <MenuPage menuType={menuType} categories={menuPages[pg]} packageLabel={currentPkg?.label} packagePrice={currentPkg?.price} menuTypeLabel={menuType === "dairy" ? "חלבי" : menuType === "meat" ? "בשרי" : ""} />}
-            {pg === menuPages.length && <PricingPage clientName={clientName} eventType={eventType} eventDate={eventDate} eventTime={eventTime} guestCount={guestCount} pricePerGuest={pricePerGuest} childCount={childCount} pricePerChild={pricePerChild} menuType={menuType} services={services} cocktailUpgrade={cocktailUpgrade} foodTotal={foodT} totalBeforeVat={tot} totalWithVat={totV} servicePct={servicePct} drinkPackage={drinkPackage} includeVat={includeVat} upgradeItems={upgradeItems} />}
+            {pg === menuPages.length && <PricingPage clientName={clientName} eventType={eventType} eventDate={eventDate} eventTime={eventTime} guestCount={guestCount} pricePerGuest={pricePerGuest} childCount={childCount} pricePerChild={pricePerChild} menuType={menuType} services={services} cocktailUpgrade={cocktailUpgrade} foodTotal={foodT} totalBeforeVat={tot} totalWithVat={totV} servicePct={servicePct} drinkPackage={drinkPackage} vatMode={vatMode} upgradeItems={upgradeItems} />}
             {pg === menuPages.length + 1 && <TermsPage validDays={validDays} menuType={menuType} signatureName={clientSignature ? clientName : null} signatureImg={clientSignature} signatureDate={clientSignDate} />}
           </Preview>
         </div>
@@ -2823,7 +2872,7 @@ function App({ onLogout }) {
       {printing && (
         <div id="print-area" style={{ position: "absolute", left: 0, top: 0, width: 794, background: "#fff", zIndex: 9999, overflow: "visible" }}>
           {menuPages.map((cats, i) => <MenuPage key={i} menuType={menuType} categories={cats} packageLabel={currentPkg?.label} packagePrice={currentPkg?.price} menuTypeLabel={menuType === "dairy" ? "חלבי" : menuType === "meat" ? "בשרי" : ""} />)}
-          <PricingPage clientName={clientName} eventType={eventType} eventDate={eventDate} eventTime={eventTime} guestCount={guestCount} pricePerGuest={pricePerGuest} childCount={childCount} pricePerChild={pricePerChild} menuType={menuType} services={services} cocktailUpgrade={cocktailUpgrade} foodTotal={foodT} totalBeforeVat={tot} totalWithVat={totV} servicePct={servicePct} drinkPackage={drinkPackage} includeVat={includeVat} upgradeItems={upgradeItems} />
+          <PricingPage clientName={clientName} eventType={eventType} eventDate={eventDate} eventTime={eventTime} guestCount={guestCount} pricePerGuest={pricePerGuest} childCount={childCount} pricePerChild={pricePerChild} menuType={menuType} services={services} cocktailUpgrade={cocktailUpgrade} foodTotal={foodT} totalBeforeVat={tot} totalWithVat={totV} servicePct={servicePct} drinkPackage={drinkPackage} vatMode={vatMode} upgradeItems={upgradeItems} />
           <TermsPage validDays={validDays} menuType={menuType} signatureName={clientSignature ? clientName : null} signatureImg={clientSignature} signatureDate={clientSignDate} />
         </div>
       )}
@@ -2913,6 +2962,8 @@ function App({ onLogout }) {
         drinkPackage: data.dp || "none",
         servicePct: data.sp || "0",
         includeVat: data.iv !== false,
+        vatMode: data.vm === "inc" ? "included" : (data.iv !== false ? "add" : "none"),
+        customAdds: Array.isArray(data.ca) ? data.ca : [],
         signature: data.sig || null,
         signDate: data.sigDate || null,
         signName: data.sigName || null,
