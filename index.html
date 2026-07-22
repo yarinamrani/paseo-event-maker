@@ -686,6 +686,7 @@ const proposalSyncDown = async () => {
   try {
     let { data, error } = await supabase.from("proposals").select("*").order("createdAt", { ascending: false });
     if (error) ({ data } = await supabase.from("proposals").select("*"));
+    if (data) data = data.filter(p => !String(p.id).startsWith("chk_")); // checklist rows (PaseoCRM) are not proposals
     return data;
   } catch(e) { console.warn("proposal sync down err", e); return null; }
 };
