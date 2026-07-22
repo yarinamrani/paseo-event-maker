@@ -344,22 +344,23 @@ const UPGRADE_OPTIONS = [
 const CAT_LABELS = { starters: "STARTERS", rawBar: "RAW BAR", mains: "MAIN", desserts: "DESSERTS" };
 const CAT_LABELS_HE = { starters: "ראשונות", rawBar: "דג נא", mains: "עיקריות", desserts: "קינוחים" };
 
+// ברירת מחדל: שום שירות לא כלול ולא מופיע — מדליקים ידנית רק את מה שרלוונטי להצעה
 const DEFAULT_SERVICES = [
-  { name: "דיג'יי", included: true, qty: "", price: "", desc: "" },
-  { name: "תאורה", included: true, qty: "", price: "", desc: "" },
-  { name: "הגברה", included: true, qty: "", price: "", desc: "" },
-  { name: "מנהל אירוע", included: false, qty: "1", price: "1000", desc: "" },
-  { name: "ניקיון", included: false, qty: "1", price: "1000", desc: "" },
-  { name: "בר שתייה קלה", included: true, qty: "", price: "", desc: "" },
-  { name: "אלכוהול", included: true, qty: "", price: "", desc: "" },
-  { name: "בירות ויינות", included: true, qty: "", price: "", desc: "" },
-  { name: "קוקטיילים", included: true, qty: "", price: "", desc: "" },
-  { name: "אקום", included: true, qty: "", price: "", desc: "" },
-  { name: "סגירת המקום", included: true, qty: "", price: "", desc: "" },
-  { name: "שתייה חמה", included: false, qty: "", price: "", desc: "" },
-  { name: "קפה ומאפים", included: false, qty: "", price: "", desc: "" },
-  { name: "מקרן", included: false, qty: "1", price: "", desc: "" },
-  { name: "השכרת המקום", included: false, qty: "1", price: "", desc: "" },
+  { name: "דיג'יי", included: false, show: false, qty: "", price: "", desc: "" },
+  { name: "תאורה", included: false, show: false, qty: "", price: "", desc: "" },
+  { name: "הגברה", included: false, show: false, qty: "", price: "", desc: "" },
+  { name: "מנהל אירוע", included: false, show: false, qty: "1", price: "1000", desc: "" },
+  { name: "ניקיון", included: false, show: false, qty: "1", price: "1000", desc: "" },
+  { name: "בר שתייה קלה", included: false, show: false, qty: "", price: "", desc: "" },
+  { name: "אלכוהול", included: false, show: false, qty: "", price: "", desc: "" },
+  { name: "בירות ויינות", included: false, show: false, qty: "", price: "", desc: "" },
+  { name: "קוקטיילים", included: false, show: false, qty: "", price: "", desc: "" },
+  { name: "אקום", included: false, show: false, qty: "", price: "", desc: "" },
+  { name: "סגירת המקום", included: false, show: false, qty: "", price: "", desc: "" },
+  { name: "שתייה חמה", included: false, show: false, qty: "", price: "", desc: "" },
+  { name: "קפה ומאפים", included: false, show: false, qty: "", price: "", desc: "" },
+  { name: "מקרן", included: false, show: false, qty: "1", price: "", desc: "" },
+  { name: "השכרת המקום", included: false, show: false, qty: "1", price: "", desc: "" },
 ];
 
 const fmt = (n) => n.toLocaleString("he-IL");
@@ -2184,7 +2185,15 @@ function App({ onLogout }) {
     if (d.km) setSelectedKidsMenu(d.km);
     if (d.su) setSelectedUpgrades(d.su);
     if (d.sp2) setSushiPrice(String(d.sp2));
-    if (d.svc) setServices(d.svc.map(s => ({ name: s.n, included: s.i, qty: s.q || "", price: s.p || "", desc: s.d || "" })));
+    if (d.svc) setServices(
+      DEFAULT_SERVICES.map(def => {
+        const m = d.svc.find(x => x.n === def.name);
+        return m ? { name: def.name, included: !!m.i, show: true, qty: m.q || "", price: m.p || "", desc: m.d || "" } : { ...def };
+      }).concat(
+        d.svc.filter(x => !DEFAULT_SERVICES.some(def => def.name === x.n))
+          .map(m => ({ name: m.n, included: !!m.i, show: true, qty: m.q || "", price: m.p || "", desc: m.d || "" }))
+      )
+    );
   }, []);
 
   // Pre-fill from ?load= URL parameter
