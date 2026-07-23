@@ -2361,6 +2361,18 @@ function App({ onLogout }) {
     // Editing an existing proposal keeps its short code — the client's link stays the same
     const shortCode = editingProposalId || ("P" + Array.from(crypto.getRandomValues(new Uint8Array(5)), b => b.toString(36)).join("").slice(0, 8));
 
+    // Resolve selected dish names (for PaseoCRM's production sheet)
+    const courseMap = { starters: "starter", rawBar: "rawbar", mains: "main", desserts: "dessert" };
+    const pkgDef = menuType && packageTier ? PACKAGE_MENUS[menuType]?.[packageTier] : null;
+    const menuOut = [];
+    if (openingBread) menuOut.push({ course: "starter", name: "לחם הבית ומטבלים (לפתיחה)" });
+    if (pkgDef) Object.entries(pkgDef).forEach(([catKey, cat]) => {
+      if (!courseMap[catKey] || !cat.items) return;
+      const sel = selectedDishes[catKey] || [];
+      cat.items.filter(it => sel.includes(it.id)).forEach(it => menuOut.push({ course: courseMap[catKey], name: it.name }));
+    });
+    const kidsNames = selectedKidsMenu.length ? KIDS_MENU.filter(k => selectedKidsMenu.includes(k.id)).map(k => k.name).join(", ") : null;
+
     // Also store full svc array in DB version (no size concern)
     const dbProposal = { ...proposal };
     delete dbProposal.sb;
@@ -2372,6 +2384,11 @@ function App({ onLogout }) {
       if (s.desc) o.d = s.desc;
       return o;
     });
+    // extras for PaseoCRM sync — resolved menu, totals, and the lead this proposal belongs to
+    dbProposal.menuR = menuOut;
+    if (kidsNames) dbProposal.kidsR = kidsNames;
+    dbProposal.totals = { t: tot, tv: totV };
+    if (window.__crmRef) dbProposal.crm = window.__crmRef.lead ? window.__crmRef : { lead: window.__crmRef };
 
     try {
       const { error } = await supabase.from("proposals").upsert([{ id: shortCode, data: dbProposal }], { onConflict: "id" });
@@ -2405,16 +2422,6 @@ function App({ onLogout }) {
     // Report back to PaseoCRM (if this tab was opened from a lead there)
     try {
       if (window.__crmRef && window.opener) {
-        // resolve selected dish names so the CRM can fill the production sheet (דף הפקה)
-        const courseMap = { starters: "starter", rawBar: "rawbar", mains: "main", desserts: "dessert" };
-        const pkgDef = menuType && packageTier ? PACKAGE_MENUS[menuType]?.[packageTier] : null;
-        const menuOut = [];
-        if (openingBread) menuOut.push({ course: "starter", name: "לחם הבית ומטבלים (לפתיחה)" });
-        if (pkgDef) Object.entries(pkgDef).forEach(([catKey, cat]) => {
-          if (!courseMap[catKey] || !cat.items) return;
-          const sel = selectedDishes[catKey] || [];
-          cat.items.filter(it => sel.includes(it.id)).forEach(it => menuOut.push({ course: courseMap[catKey], name: it.name }));
-        });
         window.opener.postMessage({
           type: "paseo-em-proposal",
           leadId: window.__crmRef.lead || window.__crmRef,
@@ -2430,7 +2437,7 @@ function App({ onLogout }) {
           track: menuType || null,
           pkg: packageTier || null,
           menu: menuOut,
-          kidsMenu: selectedKidsMenu.length ? KIDS_MENU.filter(k => selectedKidsMenu.includes(k.id)).map(k => k.name).join(", ") : null,
+          kidsMenu: kidsNames,
           subtotal: tot,
           total: totV,
         }, "*");
