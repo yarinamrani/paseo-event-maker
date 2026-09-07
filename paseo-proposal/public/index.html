@@ -339,6 +339,123 @@ const UPGRADE_OPTIONS = [
   { id: "sushi_station", name: "Sushi Station", desc: "זמין באירועים בהשכרת המקום המלא בלבד", priceRange: "25-45" },
 ];
 
+
+// ══════════════════════════════════════════════════════════════
+//  עמדות בופה — מסלול שלישי, בלי חבילות ובלי מחיר קבוע.
+//  בוחרים אילו עמדות באירוע ואילו מנות בכל עמדה; המחיר נקבע ידנית.
+//  התיאורים לקוחים מתפריט העמדות המקורי של פסאו.
+// ══════════════════════════════════════════════════════════════
+const STATIONS_MENU = [
+  { key: "fruit", label: "עמדת פירות", subtitle: "פירות העונה חתוכים", items: [
+    { id: "fr1", name: "מגש פירות העונה", desc: "" },
+    { id: "fr2", name: "אבטיח ומלון", desc: "" },
+    { id: "fr3", name: "ענבים סגולים וירוקים", desc: "" },
+    { id: "fr4", name: "פלטת פירות", desc: "אבטיח, מלון, ענבים סגולים וענבים ירוקים" },
+  ]},
+  { key: "kidsfry", label: "עמדת נאגטס ופיש אנד צ'יפס", subtitle: "עם רטבים לבחירה", items: [
+    { id: "kf1", name: "נאגטס עוף", desc: "" },
+    { id: "kf2", name: "פיש אנד צ'יפס", desc: "דג לבן בטמפורה ופנקו | צ'יפס אמריקאי" },
+    { id: "kf3", name: "קריספי צ'יקן", desc: "נתחי עוף קריספי | צ'יפס" },
+    { id: "kf4", name: "צ'יפס אמריקאי", desc: "פריך וזהוב" },
+    { id: "kf5", name: "רטבים לבחירה", desc: "קטשופ, מיונז וברביקיו" },
+  ]},
+  { key: "pizza", label: "עמדת פיצות ולחמים", subtitle: "יוצא חם מהתנור", items: [
+    { id: "pz1", name: "פיצה נפוליטנה", desc: "בצק משובח | רוטב עגבניות | מוצרלה | אופציה לתוספות" },
+    { id: "pz2", name: "פיצה ביאנקה", desc: "רוטב בשמל | פורטבלו ושמפניון בשמן כמהין | מוצרלה | מיקס עלים" },
+    { id: "pz3", name: "פיצה מרגריטה", desc: "בצק משובח, רוטב עגבניות, מוצרלה, בזיליקום" },
+    { id: "pz4", name: "לחם שום", desc: "" },
+    { id: "pz5", name: "לחם הבית ומטבלים", desc: "סלסה, שום קונפי, שמן זית ובלסמי, פלפל ירוק מטוגן, קרם מטבוחה" },
+  ]},
+  { key: "dips", label: "עמדת חומוס ומטבלים", subtitle: "קערה גדולה במרכז השולחן", items: [
+    { id: "dp1", name: "קערת חומוס", desc: "" },
+    { id: "dp2", name: "טחינה", desc: "" },
+    { id: "dp3", name: "צלחת חריפים", desc: "פלפל פדרון מטוגן | חריף ביתי | שמן זית | פלפל ירוק" },
+    { id: "dp4", name: "חציל בלאדי", desc: "טחינה ביתית | סלסה עגבניות | טוסטונים" },
+  ]},
+  { key: "roaming", label: "עמדת מסתובבים", subtitle: "הפתעות קטנות שמשאירות רושם גדול", items: [
+    { id: "r1", name: "גיוזה עוף", desc: "4 יחידות | מאודה / מטוגן לבחירה" },
+    { id: "r2", name: "גיוזה בקר", desc: "4 יחידות | מאודה / מטוגן לבחירה" },
+    { id: "r3", name: "גיוזה צמחונית", desc: "4 יחידות | שיטאקי / בטטה | מאודה / מטוגן לבחירה" },
+    { id: "r4", name: "נאמס עוף", desc: "רוטב פונזו ושומשום | סלטון אטריות, שעועית, כרוב, בצל ירוק, נענע וכוסברה" },
+    { id: "r5", name: "נאמס צמחוני", desc: "רוטב פונזו ושומשום | סלטון אטריות, שעועית, כרוב, בצל ירוק, נענע וכוסברה" },
+    { id: "r6", name: "טטאקי טונה וואסבי", desc: "טונה אדומה טרייה | עשבי תיבול | צ'ילי חריף | נענע | כוסברה | רוטב תפוז הדרים" },
+    { id: "r7", name: "ברוסקטה סביצ'ה דניס", desc: "דג לבן | לימון | כוסברה | בצל סגול | צ'ילי" },
+    { id: "r8", name: "פיש אנד צ'יפס", desc: "דג לבן בטמפורה ופנקו | צ'יפס אמריקאי" },
+    { id: "r9", name: "אצבעות סלמון בטמפורה", desc: "נתחי סלמון טרי מטוגן בטמפורה | רוטב איולי טריאקי ליים" },
+    { id: "r10", name: "פאני פורי", desc: "סביצ'ה סלמון | קליפות מלפפון | בצל סגול | כוסברה | צ'ילי אדום" },
+    { id: "r11", name: "טוסטדה טונה", desc: "טונה אדומה טרייה | אבוקדו | צ'ילי | רוטב פונזו | טורטייה קריספי" },
+    { id: "r12", name: "טרטר פילה בקר", desc: "" },
+    { id: "r13", name: "סשימי סלמון", desc: "טוגראשי ושומשום | אבוקדו | צ'ילי חריף | בצל ירוק | כוסברה | יוזו | איולי וואסבי" },
+    { id: "r14", name: "קריספי רייס סלמון", desc: "קריספי רייס | טרטר סלמון | לימון | איולי ליים | עירית | פלפל צ'ילי לימוני" },
+    { id: "r15", name: "קריספי רייס טונה", desc: "קריספי רייס | טרטר ספייסי טונה | עירית | ליים | צנונית" },
+    { id: "r16", name: "סיגר בשר", desc: "" },
+    { id: "r17", name: "פרגיות בסילאן וסומק", desc: "נתחי פרגית צלויים | סילאן | סומק | בצל סגול" },
+  ]},
+  { key: "meat", label: "עמדת בשר", subtitle: "על האש, בדיוק כמו שצריך", items: [
+    { id: "b1", name: "פרגיות", desc: "פרגיות צלויות על הפלאנצ'ה | תיבול הבית" },
+    { id: "b2", name: "מרגז", desc: "נקניקיות מרגז ביתיות על הגריל" },
+    { id: "b3", name: "קבב קינמון", desc: "קבב בקר וטלה | קינמון | תבלינים מזרחיים" },
+    { id: "b4", name: "סטייק אנטריקוט", desc: "אנטריקוט על הגריל" },
+    { id: "b5", name: "מיני בורגר", desc: "המבורגר בקר | באן ביתי | ליווי צ'יפס" },
+  ]},
+  { key: "buns", label: "עמדת באנים", subtitle: "הקלאסיקה של פסאו", items: [
+    { id: "bn1", name: "באן עוף", desc: "" },
+    { id: "bn2", name: "באן אסאדו", desc: "חסה | בצל סגול מוחמץ | כוסברה | פלפל חריף | שרי | איולי כוסברה" },
+    { id: "bn3", name: "באן סלמון", desc: "סלמון בטמפורה ופנקו | קולסלאו יפני | כרוב לבן וסגול | גזר | איולי כוסברה" },
+    { id: "bn4", name: "באן טופו", desc: "טופו מטוגן | חסה | בצל מוחמץ | שרי | רוטב איולי יוזו" },
+  ]},
+  { key: "sushi", label: "עמדת סושי", subtitle: "שני סושימנים, אומנות בלייב", items: [
+    { id: "su1", name: "רול סלמון נא", desc: "" },
+    { id: "su2", name: "רול סלמון אפוי", desc: "" },
+    { id: "su3", name: "רול דניס", desc: "" },
+    { id: "su4", name: "רול טונה", desc: "" },
+    { id: "su5", name: "רול צמחוני", desc: "" },
+    { id: "su6", name: "2 סושימנים בלייב", desc: "הכנה מול האורחים" },
+  ]},
+  { key: "salads", label: "עמדת סלטים", subtitle: "טריים, צבעוניים, מושלמים", items: [
+    { id: "sl1", name: "סלט בנגקוק", desc: "דניס קריספי | גזר | מלפפון | אטריות שעועית | בצל ירוק | כוסברה | רוטב תאילנדי" },
+    { id: "sl2", name: "סלט אייסברג", desc: "חסה אייסברג | בצל ירוק | שרי | צנונית | שבבי בוטנים | קוקוס קראנץ' | רוטב בוטנים פיקנטי" },
+    { id: "sl3", name: "סלט דבש יוזו", desc: "" },
+    { id: "sl4", name: "סלט קולורידה", desc: "כרוב סגול | גזר | חסה | בוטנים | קריספי בטטה | ויניגרט כוסברה" },
+    { id: "sl5", name: "סלט אנדיב פרימוורה", desc: "מיקס אנדיב סלנובה ולליק | מקלות תפוח עץ | אגוזי לוז וקשיו | ויניגרט" },
+    { id: "sl6", name: "סלט שרי וקרעי מוצרלה", desc: "שרי צבעוני | בצל סגול | קלמטה | שום קונפי | בזיליקום | שמן זית | בלסמי מצומצם" },
+    { id: "sl7", name: "סלט קיסר", desc: "לבבות חסה | רוטב קיסר קלאסי | קרוטונים | ביצה רכה | פרמזן" },
+  ]},
+  { key: "pasta", label: "עמדת פסטות", subtitle: "נוחמת, עשירה, ביתית", items: [
+    { id: "pa1", name: "פסטה שמנת פטריות", desc: "ברוטב שמנת פטריות פורטבלו ושמפניון" },
+    { id: "pa2", name: "פסטה רוזה", desc: "ברוטב שמנת עגבניות" },
+    { id: "pa3", name: "פסטה עגבניות", desc: "ברוטב עגבניות טריות | בזיליקום | שום" },
+    { id: "pa4", name: "טורטליני דבש וערמונים", desc: "ברוטב שמנת קרמי עם תרד וטימין | דלעת צלויה | פרמזן מגורד" },
+    { id: "pa5", name: "פסטה ים תיכונית", desc: "שמנת | עגבניות שרי | זיתי קלמטה | בזיליקום | שום קונפי | פלח לימון" },
+  ]},
+  { key: "kids", label: "תפריט ילדים (עד גיל 13)", subtitle: "ספיישל לילדים", items: [
+    { id: "sk1", name: "פיש אנד צ'יפס", desc: "דג בטמפורה | צ'יפס" },
+    { id: "sk2", name: "קריספי צ'יקן", desc: "נתחי עוף קריספי | צ'יפס" },
+    { id: "sk3", name: "מיני בורגרים", desc: "המבורגר בקר קטן | באן | צ'יפס" },
+    { id: "sk4", name: "פסטה עגבניות", desc: "ברוטב עגבניות" },
+    { id: "sk5", name: "פסטה רוזה", desc: "ברוטב שמנת עגבניות" },
+    { id: "sk6", name: "פיצה נפוליטנה", desc: "בצק משובח | רוטב עגבניות | מוצרלה" },
+    { id: "sk7", name: "פיצה ביאנקה", desc: "רוטב בשמל | פורטבלו ושמפניון בשמן כמהין | מוצרלה" },
+  ]},
+  { key: "desserts", label: "עמדת קינוחים", subtitle: "סיום מתוק", items: [
+    { id: "sd1", name: "פטיפורים וקינוחי ביס", desc: "" },
+    { id: "sd2", name: "קרם ברולה", desc: "תחתית קראמבל | קרם ברולה | קולי פסיפלורה" },
+    { id: "sd3", name: "טירמיסו די פסאו", desc: "שכבות עוגיות בישקוטי | קרם מסקרפונה | קקאו | רוטב קפוצ'ינו" },
+    { id: "sd4", name: "פרלינה שוקולד (טבעוני)", desc: "קרם שוקולד מריר | גנאש מוקצף | רוטב פירות יער" },
+    { id: "sd5", name: "קינדר קוקי", desc: "עוגיית שוקו צ'יפס | רוטב פיסטוק | גלידת וניל" },
+    { id: "sd6", name: "פאדג' שוקולד חמה", desc: "עוגת שוקולד חמה | קראמבל עוגיות | גלידת וניל" },
+    { id: "sd7", name: "פלטת פירות", desc: "אבטיח, מלון, ענבים סגולים וענבים ירוקים" },
+  ]},
+  { key: "drinks", label: "עמדת שתייה", subtitle: "", items: [
+    { id: "dr1", name: "שתייה קלה ומוגזת", desc: "" },
+    { id: "dr2", name: "בירות ויינות", desc: "" },
+    { id: "dr3", name: "אלכוהול", desc: "" },
+    { id: "dr4", name: "קוקטיילים", desc: "" },
+    { id: "dr5", name: "שתייה חמה", desc: "קפה ותה" },
+  ]},
+];
+const STATIONS_BY_KEY = Object.fromEntries(STATIONS_MENU.map(s => [s.key, s]));
+
 const CAT_LABELS = { starters: "STARTERS", rawBar: "RAW BAR", mains: "MAIN", desserts: "DESSERTS" };
 const CAT_LABELS_HE = { starters: "ראשונות", rawBar: "דג נא", mains: "עיקריות", desserts: "קינוחים" };
 
@@ -1578,10 +1695,17 @@ function ClientProposalPage({ proposal, onSign }) {
   const validDaysNum = parseInt(proposal.validDays) || 7;
 
   const pkg = proposal.menuType && proposal.packageTier ? PACKAGE_MENUS[proposal.menuType]?.[proposal.packageTier] : null;
-  const menuTypeLabel = proposal.menuType === "dairy" ? "חלבי" : proposal.menuType === "meat" ? "בשרי" : "";
+  const menuTypeLabel = proposal.menuType === "dairy" ? "חלבי" : proposal.menuType === "meat" ? "בשרי" : proposal.menuType === "stations" ? "עמדות בופה" : "";
   const packageLabel = pkg ? pkg.label : "";
 
   const categories = {};
+  if (proposal.menuType === "stations") {
+    STATIONS_MENU.forEach(st => {
+      const sel = (proposal.stations || {})[st.key] || [];
+      const items = st.items.filter(i => sel.includes(i.id));
+      if (items.length) categories[st.label] = items;
+    });
+  }
   if (pkg && proposal.openingBread) categories["לפתיחה"] = [{ id: "ob1", name: "לחם הבית ומטבלים", desc: "מוגש לשולחן לפתיחת האירוע" }];
   if (pkg) {
     Object.entries(pkg).forEach(([catKey, cat]) => {
@@ -1793,7 +1917,7 @@ function ClientProposalPage({ proposal, onSign }) {
    (or Proposal → Signature → Done for package-based proposals)
    ══════════════════════════════════════════════════════════ */
 function ClientWizard({ proposal }) {
-  const hasPackage = proposal.menuType && proposal.packageTier;
+  const hasPackage = (proposal.menuType && proposal.packageTier) || proposal.menuType === "stations";
   const [step, setStep] = useState(hasPackage ? "proposal" : "quote");
   const [menuData, setMenuData] = useState(null);
   const [signInfo, setSignInfo] = useState(null);
@@ -2153,6 +2277,8 @@ function App({ onLogout }) {
   const [packageTier, setPackageTier] = useState(""); // "classic", "premium", "deluxe"
   const [selectedDishes, setSelectedDishes] = useState({}); // { starters: ["ds1","ds2",...], rawBar: [...], ... }
   const [selectedKidsMenu, setSelectedKidsMenu] = useState([]); // ["k1","k2","k3"]
+  const [selectedStations, setSelectedStations] = useState({}); // { roaming: ["r1","r4"], meat: [...] }
+  const [openStation, setOpenStation] = useState(null);
   const [openingBread, setOpeningBread] = useState(true); // לחם הבית ומטבלים — כלול לפתיחת האירוע
   const [customAdds, setCustomAdds] = useState([]); // תוספות בתשלום מותאמות: [{name, price, per: "guest"|"fixed"}]
   const [selectedUpgrades, setSelectedUpgrades] = useState([]); // ["wine_beer", "cocktail_bar"]
@@ -2199,6 +2325,7 @@ function App({ onLogout }) {
     if (d.vd) setValidDays(String(d.vd));
     if (d.sd) setSelectedDishes(d.sd);
     if (d.km) setSelectedKidsMenu(d.km);
+    setSelectedStations(d.st && typeof d.st === "object" ? d.st : {});
     setOpeningBread(d.ob !== false);
     if (d.su) setSelectedUpgrades(d.su);
     if (d.sp2) setSushiPrice(String(d.sp2));
@@ -2250,6 +2377,7 @@ function App({ onLogout }) {
 
   // When menuType or packageTier changes, reset selectedDishes and auto-fill price
   useEffect(() => {
+    if (menuType === "stations") return; // עמדות בופה — אין חבילה ואין מחיר קבוע
     if (menuType && packageTier) {
       // Skip exactly one reset after a programmatic prefill (?load= / edit-proposal), so loaded dishes survive
       if (skipResetRef.current) { skipResetRef.current = false; return; }
@@ -2327,6 +2455,7 @@ function App({ onLogout }) {
       pt: packageTier || undefined,
       sd: Object.keys(selectedDishes).length ? selectedDishes : undefined,
       km: selectedKidsMenu.length ? selectedKidsMenu : undefined,
+      st: Object.keys(selectedStations).some(k => (selectedStations[k]||[]).length) ? selectedStations : undefined,
       ob: openingBread ? undefined : false,
       su: selectedUpgrades.length ? selectedUpgrades : undefined,
       sp2: sushiPrice && sushiPrice !== "35" ? sushiPrice : undefined,
@@ -2354,6 +2483,10 @@ function App({ onLogout }) {
     const pkgDef = menuType && packageTier ? PACKAGE_MENUS[menuType]?.[packageTier] : null;
     const menuOut = [];
     if (openingBread) menuOut.push({ course: "starter", name: "לחם הבית ומטבלים (לפתיחה)" });
+    STATIONS_MENU.forEach(st => {
+      const sel = selectedStations[st.key] || [];
+      st.items.filter(it => sel.includes(it.id)).forEach(it => menuOut.push({ course: st.label, name: it.name }));
+    });
     if (pkgDef) Object.entries(pkgDef).forEach(([catKey, cat]) => {
       if (!courseMap[catKey] || !cat.items) return;
       const sel = selectedDishes[catKey] || [];
@@ -2432,11 +2565,11 @@ function App({ onLogout }) {
       }
     } catch(e) { console.warn("crm notify err", e); }
     try { await navigator.clipboard.writeText(link); setLinkCopied(true); setTimeout(() => setLinkCopied(false), 3000); } catch(e) { console.warn("clipboard err", e); }
-  }, [clientName, eventType, eventDate, eventTime, guestCount, childCount, menuType, packageTier, selectedDishes, selectedKidsMenu, openingBread, customAdds, selectedUpgrades, sushiPrice, pricePerGuest, pricePerChild, services, validDays, drinkPackage, servicePct, vatMode, editingProposalId, saveToCrm]);
+  }, [clientName, eventType, eventDate, eventTime, guestCount, childCount, menuType, packageTier, selectedDishes, selectedKidsMenu, selectedStations, openingBread, customAdds, selectedUpgrades, sushiPrice, pricePerGuest, pricePerChild, services, validDays, drinkPackage, servicePct, vatMode, editingProposalId, saveToCrm]);
 
     const sendClientWhatsApp = useCallback(() => {
     if (!clientLink) return;
-    const hasPackage = menuType && packageTier;
+    const hasPackage = (menuType && packageTier) || menuType === "stations";
     const msg = hasPackage
       ? `שלום ${clientName},\nשמחים שבחרתם בפסאו!\n\nהכנו עבורכם הצעת מחיר מותאמת אישית:\n${clientLink}\n\nבקישור תוכלו לצפות בפירוט ההצעה ולחתום לאישור.\nלכל שאלה, אנחנו כאן.\n\nצוות פסאו`
       : `שלום ${clientName},\nשמחים שבחרתם בפסאו!\n\nהכנו עבורכם הצעת מחיר מותאמת אישית:\n${clientLink}\n\nבקישור תוכלו לצפות בהצעה ולבחור את התפריט לאירוע.\nלכל שאלה, אנחנו כאן.\n\nצוות פסאו`;
@@ -2531,6 +2664,15 @@ function App({ onLogout }) {
   }, [selectedUpgrades, sushiPrice, customAdds]);
 
   const byCat = useMemo(() => {
+    if (menuType === "stations") {
+      const r = {};
+      STATIONS_MENU.forEach(st => {
+        const sel = selectedStations[st.key] || [];
+        const items = st.items.filter(i => sel.includes(i.id));
+        if (items.length) r[st.label] = items;
+      });
+      return r;
+    }
     if (!menuType || !packageTier) return {};
     const pkg = PACKAGE_MENUS[menuType]?.[packageTier];
     if (!pkg) return {};
@@ -2549,7 +2691,7 @@ function App({ onLogout }) {
       r["תפריט ילדים"] = KIDS_MENU.filter(i => selectedKidsMenu.includes(i.id));
     }
     return r;
-  }, [menuType, packageTier, selectedDishes, selectedKidsMenu, openingBread]);
+  }, [menuType, packageTier, selectedDishes, selectedKidsMenu, selectedStations, openingBread]);
 
   const currentPkg = menuType && packageTier ? PACKAGE_MENUS[menuType]?.[packageTier] : null;
 
@@ -2619,7 +2761,7 @@ function App({ onLogout }) {
           )}
           <div style={{ padding: "20px 20px", borderBottom: `1px solid ${F.br}` }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: F.gold, marginBottom: 16 }}>סוג תפריט</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 20 }}>
               <div onClick={()=>{setMenuType("dairy");setPackageTier("");setSelectedDishes({});}} style={{ padding: "16px 12px", background: menuType==="dairy"?"rgba(200,169,110,0.08)":F.bg, border: `${menuType==="dairy"?"2px":"1px"} solid ${menuType==="dairy"?F.gold:F.br}`, borderRadius: 10, cursor: "pointer", textAlign: "center", transition: "all 0.2s" }}>
                 <div style={{ fontSize: 22, marginBottom: 6 }}>🧀</div>
                 <div style={{ fontSize: 14, fontWeight: 600, color: menuType==="dairy"?F.gold:F.tx }}>חלבי</div>
@@ -2630,9 +2772,19 @@ function App({ onLogout }) {
                 <div style={{ fontSize: 14, fontWeight: 600, color: menuType==="meat"?F.gold:F.tx }}>בשרי</div>
                 <div style={{ fontSize: 11, color: F.dm, marginTop: 4 }}>Meat</div>
               </div>
+              <div onClick={()=>{setMenuType("stations");setPackageTier("");setSelectedDishes({});}} style={{ padding: "16px 12px", background: menuType==="stations"?"rgba(200,169,110,0.08)":F.bg, border: `${menuType==="stations"?"2px":"1px"} solid ${menuType==="stations"?F.gold:F.br}`, borderRadius: 10, cursor: "pointer", textAlign: "center", transition: "all 0.2s" }}>
+                <div style={{ fontSize: 22, marginBottom: 6 }}>🍽</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: menuType==="stations"?F.gold:F.tx }}>עמדות</div>
+                <div style={{ fontSize: 11, color: F.dm, marginTop: 4 }}>בופה</div>
+              </div>
             </div>
 
-            {menuType && (<>
+            {menuType === "stations" && (
+              <div style={{ padding: "12px 14px", marginBottom: 20, background: "rgba(200,169,110,0.06)", border: `1px solid ${F.br}`, borderRadius: 10, fontSize: 12, color: F.dm, lineHeight: 1.7 }}>
+                אירוע עמדות בופה — בלי חבילה קבועה. בוחרים למטה אילו עמדות באירוע ואילו מנות בכל אחת, ומזינים את המחיר לסועד ידנית.
+              </div>
+            )}
+            {menuType && menuType !== "stations" && (<>
               <div style={{ fontSize: 13, fontWeight: 700, color: F.gold, marginBottom: 16 }}>חבילה</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 20 }}>
                 {["classic","premium","deluxe"].map(tier => {
@@ -2684,8 +2836,60 @@ function App({ onLogout }) {
             </div>
           </div>
 
+          {/* Buffet stations */}
+          {menuType === "stations" && (
+          <div style={{ padding: "20px 20px", borderBottom: `1px solid ${F.br}` }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: F.gold }}>עמדות האירוע</span>
+              <span style={{ background: "rgba(200,169,110,0.15)", borderRadius: 12, padding: "3px 10px", fontSize: 11, color: F.gold }}>
+                {Object.values(selectedStations).filter(a => (a||[]).length).length} עמדות · {Object.values(selectedStations).reduce((n,a)=>n+(a||[]).length,0)} מנות
+              </span>
+            </div>
+            <div style={{ fontSize: 11, color: F.dm, marginBottom: 14 }}>בוחרים כמה שרוצים — רק עמדות עם מנות מסומנות ייכנסו להצעה</div>
+            {STATIONS_MENU.map(st => {
+              const sel = selectedStations[st.key] || [];
+              const isOpen = sel.length > 0 || openStation === st.key;
+              return (
+                <div key={st.key} style={{ marginBottom: 10, border: `1px solid ${sel.length ? F.gold : F.br}`, borderRadius: 10, overflow: "hidden" }}>
+                  <div onClick={() => setOpenStation(openStation === st.key ? null : st.key)}
+                    style={{ padding: "11px 13px", cursor: "pointer", background: sel.length ? "rgba(200,169,110,0.08)" : F.bg, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      {sel.length > 0 && <span style={{ background: F.gold, color: "#1e1e1e", borderRadius: 10, fontSize: 10, fontWeight: 700, padding: "2px 7px" }}>{sel.length}</span>}
+                      <span style={{ fontSize: 11, color: F.dm }}>{isOpen ? "\u25b2" : "\u25bc"}</span>
+                    </div>
+                    <div style={{ textAlign: "right" }}>
+                      <div style={{ fontSize: 13.5, fontWeight: 600, color: sel.length ? F.gold : F.tx }}>{st.label}</div>
+                      {st.subtitle && <div style={{ fontSize: 10.5, color: F.dm, marginTop: 1 }}>{st.subtitle}</div>}
+                    </div>
+                  </div>
+                  {isOpen && (
+                    <div style={{ padding: "8px 10px 10px", borderTop: `1px solid ${F.br}` }}>
+                      {st.items.map(item => {
+                        const on = sel.includes(item.id);
+                        return (
+                          <div key={item.id} onClick={() => setSelectedStations(prev => {
+                            const cur = prev[st.key] || [];
+                            return { ...prev, [st.key]: on ? cur.filter(x => x !== item.id) : [...cur, item.id] };
+                          })} style={{ padding: "8px 11px", marginBottom: 4, borderRadius: 8, cursor: "pointer", border: `1px solid ${on ? F.gold : F.br}`, background: on ? "rgba(200,169,110,0.08)" : "transparent", transition: "all 0.2s" }}>
+                            <div style={{ fontSize: 12.5, color: on ? F.gold : F.tx, fontWeight: on ? 600 : 400 }}>{item.name}</div>
+                            {item.desc && <div style={{ fontSize: 10.5, color: F.dm, marginTop: 2 }}>{item.desc}</div>}
+                          </div>
+                        );
+                      })}
+                      {sel.length > 0 && (
+                        <button onClick={() => setSelectedStations(prev => ({ ...prev, [st.key]: [] }))}
+                          style={{ background: "none", border: "none", color: "#f87171", fontSize: 11, cursor: "pointer", fontFamily: FN.body, padding: "4px 2px" }}>נקה עמדה</button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          )}
+
           {/* Dish Selection */}
-          {menuType && packageTier && currentPkg && (
+          {menuType && menuType !== "stations" && packageTier && currentPkg && (
           <div style={{ padding: "20px 20px", borderBottom: `1px solid ${F.br}` }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: F.gold, marginBottom: 16 }}>בחירת מנות — {currentPkg.label}</div>
             <div style={{ marginBottom: 20 }}>
@@ -2741,6 +2945,7 @@ function App({ onLogout }) {
           </div>
 
           {/* Kids Menu Section */}
+          {menuType !== "stations" && (
           <div style={{ padding: "20px 20px", borderBottom: `1px solid ${F.br}` }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
               <span style={{ fontSize: 13, fontWeight: 700, color: F.gold }}>תפריט ספיישל לילדים</span>
@@ -2760,6 +2965,7 @@ function App({ onLogout }) {
               );
             })}
           </div>
+          )}
 
           {/* Upgrades Section */}
           <div style={{ padding: "20px 20px", borderBottom: `1px solid ${F.br}` }}>
@@ -2947,6 +3153,7 @@ function App({ onLogout }) {
         packageTier: data.pt || "",
         selectedDishes: data.sd || {},
         kidsMenu: data.km || [],
+        stations: data.st && typeof data.st === "object" ? data.st : {},
         openingBread: data.ob !== false,
         selectedUpgrades: data.su || [],
         sushiPrice: data.sp2 || "35",
