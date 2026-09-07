@@ -2853,13 +2853,13 @@ function App({ onLogout }) {
                 <div key={st.key} style={{ marginBottom: 10, border: `1px solid ${sel.length ? F.gold : F.br}`, borderRadius: 10, overflow: "hidden" }}>
                   <div onClick={() => setOpenStation(openStation === st.key ? null : st.key)}
                     style={{ padding: "11px 13px", cursor: "pointer", background: sel.length ? "rgba(200,169,110,0.08)" : F.bg, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      {sel.length > 0 && <span style={{ background: F.gold, color: "#1e1e1e", borderRadius: 10, fontSize: 10, fontWeight: 700, padding: "2px 7px" }}>{sel.length}</span>}
-                      <span style={{ fontSize: 11, color: F.dm }}>{isOpen ? "\u25b2" : "\u25bc"}</span>
-                    </div>
-                    <div style={{ textAlign: "right" }}>
+                    <div>
                       <div style={{ fontSize: 13.5, fontWeight: 600, color: sel.length ? F.gold : F.tx }}>{st.label}</div>
                       {st.subtitle && <div style={{ fontSize: 10.5, color: F.dm, marginTop: 1 }}>{st.subtitle}</div>}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                      {sel.length > 0 && <span style={{ background: F.gold, color: "#1e1e1e", borderRadius: 10, fontSize: 10, fontWeight: 700, padding: "2px 7px" }}>{sel.length}</span>}
+                      <span style={{ fontSize: 11, color: F.dm }}>{isOpen ? "\u25b2" : "\u25bc"}</span>
                     </div>
                   </div>
                   {isOpen && (
