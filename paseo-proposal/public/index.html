@@ -2284,6 +2284,8 @@ function App({ onLogout }) {
   const [selectedKidsMenu, setSelectedKidsMenu] = useState([]); // ["k1","k2","k3"]
   const [selectedStations, setSelectedStations] = useState({}); // { roaming: ["r1","r4"], meat: [...] }
   const [openStation, setOpenStation] = useState(null);
+  const [stationOrder, setStationOrder] = useState(STATIONS_MENU.map((_, i) => i));
+  const [dragIdx, setDragIdx] = useState(null);
   const [openingBread, setOpeningBread] = useState(true); // לחם הבית ומטבלים — כלול לפתיחת האירוע
   const [customAdds, setCustomAdds] = useState([]); // תוספות בתשלום מותאמות: [{name, price, per: "guest"|"fixed"}]
   const [selectedUpgrades, setSelectedUpgrades] = useState([]); // ["wine_beer", "cocktail_bar"]
@@ -2461,6 +2463,7 @@ function App({ onLogout }) {
       sd: Object.keys(selectedDishes).length ? selectedDishes : undefined,
       km: selectedKidsMenu.length ? selectedKidsMenu : undefined,
       st: Object.keys(selectedStations).some(k => (selectedStations[k]||[]).length) ? selectedStations : undefined,
+      so: stationOrder.join(",") !== STATIONS_MENU.map((_,i)=>i).join(",") ? stationOrder : undefined,
       ob: openingBread ? undefined : false,
       su: selectedUpgrades.length ? selectedUpgrades : undefined,
       sp2: sushiPrice && sushiPrice !== "35" ? sushiPrice : undefined,
@@ -2850,15 +2853,24 @@ function App({ onLogout }) {
                 {Object.values(selectedStations).filter(a => (a||[]).length).length} עמדות · {Object.values(selectedStations).reduce((n,a)=>n+(a||[]).length,0)} מנות
               </span>
             </div>
-            <div style={{ fontSize: 11, color: F.dm, marginBottom: 14 }}>בוחרים כמה שרוצים — רק עמדות עם מנות מסומנות ייכנסו להצעה</div>
-            {STATIONS_MENU.map(st => {
+            <div style={{ fontSize: 11, color: F.dm, marginBottom: 14 }}>גררו ⋮⋮ כדי לשנות סדר · לחצו כדי לפתוח/לסגור</div>
+            {stationOrder.map((origIdx, visualIdx) => {
+              const st = STATIONS_MENU[origIdx];
+              if (!st) return null;
               const sel = selectedStations[st.key] || [];
               const isOpen = sel.length > 0 || openStation === st.key;
               return (
-                <div key={st.key} style={{ marginBottom: 10, border: `1px solid ${sel.length ? F.gold : F.br}`, borderRadius: 10, overflow: "hidden" }}>
+                <div key={st.key}
+                  draggable
+                  onDragStart={() => setDragIdx(visualIdx)}
+                  onDragOver={e => e.preventDefault()}
+                  onDrop={() => { if (dragIdx !== null && dragIdx !== visualIdx) { setStationOrder(prev => { const n = [...prev]; const item = n.splice(dragIdx, 1)[0]; n.splice(visualIdx, 0, item); return n; }); } setDragIdx(null); }}
+                  onDragEnd={() => setDragIdx(null)}
+                  style={{ marginBottom: 10, border: `1px solid ${sel.length ? F.gold : F.br}`, borderRadius: 10, overflow: "hidden", opacity: dragIdx === visualIdx ? 0.5 : 1, transition: "opacity 0.2s" }}>
                   <div onClick={() => setOpenStation(openStation === st.key ? null : st.key)}
                     style={{ padding: "11px 13px", cursor: "pointer", background: sel.length ? "rgba(200,169,110,0.08)" : F.bg, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                    <div>
+                    <div style={{ fontSize: 16, color: F.dm, cursor: "grab", padding: "0 4px 0 0", flexShrink: 0, userSelect: "none" }}>⋮⋮</div>
+                    <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 13.5, fontWeight: 600, color: sel.length ? F.gold : F.tx }}>{st.label}</div>
                       {st.subtitle && <div style={{ fontSize: 10.5, color: F.dm, marginTop: 1 }}>{st.subtitle}</div>}
                     </div>
