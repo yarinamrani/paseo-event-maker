@@ -2289,7 +2289,36 @@ function App({ onLogout }) {
   const [selectedStations, setSelectedStations] = useState({}); // { roaming: ["r1","r4"], meat: [...] }
   const [openStation, setOpenStation] = useState(null);
   const [stationOrder, setStationOrder] = useState(DEFAULT_STATION_ORDER);
-  const [dragIdx, setDragIdx] = useState(null);
+  const [dragKey, setDragKey] = useState(null);
+  const stationCardRefs = useRef({});
+  // Pointer-based reorder: works with finger (mobile) and mouse; only starts from the ⋮⋮ handle so normal scrolling is unaffected
+  const startStationDrag = (e, key) => {
+    e.preventDefault(); e.stopPropagation();
+    setDragKey(key);
+    let scroller = stationCardRefs.current[key]?.parentElement;
+    while (scroller && scroller !== document.body) { const oy = getComputedStyle(scroller).overflowY; if ((oy === "auto" || oy === "scroll") && scroller.scrollHeight > scroller.clientHeight) break; scroller = scroller.parentElement; }
+    if (scroller === document.body) scroller = null;
+    let lastY = e.clientY, raf = null;
+    const reorder = (y) => setStationOrder(prev => {
+      const others = prev.filter(k => k !== key);
+      let idx = 0;
+      for (const k of others) { const el = stationCardRefs.current[k]; if (!el) continue; const r = el.getBoundingClientRect(); if (y > r.top + r.height / 2) idx++; }
+      const next = [...others.slice(0, idx), key, ...others.slice(idx)];
+      return next.join() === prev.join() ? prev : next;
+    });
+    const tick = () => {
+      const top = 90, bottom = window.innerHeight - 160;
+      const d = lastY < top ? -(top - lastY) / 5 : lastY > bottom ? (lastY - bottom) / 5 : 0;
+      if (d) { if (scroller) scroller.scrollTop += d; else window.scrollBy(0, d); reorder(lastY); }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    const move = (ev) => { ev.preventDefault(); lastY = ev.clientY; reorder(lastY); };
+    const up = () => { cancelAnimationFrame(raf); window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); window.removeEventListener("pointercancel", up); setDragKey(null); };
+    window.addEventListener("pointermove", move, { passive: false });
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", up);
+  };
   const [openingBread, setOpeningBread] = useState(true); // לחם הבית ומטבלים — כלול לפתיחת האירוע
   const [customAdds, setCustomAdds] = useState([]); // תוספות בתשלום מותאמות: [{name, price, per: "guest"|"fixed"}]
   const [selectedUpgrades, setSelectedUpgrades] = useState([]); // ["wine_beer", "cocktail_bar"]
@@ -2858,28 +2887,19 @@ function App({ onLogout }) {
                 {Object.values(selectedStations).filter(a => (a||[]).length).length} עמדות · {Object.values(selectedStations).reduce((n,a)=>n+(a||[]).length,0)} מנות
               </span>
             </div>
-            <div style={{ fontSize: 11, color: F.dm, marginBottom: 14 }}>החיצים ▲▼ משנים את סדר העמדות בהצעה · לחצו על עמדה כדי לפתוח/לסגור</div>
+            <div style={{ fontSize: 11, color: F.dm, marginBottom: 14 }}>גררו את ⋮⋮ כדי לשנות את סדר העמדות בהצעה · לחצו על עמדה כדי לפתוח/לסגור</div>
             {stationOrder.map((stKey, visualIdx) => {
               const st = STATIONS_BY_KEY[stKey];
               if (!st) return null;
               const sel = selectedStations[st.key] || [];
               const isOpen = sel.length > 0 || openStation === st.key;
               return (
-                <div key={st.key}
-                  draggable
-                  onDragStart={() => setDragIdx(visualIdx)}
-                  onDragOver={e => e.preventDefault()}
-                  onDrop={() => { if (dragIdx !== null && dragIdx !== visualIdx) { setStationOrder(prev => { const n = [...prev]; const item = n.splice(dragIdx, 1)[0]; n.splice(visualIdx, 0, item); return n; }); } setDragIdx(null); }}
-                  onDragEnd={() => setDragIdx(null)}
-                  style={{ marginBottom: 10, border: `1px solid ${sel.length ? F.gold : F.br}`, borderRadius: 10, overflow: "hidden", opacity: dragIdx === visualIdx ? 0.5 : 1, transition: "opacity 0.2s" }}>
+                <div key={st.key} ref={el => { stationCardRefs.current[st.key] = el; }}
+                  style={{ marginBottom: 10, border: `1px solid ${sel.length || dragKey === st.key ? F.gold : F.br}`, borderRadius: 10, overflow: "hidden", position: "relative", zIndex: dragKey === st.key ? 2 : "auto", transform: dragKey === st.key ? "scale(1.02)" : "none", boxShadow: dragKey === st.key ? "0 8px 24px rgba(0,0,0,0.5)" : "none", transition: "transform 0.15s, box-shadow 0.15s" }}>
                   <div onClick={() => setOpenStation(openStation === st.key ? null : st.key)}
                     style={{ padding: "11px 13px", cursor: "pointer", background: sel.length ? "rgba(200,169,110,0.08)" : F.bg, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 2, flexShrink: 0 }} onClick={e => e.stopPropagation()}>
-                      <button disabled={visualIdx === 0} onClick={() => setStationOrder(prev => { const n = [...prev]; [n[visualIdx - 1], n[visualIdx]] = [n[visualIdx], n[visualIdx - 1]]; return n; })}
-                        style={{ width: 30, height: 22, borderRadius: 5, border: `1px solid ${F.br}`, background: F.sf, color: visualIdx === 0 ? F.br : F.gold, fontSize: 11, cursor: visualIdx === 0 ? "default" : "pointer", padding: 0, lineHeight: 1 }}>▲</button>
-                      <button disabled={visualIdx === stationOrder.length - 1} onClick={() => setStationOrder(prev => { const n = [...prev]; [n[visualIdx + 1], n[visualIdx]] = [n[visualIdx], n[visualIdx + 1]]; return n; })}
-                        style={{ width: 30, height: 22, borderRadius: 5, border: `1px solid ${F.br}`, background: F.sf, color: visualIdx === stationOrder.length - 1 ? F.br : F.gold, fontSize: 11, cursor: visualIdx === stationOrder.length - 1 ? "default" : "pointer", padding: 0, lineHeight: 1 }}>▼</button>
-                    </div>
+                    <div onClick={e => e.stopPropagation()} onPointerDown={e => startStationDrag(e, st.key)}
+                      style={{ width: 34, height: 38, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 18, letterSpacing: -2, color: dragKey === st.key ? F.gold : F.dm, background: dragKey === st.key ? "rgba(200,169,110,0.15)" : "transparent", borderRadius: 6, cursor: dragKey === st.key ? "grabbing" : "grab", touchAction: "none", userSelect: "none", WebkitUserSelect: "none" }}>⋮⋮</div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 13.5, fontWeight: 600, color: sel.length ? F.gold : F.tx }}>{st.label}</div>
                       {st.subtitle && <div style={{ fontSize: 10.5, color: F.dm, marginTop: 1 }}>{st.subtitle}</div>}
