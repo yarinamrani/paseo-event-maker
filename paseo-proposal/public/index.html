@@ -346,27 +346,35 @@ const UPGRADE_OPTIONS = [
 //  התיאורים לקוחים מתפריט העמדות המקורי של פסאו.
 // ══════════════════════════════════════════════════════════════
 const STATIONS_MENU = [
-  { key: "kidsfry", label: "עמדת נאגטס ופיש אנד צ'יפס", subtitle: "עם רטבים לבחירה", items: [
-    { id: "kf1", name: "נאגטס עוף", desc: "" },
-    { id: "kf2", name: "פיש אנד צ'יפס", desc: "דג לבן בטמפורה ופנקו | צ'יפס אמריקאי" },
-    { id: "kf3", name: "קריספי צ'יקן", desc: "נתחי עוף קריספי | צ'יפס" },
-    { id: "kf4", name: "צ'יפס אמריקאי", desc: "פריך וזהוב" },
-    { id: "kf5", name: "רטבים לבחירה", desc: "קטשופ, מיונז וברביקיו" },
-  ]},
-  { key: "pizza", label: "עמדת פיצות", subtitle: "יוצא חם מהתנור", items: [
-    { id: "pz1", name: "פיצה נפוליטנה", desc: "בצק משובח | רוטב עגבניות | מוצרלה | אופציה לתוספות" },
-    { id: "pz2", name: "פיצה ביאנקה", desc: "רוטב בשמל | פורטבלו ושמפניון בשמן כמהין | מוצרלה | מיקס עלים" },
-    { id: "pz3", name: "פיצה מרגריטה", desc: "בצק משובח, רוטב עגבניות, מוצרלה, בזיליקום" },
-  ]},
   { key: "bread", label: "עמדת לחמים", subtitle: "", items: [
     { id: "pz4", name: "לחם שום", desc: "" },
     { id: "pz5", name: "לחם הבית ומטבלים", desc: "סלסה, שום קונפי, שמן זית ובלסמי, פלפל ירוק מטוגן, קרם מטבוחה" },
   ]},
-  { key: "dips", label: "עמדת חומוס ומטבלים", subtitle: "קערה גדולה במרכז השולחן", items: [
-    { id: "dp1", name: "קערת חומוס", desc: "" },
-    { id: "dp2", name: "טחינה", desc: "" },
-    { id: "dp3", name: "צלחת חריפים", desc: "פלפל פדרון מטוגן | חריף ביתי | שמן זית | פלפל ירוק" },
-    { id: "dp4", name: "חציל בלאדי", desc: "טחינה ביתית | סלסה עגבניות | טוסטונים" },
+  { key: "starters_station", label: "עמדת ראשונות", subtitle: "ראשונות ומנות פתיחה", items: [
+    { id: "st1", name: "חציל בלאדי", desc: "טחינה ביתית, סלסה עגבניות וטוסטונים" },
+    { id: "st2", name: "פלאפל כרובית", desc: "כרובית וכמהין במילוי גבינות, שמן ירוק וסלסה" },
+    { id: "st3", name: "סלט שרי וקרעי מוצרלה", desc: "בצל סגול, רוקט, שמן זית ובלסמי" },
+    { id: "st4", name: "צלעות תירס", desc: "חמאת שום, פפריקות ועשבי תיבול, טופינג פרמזן" },
+    { id: "st5", name: "קרפצ'יו סלק וגבינת עזים", desc: "בצל ירוק, סילאן, שמן זית ואגוזים קלויים" },
+    { id: "st6", name: "סלט אנדיב פרימוורה", desc: "תפוח, גבינת עזים, פקאן מסוכר וויניגרט הדרים" },
+    { id: "st7", name: "סלט קפרזה", desc: "" },
+    { id: "st8", name: "סביצ'ה יוזו", desc: "" },
+  ]},
+  { key: "raw_station", label: "עמדת דגים נאים", subtitle: "טרי מהים", items: [
+    { id: "rw1", name: "סשימי סלמון", desc: "טוגראשי, אבוקדו, צ'ילי חריף ואיולי וואסבי" },
+    { id: "rw2", name: "טטאקי טונה", desc: "טוגראשי, אבוקדו, צ'ילי, יוזו ואיולי וואסבי" },
+    { id: "rw3", name: "פאני פורי", desc: "סביצ'ה סלמון, מלפפון, כוסברה וקרם פרש יוזו" },
+    { id: "rw4", name: "טוסטדה טונה אדומה", desc: "טונה טרייה, אבוקדו, צ'ילי, איולי פפריקה ודבש" },
+    { id: "rw5", name: "סביצ'ה דג לבן", desc: "דג לברק, בצל סגול, צ'ילי אדום, לימון טרי, כוסברה, שמן צ'ילי ורוטב יוזו" },
+  ]},
+  { key: "salads", label: "עמדת סלטים", subtitle: "טריים, צבעוניים, מושלמים", items: [
+    { id: "sl1", name: "סלט בנגקוק", desc: "דניס קריספי | גזר | מלפפון | אטריות שעועית | בצל ירוק | כוסברה | רוטב תאילנדי" },
+    { id: "sl2", name: "סלט אייסברג", desc: "חסה אייסברג | בצל ירוק | שרי | צנונית | שבבי בוטנים | קוקוס קראנץ' | רוטב בוטנים פיקנטי" },
+    { id: "sl3", name: "סלט דבש יוזו", desc: "" },
+    { id: "sl4", name: "סלט קולורידה", desc: "כרוב סגול | גזר | חסה | בוטנים | קריספי בטטה | ויניגרט כוסברה" },
+    { id: "sl5", name: "סלט אנדיב פרימוורה", desc: "מיקס אנדיב סלנובה ולליק | מקלות תפוח עץ | אגוזי לוז וקשיו | ויניגרט" },
+    { id: "sl6", name: "סלט שרי וקרעי מוצרלה", desc: "שרי צבעוני | בצל סגול | קלמטה | שום קונפי | בזיליקום | שמן זית | בלסמי מצומצם" },
+    { id: "sl7", name: "סלט קיסר", desc: "לבבות חסה | רוטב קיסר קלאסי | קרוטונים | ביצה רכה | פרמזן" },
   ]},
   { key: "roaming", label: "עמדת מסתובבים", subtitle: "הפתעות קטנות שמשאירות רושם גדול", items: [
     { id: "r1", name: "גיוזה עוף", desc: "4 יחידות | מאודה / מטוגן לבחירה" },
@@ -387,6 +395,13 @@ const STATIONS_MENU = [
     { id: "r16", name: "סיגר בשר", desc: "" },
     { id: "r17", name: "פרגיות בסילאן וסומק", desc: "נתחי פרגית צלויים | סילאן | סומק | בצל סגול" },
   ]},
+  { key: "kidsfry", label: "עמדת נאגטס ופיש אנד צ'יפס", subtitle: "עם רטבים לבחירה", items: [
+    { id: "kf1", name: "נאגטס עוף", desc: "" },
+    { id: "kf2", name: "פיש אנד צ'יפס", desc: "דג לבן בטמפורה ופנקו | צ'יפס אמריקאי" },
+    { id: "kf3", name: "קריספי צ'יקן", desc: "נתחי עוף קריספי | צ'יפס" },
+    { id: "kf4", name: "צ'יפס אמריקאי", desc: "פריך וזהוב" },
+    { id: "kf5", name: "רטבים לבחירה", desc: "קטשופ, מיונז וברביקיו" },
+  ]},
   { key: "meat", label: "עמדת בשר", subtitle: "על האש, בדיוק כמו שצריך", items: [
     { id: "b1", name: "פרגיות", desc: "פרגיות צלויות על הפלאנצ'ה | תיבול הבית" },
     { id: "b2", name: "מרגז", desc: "נקניקיות מרגז ביתיות על הגריל" },
@@ -400,9 +415,6 @@ const STATIONS_MENU = [
     { id: "bn3", name: "באן סלמון", desc: "סלמון בטמפורה ופנקו | קולסלאו יפני | כרוב לבן וסגול | גזר | איולי כוסברה" },
     { id: "bn4", name: "באן טופו", desc: "טופו מטוגן | חסה | בצל מוחמץ | שרי | רוטב איולי יוזו" },
   ]},
-  { key: "challah", label: "עמדת חלה שניצל", subtitle: "", items: [
-    { id: "ch1", name: "חלה שניצל", desc: "" },
-  ]},
   { key: "sushi", label: "עמדת סושי", subtitle: "שני סושימנים, אומנות בלייב", items: [
     { id: "su1", name: "רול סלמון נא", desc: "" },
     { id: "su2", name: "רול סלמון אפוי", desc: "" },
@@ -411,14 +423,10 @@ const STATIONS_MENU = [
     { id: "su5", name: "רול צמחוני", desc: "" },
     { id: "su6", name: "2 סושימנים בלייב", desc: "הכנה מול האורחים" },
   ]},
-  { key: "salads", label: "עמדת סלטים", subtitle: "טריים, צבעוניים, מושלמים", items: [
-    { id: "sl1", name: "סלט בנגקוק", desc: "דניס קריספי | גזר | מלפפון | אטריות שעועית | בצל ירוק | כוסברה | רוטב תאילנדי" },
-    { id: "sl2", name: "סלט אייסברג", desc: "חסה אייסברג | בצל ירוק | שרי | צנונית | שבבי בוטנים | קוקוס קראנץ' | רוטב בוטנים פיקנטי" },
-    { id: "sl3", name: "סלט דבש יוזו", desc: "" },
-    { id: "sl4", name: "סלט קולורידה", desc: "כרוב סגול | גזר | חסה | בוטנים | קריספי בטטה | ויניגרט כוסברה" },
-    { id: "sl5", name: "סלט אנדיב פרימוורה", desc: "מיקס אנדיב סלנובה ולליק | מקלות תפוח עץ | אגוזי לוז וקשיו | ויניגרט" },
-    { id: "sl6", name: "סלט שרי וקרעי מוצרלה", desc: "שרי צבעוני | בצל סגול | קלמטה | שום קונפי | בזיליקום | שמן זית | בלסמי מצומצם" },
-    { id: "sl7", name: "סלט קיסר", desc: "לבבות חסה | רוטב קיסר קלאסי | קרוטונים | ביצה רכה | פרמזן" },
+  { key: "pizza", label: "עמדת פיצות", subtitle: "יוצא חם מהתנור", items: [
+    { id: "pz1", name: "פיצה נפוליטנה", desc: "בצק משובח | רוטב עגבניות | מוצרלה | אופציה לתוספות" },
+    { id: "pz2", name: "פיצה ביאנקה", desc: "רוטב בשמל | פורטבלו ושמפניון בשמן כמהין | מוצרלה | מיקס עלים" },
+    { id: "pz3", name: "פיצה מרגריטה", desc: "בצק משובח, רוטב עגבניות, מוצרלה, בזיליקום" },
   ]},
   { key: "pasta", label: "עמדת פסטות", subtitle: "נוחמת, עשירה, ביתית", items: [
     { id: "pa1", name: "פסטה שמנת פטריות", desc: "ברוטב שמנת פטריות פורטבלו ושמפניון" },
@@ -426,15 +434,6 @@ const STATIONS_MENU = [
     { id: "pa3", name: "פסטה עגבניות", desc: "ברוטב עגבניות טריות | בזיליקום | שום" },
     { id: "pa4", name: "טורטליני דבש וערמונים", desc: "ברוטב שמנת קרמי עם תרד וטימין | דלעת צלויה | פרמזן מגורד" },
     { id: "pa5", name: "פסטה ים תיכונית", desc: "שמנת | עגבניות שרי | זיתי קלמטה | בזיליקום | שום קונפי | פלח לימון" },
-  ]},
-  { key: "kids", label: "תפריט ילדים (עד גיל 13)", subtitle: "ספיישל לילדים", items: [
-    { id: "sk1", name: "פיש אנד צ'יפס", desc: "דג בטמפורה | צ'יפס" },
-    { id: "sk2", name: "קריספי צ'יקן", desc: "נתחי עוף קריספי | צ'יפס" },
-    { id: "sk3", name: "מיני בורגרים", desc: "המבורגר בקר קטן | באן | צ'יפס" },
-    { id: "sk4", name: "פסטה עגבניות", desc: "ברוטב עגבניות" },
-    { id: "sk5", name: "פסטה רוזה", desc: "ברוטב שמנת עגבניות" },
-    { id: "sk6", name: "פיצה נפוליטנה", desc: "בצק משובח | רוטב עגבניות | מוצרלה" },
-    { id: "sk7", name: "פיצה ביאנקה", desc: "רוטב בשמל | פורטבלו ושמפניון בשמן כמהין | מוצרלה" },
   ]},
   { key: "desserts", label: "עמדת קינוחים", subtitle: "סיום מתוק", items: [
     { id: "sd1", name: "פטיפורים וקינוחי ביס", desc: "" },
@@ -445,38 +444,31 @@ const STATIONS_MENU = [
     { id: "sd6", name: "פאדג' שוקולד חמה", desc: "עוגת שוקולד חמה | קראמבל עוגיות | גלידת וניל" },
     { id: "sd7", name: "פלטת פירות", desc: "אבטיח, מלון, ענבים סגולים וענבים ירוקים" },
   ]},
-  { key: "drinks", label: "עמדת שתייה", subtitle: "", items: [
-    { id: "dr1", name: "שתייה קלה ומוגזת", desc: "" },
-    { id: "dr2", name: "בירות ויינות", desc: "" },
-    { id: "dr3", name: "אלכוהול", desc: "" },
-    { id: "dr4", name: "קוקטיילים", desc: "" },
-    { id: "dr5", name: "שתייה חמה", desc: "קפה ותה" },
-  ]},
   { key: "fruit", label: "עמדת פירות", subtitle: "פירות העונה חתוכים", items: [
     { id: "fr1", name: "מגש פירות העונה", desc: "" },
     { id: "fr2", name: "אבטיח ומלון", desc: "" },
     { id: "fr3", name: "ענבים סגולים וירוקים", desc: "" },
     { id: "fr4", name: "פלטת פירות", desc: "אבטיח, מלון, ענבים סגולים וענבים ירוקים" },
   ]},
-  { key: "starters_station", label: "עמדת ראשונות", subtitle: "ראשונות ומנות פתיחה", items: [
-    { id: "st1", name: "חציל בלאדי", desc: "טחינה ביתית, סלסה עגבניות וטוסטונים" },
-    { id: "st2", name: "פלאפל כרובית", desc: "כרובית וכמהין במילוי גבינות, שמן ירוק וסלסה" },
-    { id: "st3", name: "סלט שרי וקרעי מוצרלה", desc: "בצל סגול, רוקט, שמן זית ובלסמי" },
-    { id: "st4", name: "צלעות תירס", desc: "חמאת שום, פפריקות ועשבי תיבול, טופינג פרמזן" },
-    { id: "st5", name: "קרפצ'יו סלק וגבינת עזים", desc: "בצל ירוק, סילאן, שמן זית ואגוזים קלויים" },
-    { id: "st6", name: "סלט אנדיב פרימוורה", desc: "תפוח, גבינת עזים, פקאן מסוכר וויניגרט הדרים" },
-    { id: "st7", name: "סלט קפרזה", desc: "" },
-    { id: "st8", name: "סביצ'ה יוזו", desc: "" },
+  { key: "dips", label: "עמדת חומוס ומטבלים", subtitle: "קערה גדולה במרכז השולחן", items: [
+    { id: "dp1", name: "קערת חומוס", desc: "" },
+    { id: "dp2", name: "טחינה", desc: "" },
+    { id: "dp3", name: "צלחת חריפים", desc: "פלפל פדרון מטוגן | חריף ביתי | שמן זית | פלפל ירוק" },
+    { id: "dp4", name: "חציל בלאדי", desc: "טחינה ביתית | סלסה עגבניות | טוסטונים" },
   ]},
-  { key: "raw_station", label: "עמדת דגים נאים", subtitle: "טרי מהים", items: [
-    { id: "rw1", name: "סשימי סלמון", desc: "טוגראשי, אבוקדו, צ'ילי חריף ואיולי וואסבי" },
-    { id: "rw2", name: "טטאקי טונה", desc: "טוגראשי, אבוקדו, צ'ילי, יוזו ואיולי וואסבי" },
-    { id: "rw3", name: "פאני פורי", desc: "סביצ'ה סלמון, מלפפון, כוסברה וקרם פרש יוזו" },
-    { id: "rw4", name: "טוסטדה טונה אדומה", desc: "טונה טרייה, אבוקדו, צ'ילי, איולי פפריקה ודבש" },
-    { id: "rw5", name: "סביצ'ה דג לבן", desc: "דג לברק, בצל סגול, צ'ילי אדום, לימון טרי, כוסברה, שמן צ'ילי ורוטב יוזו" },
+  { key: "kids", label: "תפריט ילדים (עד גיל 13)", subtitle: "ספיישל לילדים", items: [
+    { id: "sk1", name: "פיש אנד צ'יפס", desc: "דג בטמפורה | צ'יפס" },
+    { id: "sk2", name: "קריספי צ'יקן", desc: "נתחי עוף קריספי | צ'יפס" },
+    { id: "sk3", name: "מיני בורגרים", desc: "המבורגר בקר קטן | באן | צ'יפס" },
+    { id: "sk4", name: "פסטה עגבניות", desc: "ברוטב עגבניות" },
+    { id: "sk5", name: "פסטה רוזה", desc: "ברוטב שמנת עגבניות" },
+    { id: "sk6", name: "פיצה נפוליטנה", desc: "בצק משובח | רוטב עגבניות | מוצרלה" },
+    { id: "sk7", name: "פיצה ביאנקה", desc: "רוטב בשמל | פורטבלו ושמפניון בשמן כמהין | מוצרלה" },
   ]},
 ];
 const STATIONS_BY_KEY = Object.fromEntries(STATIONS_MENU.map(s => [s.key, s]));
+const DEFAULT_STATION_ORDER = STATIONS_MENU.map(s => s.key);
+const normalizeStationOrder = (so) => { const valid = Array.isArray(so) ? so.filter(k => STATIONS_BY_KEY[k]) : []; return [...valid, ...DEFAULT_STATION_ORDER.filter(k => !valid.includes(k))]; };
 
 const CAT_LABELS = { starters: "STARTERS", rawBar: "RAW BAR", mains: "MAIN", desserts: "DESSERTS" };
 const CAT_LABELS_HE = { starters: "ראשונות", rawBar: "דג נא", mains: "עיקריות", desserts: "קינוחים" };
@@ -1722,7 +1714,7 @@ function ClientProposalPage({ proposal, onSign }) {
 
   const categories = {};
   if (proposal.menuType === "stations") {
-    STATIONS_MENU.forEach(st => {
+    normalizeStationOrder(proposal.stationOrder).map(k => STATIONS_BY_KEY[k]).forEach(st => {
       const sel = (proposal.stations || {})[st.key] || [];
       const items = st.items.filter(i => sel.includes(i.id));
       if (items.length) categories[st.label] = items;
@@ -2301,7 +2293,7 @@ function App({ onLogout }) {
   const [selectedKidsMenu, setSelectedKidsMenu] = useState([]); // ["k1","k2","k3"]
   const [selectedStations, setSelectedStations] = useState({}); // { roaming: ["r1","r4"], meat: [...] }
   const [openStation, setOpenStation] = useState(null);
-  const [stationOrder, setStationOrder] = useState(STATIONS_MENU.map((_, i) => i));
+  const [stationOrder, setStationOrder] = useState(DEFAULT_STATION_ORDER);
   const [dragIdx, setDragIdx] = useState(null);
   const [openingBread, setOpeningBread] = useState(true); // לחם הבית ומטבלים — כלול לפתיחת האירוע
   const [customAdds, setCustomAdds] = useState([]); // תוספות בתשלום מותאמות: [{name, price, per: "guest"|"fixed"}]
@@ -2350,6 +2342,7 @@ function App({ onLogout }) {
     if (d.sd) setSelectedDishes(d.sd);
     if (d.km) setSelectedKidsMenu(d.km);
     setSelectedStations(d.st && typeof d.st === "object" ? d.st : {});
+    setStationOrder(normalizeStationOrder(d.so));
     setOpeningBread(d.ob !== false);
     if (d.su) setSelectedUpgrades(d.su);
     if (d.sp2) setSushiPrice(String(d.sp2));
@@ -2480,7 +2473,7 @@ function App({ onLogout }) {
       sd: Object.keys(selectedDishes).length ? selectedDishes : undefined,
       km: selectedKidsMenu.length ? selectedKidsMenu : undefined,
       st: Object.keys(selectedStations).some(k => (selectedStations[k]||[]).length) ? selectedStations : undefined,
-      so: stationOrder.join(",") !== STATIONS_MENU.map((_,i)=>i).join(",") ? stationOrder : undefined,
+      so: stationOrder.join(",") !== DEFAULT_STATION_ORDER.join(",") ? stationOrder : undefined,
       ob: openingBread ? undefined : false,
       su: selectedUpgrades.length ? selectedUpgrades : undefined,
       sp2: sushiPrice && sushiPrice !== "35" ? sushiPrice : undefined,
@@ -2508,7 +2501,7 @@ function App({ onLogout }) {
     const pkgDef = menuType && packageTier ? PACKAGE_MENUS[menuType]?.[packageTier] : null;
     const menuOut = [];
     if (openingBread) menuOut.push({ course: "starter", name: "לחם הבית ומטבלים (לפתיחה)" });
-    STATIONS_MENU.forEach(st => {
+    stationOrder.map(k => STATIONS_BY_KEY[k]).filter(Boolean).forEach(st => {
       const sel = selectedStations[st.key] || [];
       st.items.filter(it => sel.includes(it.id)).forEach(it => menuOut.push({ course: st.label, name: it.name }));
     });
@@ -2590,7 +2583,7 @@ function App({ onLogout }) {
       }
     } catch(e) { console.warn("crm notify err", e); }
     try { await navigator.clipboard.writeText(link); setLinkCopied(true); setTimeout(() => setLinkCopied(false), 3000); } catch(e) { console.warn("clipboard err", e); }
-  }, [clientName, eventType, eventDate, eventTime, guestCount, childCount, menuType, packageTier, selectedDishes, selectedKidsMenu, selectedStations, openingBread, customAdds, selectedUpgrades, sushiPrice, pricePerGuest, pricePerChild, services, validDays, drinkPackage, servicePct, vatMode, editingProposalId, saveToCrm]);
+  }, [clientName, eventType, eventDate, eventTime, guestCount, childCount, menuType, packageTier, selectedDishes, selectedKidsMenu, selectedStations, stationOrder, openingBread, customAdds, selectedUpgrades, sushiPrice, pricePerGuest, pricePerChild, services, validDays, drinkPackage, servicePct, vatMode, editingProposalId, saveToCrm]);
 
     const sendClientWhatsApp = useCallback(() => {
     if (!clientLink) return;
@@ -2691,7 +2684,7 @@ function App({ onLogout }) {
   const byCat = useMemo(() => {
     if (menuType === "stations") {
       const r = {};
-      STATIONS_MENU.forEach(st => {
+      stationOrder.map(k => STATIONS_BY_KEY[k]).filter(Boolean).forEach(st => {
         const sel = selectedStations[st.key] || [];
         const items = st.items.filter(i => sel.includes(i.id));
         if (items.length) r[st.label] = items;
@@ -2716,7 +2709,7 @@ function App({ onLogout }) {
       r["תפריט ילדים"] = KIDS_MENU.filter(i => selectedKidsMenu.includes(i.id));
     }
     return r;
-  }, [menuType, packageTier, selectedDishes, selectedKidsMenu, selectedStations, openingBread]);
+  }, [menuType, packageTier, selectedDishes, selectedKidsMenu, selectedStations, stationOrder, openingBread]);
 
   const currentPkg = menuType && packageTier ? PACKAGE_MENUS[menuType]?.[packageTier] : null;
 
@@ -2871,8 +2864,8 @@ function App({ onLogout }) {
               </span>
             </div>
             <div style={{ fontSize: 11, color: F.dm, marginBottom: 14 }}>החיצים ▲▼ משנים את סדר העמדות בהצעה · לחצו על עמדה כדי לפתוח/לסגור</div>
-            {stationOrder.map((origIdx, visualIdx) => {
-              const st = STATIONS_MENU[origIdx];
+            {stationOrder.map((stKey, visualIdx) => {
+              const st = STATIONS_BY_KEY[stKey];
               if (!st) return null;
               const sel = selectedStations[st.key] || [];
               const isOpen = sel.length > 0 || openStation === st.key;
@@ -3193,6 +3186,7 @@ function App({ onLogout }) {
         selectedDishes: data.sd || {},
         kidsMenu: data.km || [],
         stations: data.st && typeof data.st === "object" ? data.st : {},
+        stationOrder: normalizeStationOrder(data.so),
         openingBread: data.ob !== false,
         selectedUpgrades: data.su || [],
         sushiPrice: data.sp2 || "35",
