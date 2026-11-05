@@ -503,6 +503,10 @@ const fmt = (n) => n.toLocaleString("he-IL");
 // Luxury monochrome palette: warm cream bg, dark brown text, minimal accent
 const S = { bg: "#e8ddd0", bgL: "#f0e6d8", title: "#3a3028", titleBold: "#2a2218", text: "#4a3f35", desc: "#7a6e62", dim: "#9a8e82", accent: "#8a7560", line: "rgba(120,100,75,0.25)" };
 // Form palette (dark for editing contrast)
+// טיפ לצוות — אחוז מהסכום הכולל, מוצג בנפרד מתחת לסה"כ
+const TIP_OPTIONS = ["10", "12", "15"];
+const tipAmountOf = (total, pct) => Math.round((total || 0) * (parseFloat(pct) || 0) / 100);
+
 const F = { bg: "#232323", sf: "#2d2d2d", br: "#444", tx: "#e0e0e0", dm: "#999", gold: "#c8a96e" };
 
 function PhotoStrip({ images, style }) {
@@ -622,7 +626,7 @@ function MenuPage({ menuType, categories, packageLabel, packagePrice, menuTypeLa
 }
 
 // === PAGE 2: PRICING ===
-function PricingPage({ clientName, eventType, eventDate, eventTime, guestCount, pricePerGuest, childCount, pricePerChild, menuType, services, cocktailUpgrade, foodTotal, totalBeforeVat, totalWithVat, servicePct, drinkPackage, vatMode = "add", upgradeItems }) {
+function PricingPage({ tipPct, clientName, eventType, eventDate, eventTime, guestCount, pricePerGuest, childCount, pricePerChild, menuType, services, cocktailUpgrade, foodTotal, totalBeforeVat, totalWithVat, servicePct, drinkPackage, vatMode = "add", upgradeItems }) {
   const td = { fontFamily: FN.body, fontSize: 10.5, fontWeight: 300, color: S.text, padding: "9px 7px", textAlign: "center", borderBottom: `1px solid ${S.line}` };
   const photoSet = MENU_PHOTOS[menuType] || MENU_PHOTOS["בשרי"];
   const photos = photoSet.pricing;
@@ -713,6 +717,13 @@ function PricingPage({ clientName, eventType, eventDate, eventTime, guestCount, 
               <div style={{ fontFamily: FN.body, fontSize: 9, color: S.dim, marginTop: 4 }}>* המחירים אינם כוללים מע"מ</div>
             </>)}
             {parseFloat(servicePct) > 0 && <div style={{ fontFamily: FN.body, fontSize: 9, color: S.dim, marginTop: 8 }}>לא כולל שירות {servicePct}%</div>}
+            {parseFloat(tipPct) > 0 && (() => { const base = vatMode === "none" ? totalBeforeVat : totalWithVat; const tip = tipAmountOf(base, tipPct); return (<>
+              <div style={{ borderTop: `1px solid ${S.line || "rgba(120,100,75,0.3)"}`, margin: "10px auto 8px", width: "60%" }} />
+              <div style={{ fontFamily: FN.body, fontSize: 11, color: S.text }}>טיפ לצוות ({tipPct}%)</div>
+              <div style={{ fontFamily: FN.body, fontSize: 14, fontWeight: 700, color: S.titleBold, margin: "2px 0 8px" }}>{fmt(tip)} ש"ח</div>
+              <div style={{ fontFamily: FN.body, fontSize: 11, color: S.text }}>סה"כ כולל טיפ</div>
+              <div style={{ fontFamily: FN.body, fontSize: 18, fontWeight: 700, color: S.titleBold, margin: "2px 0" }}>{fmt(base + tip)} ש"ח</div>
+            </>); })()}
           </div>
         </div>
         <div style={{ textAlign: "center", padding: "8px 0 16px" }}>
@@ -1567,6 +1578,16 @@ function ClientQuotePage({ proposal, onApprove }) {
                 <span style={{ fontFamily: FN.title, fontSize: 16, color: "#c8a96e" }}>{vatMode === "none" ? "סה\"כ (לא כולל מע\"מ)" : "סה\"כ כולל מע\"מ"}</span>
                 <span style={{ fontFamily: FN.title, fontSize: 22, color: "#c8a96e", direction: "ltr" }}>{(showVat ? totalWithVat : totalBeforeVat).toLocaleString("he-IL")} ₪</span>
               </div>
+              {parseFloat(proposal.tipPct) > 0 && (() => { const base = showVat ? totalWithVat : totalBeforeVat; const tip = tipAmountOf(base, proposal.tipPct); return (<>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 12, paddingTop: 10, borderTop: "1px solid rgba(200,169,110,0.15)" }}>
+                  <span style={{ fontSize: 14, color: "rgba(255,255,255,0.7)" }}>טיפ לצוות ({proposal.tipPct}%)</span>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: "#e8e2d8", direction: "ltr" }}>{tip.toLocaleString("he-IL")} ₪</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
+                  <span style={{ fontFamily: FN.title, fontSize: 15, color: "#c8a96e" }}>סה"כ כולל טיפ</span>
+                  <span style={{ fontFamily: FN.title, fontSize: 18, color: "#c8a96e", direction: "ltr" }}>{(base + tip).toLocaleString("he-IL")} ₪</span>
+                </div>
+              </>); })()}
               {g > 0 && svcList.length > 0 && (
                 <div style={{ textAlign: "center", marginTop: 8, fontSize: 11, color: "rgba(200,169,110,0.5)" }}>
                   כולל {svcList.length} שירותים · מחיר לסועד בלבד <span dir="ltr">{ppg.toLocaleString("he-IL")} ₪</span> · השאר עלינו
@@ -1877,9 +1898,19 @@ function ClientProposalPage({ proposal, onSign }) {
             </div>
             <div style={{ background: "rgba(200,169,110,0.08)", padding: "16px 18px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontFamily: FN.title, fontSize: 16, color: "#c8a96e" }}>{showVat ? "סה\"כ כולל מע\"מ" : "סה\"כ (לא כולל מע\"מ)"}</span>
+                <span style={{ fontFamily: FN.title, fontSize: 16, color: "#c8a96e" }}>{vatMode === "none" ? "סה\"כ (לא כולל מע\"מ)" : "סה\"כ כולל מע\"מ"}</span>
                 <span style={{ fontFamily: FN.title, fontSize: 22, color: "#c8a96e", direction: "ltr" }}>{(showVat ? totalWithVat : totalBeforeVat).toLocaleString("he-IL")} ₪</span>
               </div>
+              {parseFloat(proposal.tipPct) > 0 && (() => { const base = showVat ? totalWithVat : totalBeforeVat; const tip = tipAmountOf(base, proposal.tipPct); return (<>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 12, paddingTop: 10, borderTop: "1px solid rgba(200,169,110,0.15)" }}>
+                  <span style={{ fontSize: 14, color: "rgba(255,255,255,0.7)" }}>טיפ לצוות ({proposal.tipPct}%)</span>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: "#e8e2d8", direction: "ltr" }}>{tip.toLocaleString("he-IL")} ₪</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
+                  <span style={{ fontFamily: FN.title, fontSize: 15, color: "#c8a96e" }}>סה"כ כולל טיפ</span>
+                  <span style={{ fontFamily: FN.title, fontSize: 18, color: "#c8a96e", direction: "ltr" }}>{(base + tip).toLocaleString("he-IL")} ₪</span>
+                </div>
+              </>); })()}
             </div>
           </div>
         </div>
@@ -2440,6 +2471,7 @@ function App({ onLogout }) {
   const [cocktailUpgrade, setCocktailUpgrade] = useState("0");
   const [validDays, setValidDays] = useState("7");
   const [servicePct, setServicePct] = useState("0");
+  const [tipPct, setTipPct] = useState("0"); // טיפ לצוות: "0" | "10" | "12" | "15"
   const [drinkPackage, setDrinkPackage] = useState("none");
   const [vatMode, setVatMode] = useState("add"); // "add" = +18%, "included" = המחיר כולל מע"מ, "none" = לא מציגים מע"מ
   const [services, setServices] = useState(DEFAULT_SERVICES);
@@ -2463,6 +2495,7 @@ function App({ onLogout }) {
     if (d.pt) setPackageTier(d.pt);
     if (d.dp) setDrinkPackage(d.dp);
     if (d.sp) setServicePct(String(d.sp));
+    setTipPct(d.tp ? String(d.tp) : "0");
     setVatMode(d.vm === "inc" ? "included" : (d.iv === false ? "none" : "add"));
     setCustomAdds(Array.isArray(d.ca) ? d.ca : []);
     if (d.vd) setValidDays(String(d.vd));
@@ -2611,6 +2644,7 @@ function App({ onLogout }) {
       vd: validDays !== "7" ? validDays : undefined,
       dp: drinkPackage !== "none" ? drinkPackage : undefined,
       sp: servicePct && servicePct !== "0" ? servicePct : undefined,
+      tp: tipPct && tipPct !== "0" ? tipPct : undefined,
       iv: vatMode === "none" ? false : undefined,
       vm: vatMode === "included" ? "inc" : undefined,
       ca: customAdds.filter(c => c.name && (parseInt(c.price)||0) > 0).length ? customAdds.filter(c => c.name && (parseInt(c.price)||0) > 0) : undefined,
@@ -2710,7 +2744,7 @@ function App({ onLogout }) {
       }
     } catch(e) { console.warn("crm notify err", e); }
     try { await navigator.clipboard.writeText(link); setLinkCopied(true); setTimeout(() => setLinkCopied(false), 3000); } catch(e) { console.warn("clipboard err", e); }
-  }, [clientName, eventType, eventDate, eventTime, guestCount, childCount, menuType, packageTier, selectedDishes, selectedKidsMenu, selectedStations, stationOrder, openingBread, customAdds, selectedUpgrades, sushiPrice, pricePerGuest, pricePerChild, services, validDays, drinkPackage, servicePct, vatMode, editingProposalId, saveToCrm]);
+  }, [clientName, eventType, eventDate, eventTime, guestCount, childCount, menuType, packageTier, selectedDishes, selectedKidsMenu, selectedStations, stationOrder, openingBread, customAdds, selectedUpgrades, sushiPrice, pricePerGuest, pricePerChild, services, validDays, drinkPackage, servicePct, tipPct, vatMode, editingProposalId, saveToCrm]);
 
     const sendClientWhatsApp = useCallback(() => {
     if (!clientLink) return;
@@ -2978,6 +3012,14 @@ function App({ onLogout }) {
                   </div>
                 </div>
               </div>
+              <div>
+                <label style={{...lbl, marginBottom: 6}}>טיפ לצוות (מהסכום הכולל)</label>
+                <div style={{ display: "flex", gap: 4 }}>
+                  {[["0","ללא"], ...TIP_OPTIONS.map(t => [t, t + "%"])].map(([k,l]) => (
+                    <button key={k} onClick={()=>setTipPct(k)} style={{ flex: 1, padding: "7px 4px", borderRadius: 7, border: `1px solid ${tipPct===k?F.gold:F.br}`, background: tipPct===k?"rgba(200,169,110,0.12)":"transparent", color: tipPct===k?F.gold:F.dm, fontSize: 11, fontWeight: tipPct===k?700:400, cursor: "pointer", fontFamily: FN.body }}>{l}</button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -3203,6 +3245,10 @@ function App({ onLogout }) {
               <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0 0", fontSize: 15, fontWeight: 700, color: F.gold, borderTop: `1px solid ${F.br}`, marginTop: 6 }}>
                 <span>{vatMode === "none" ? 'סה"כ (לא כולל מע"מ)' : 'סה"כ כולל מע"מ'}</span><span>{fmt(totV)} ₪</span>
               </div>
+              {parseFloat(tipPct) > 0 && <>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", fontSize: 13 }}><span>טיפ לצוות ({tipPct}%)</span><span>{fmt(tipAmountOf(totV, tipPct))} ₪</span></div>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0 0", fontSize: 14, fontWeight: 700, color: F.gold }}><span>סה"כ כולל טיפ</span><span>{fmt(totV + tipAmountOf(totV, tipPct))} ₪</span></div>
+              </>}
             </div>
           </div>
         </div>
@@ -3217,7 +3263,7 @@ function App({ onLogout }) {
           </div>
           <Preview>
             {pg < menuPages.length && <MenuPage menuType={menuType} categories={menuPages[pg]} packageLabel={currentPkg?.label} packagePrice={currentPkg?.price} menuTypeLabel={menuType === "dairy" ? "חלבי" : menuType === "meat" ? "בשרי" : ""} />}
-            {pg === menuPages.length && <PricingPage clientName={clientName} eventType={eventType} eventDate={eventDate} eventTime={eventTime} guestCount={guestCount} pricePerGuest={pricePerGuest} childCount={childCount} pricePerChild={pricePerChild} menuType={menuType} services={services} cocktailUpgrade={cocktailUpgrade} foodTotal={foodT} totalBeforeVat={tot} totalWithVat={totV} servicePct={servicePct} drinkPackage={drinkPackage} vatMode={vatMode} upgradeItems={upgradeItems} />}
+            {pg === menuPages.length && <PricingPage clientName={clientName} eventType={eventType} eventDate={eventDate} eventTime={eventTime} guestCount={guestCount} pricePerGuest={pricePerGuest} childCount={childCount} pricePerChild={pricePerChild} menuType={menuType} services={services} cocktailUpgrade={cocktailUpgrade} foodTotal={foodT} totalBeforeVat={tot} totalWithVat={totV} servicePct={servicePct} tipPct={tipPct} drinkPackage={drinkPackage} vatMode={vatMode} upgradeItems={upgradeItems} />}
             {pg === menuPages.length + 1 && <TermsPage validDays={validDays} menuType={menuType} signatureName={clientSignature ? clientName : null} signatureImg={clientSignature} signatureDate={clientSignDate} />}
           </Preview>
         </div>
@@ -3227,7 +3273,7 @@ function App({ onLogout }) {
       {printing && (
         <div id="print-area" style={{ position: "absolute", left: 0, top: 0, width: 794, background: "#fff", zIndex: 9999, overflow: "visible" }}>
           {menuPages.map((cats, i) => <MenuPage key={i} menuType={menuType} categories={cats} packageLabel={currentPkg?.label} packagePrice={currentPkg?.price} menuTypeLabel={menuType === "dairy" ? "חלבי" : menuType === "meat" ? "בשרי" : ""} />)}
-          <PricingPage clientName={clientName} eventType={eventType} eventDate={eventDate} eventTime={eventTime} guestCount={guestCount} pricePerGuest={pricePerGuest} childCount={childCount} pricePerChild={pricePerChild} menuType={menuType} services={services} cocktailUpgrade={cocktailUpgrade} foodTotal={foodT} totalBeforeVat={tot} totalWithVat={totV} servicePct={servicePct} drinkPackage={drinkPackage} vatMode={vatMode} upgradeItems={upgradeItems} />
+          <PricingPage clientName={clientName} eventType={eventType} eventDate={eventDate} eventTime={eventTime} guestCount={guestCount} pricePerGuest={pricePerGuest} childCount={childCount} pricePerChild={pricePerChild} menuType={menuType} services={services} cocktailUpgrade={cocktailUpgrade} foodTotal={foodT} totalBeforeVat={tot} totalWithVat={totV} servicePct={servicePct} tipPct={tipPct} drinkPackage={drinkPackage} vatMode={vatMode} upgradeItems={upgradeItems} />
           <TermsPage validDays={validDays} menuType={menuType} signatureName={clientSignature ? clientName : null} signatureImg={clientSignature} signatureDate={clientSignDate} />
         </div>
       )}
@@ -3318,6 +3364,7 @@ function App({ onLogout }) {
         validDays: data.vd || "7",
         drinkPackage: data.dp || "none",
         servicePct: data.sp || "0",
+        tipPct: data.tp || "0",
         includeVat: data.iv !== false,
         vatMode: data.vm === "inc" ? "included" : (data.iv !== false ? "add" : "none"),
         customAdds: Array.isArray(data.ca) ? data.ca : [],
