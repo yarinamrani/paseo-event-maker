@@ -1339,7 +1339,8 @@ function SignaturePad({ onSave, onCancel, proposal }) {
     const signDate = new Date().toLocaleDateString("he-IL");
     const signTimestamp = new Date().toISOString();
     try {
-      await supabase.from("submissions").upsert([{
+      const { error } = await supabase.rpc("em_client_submit", {
+        p_submission: {
         id: "SIG" + Date.now(),
         clientName: proposal.clientName,
         eventType: proposal.eventType,
@@ -1350,18 +1351,12 @@ function SignaturePad({ onSave, onCancel, proposal }) {
         submittedAt: signTimestamp,
         notes: `אישור הצעת מחיר — ${proposal.pricePerGuest} ₪ לסועד${proposal._proposalId ? ` — הצעה ${proposal._proposalId}` : ""}`,
         selections: { proposalSnapshot: { n: proposal.clientName, t: proposal.eventType, d: proposal.eventDate, g: proposal.guestCount, c: proposal.childCount, ppg: proposal.pricePerGuest, ppc: proposal.pricePerChild, mt: proposal.menuType, pt: proposal.packageTier, sd: proposal.selectedDishes, su: proposal.selectedUpgrades, signedAt: signTimestamp } },
-      }], { onConflict: "id" });
+      },
+        p_proposal_id: proposal._proposalId || null,
+        p_sig: proposal._proposalId ? { sig: signatureData, sigDate: signDate, sigName: proposal.clientName, sigTs: signTimestamp } : null,
+      });
+      if (error) console.warn("signature save err", error);
     } catch(e) { console.warn("signature save err", e); }
-    // Also update the proposal record with signature
-    if (proposal._proposalId) {
-      try {
-        const { data: rec } = await supabase.from("proposals").select("data").eq("id", proposal._proposalId).single();
-        if (rec && rec.data) {
-          const updated = { ...rec.data, sig: signatureData, sigDate: signDate, sigName: proposal.clientName, sigTs: signTimestamp };
-          await supabase.from("proposals").update({ data: updated }).eq("id", proposal._proposalId);
-        }
-      } catch(e) { console.warn("proposal sig update err", e); }
-    }
     setSaving(false);
     onSave({ signDate });
   };
@@ -2103,7 +2098,7 @@ function ClientMenuPage({ proposal, onComplete }) {
         submittedAt: new Date().toISOString(),
         status: "client_submitted",
       };
-      const { error } = await supabase.from("submissions").upsert([submission], { onConflict: "id" });
+      const { error } = await supabase.rpc("em_client_submit", { p_submission: submission });
       if (error) {
         console.error("Supabase submission error:", JSON.stringify(error));
         alert("שגיאה בשמירה: " + (error.message || error.details || JSON.stringify(error)));
@@ -3374,47 +3369,46 @@ function App({ onLogout }) {
       };
     }
 
-    const ADMIN_PASS = "1234";
-    const AUTH_KEY = "paseo_auth";
-    const AUTH_EXPIRY_DAYS = 7;
-
-    function checkAuth() {
-      try {
-        const raw = localStorage.getItem(AUTH_KEY);
-        if (!raw) return false;
-        const { ts } = JSON.parse(raw);
-        if (Date.now() - ts > AUTH_EXPIRY_DAYS * 86400000) { localStorage.removeItem(AUTH_KEY); return false; }
-        return true;
-      } catch { localStorage.removeItem(AUTH_KEY); return false; }
-    }
-    function setAuth() { localStorage.setItem(AUTH_KEY, JSON.stringify({ v: 1, ts: Date.now() })); }
-    function clearAuth() { localStorage.removeItem(AUTH_KEY); }
-
+    // Admin access = a real Supabase Auth session (same accounts as PaseoCRM).
+    // Only signed-in users can read or change leads / proposals / submissions (enforced by RLS).
     function LoginGate({ children }) {
-      const [authed, setAuthed] = useState(checkAuth);
-      const [pin, setPin] = useState("");
-      const [err, setErr] = useState(false);
-      const logout = () => { clearAuth(); setAuthed(false); };
-      if (authed) return React.cloneElement(children, { onLogout: logout });
-      const tryLogin = () => {
-        if (pin === ADMIN_PASS) { setAuth(); setAuthed(true); }
-        else { setErr(true); setPin(""); setTimeout(() => setErr(false), 1500); }
+      const [session, setSession] = useState(undefined); // undefined = still checking
+      const [email, setEmail] = useState("");
+      const [password, setPassword] = useState("");
+      const [err, setErr] = useState("");
+      const [busy, setBusy] = useState(false);
+      useEffect(() => {
+        let alive = true;
+        try { localStorage.removeItem("paseo_auth"); } catch {} // the old PIN flag is no longer used
+        supabase.auth.getSession().then(({ data }) => { if (alive) setSession(data.session || null); });
+        const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => { if (alive) setSession(s || null); });
+        return () => { alive = false; sub?.subscription?.unsubscribe(); };
+      }, []);
+      const logout = async () => { await supabase.auth.signOut(); setSession(null); };
+      if (session === undefined) return <div style={{ minHeight: "100vh", background: "#1a1a1a" }} />;
+      if (session) return React.cloneElement(children, { onLogout: logout });
+      const tryLogin = async () => {
+        if (!email.trim() || !password) { setErr("נא למלא מייל וסיסמה"); return; }
+        setBusy(true); setErr("");
+        const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+        setBusy(false);
+        if (error) { setErr(/invalid/i.test(error.message) ? "מייל או סיסמה שגויים" : "לא ניתן להתחבר כרגע — נסו שוב"); setPassword(""); }
       };
+      const field = { width: "100%", padding: "13px 14px", fontSize: 15, background: "#232323", border: "2px solid #333", borderRadius: 12, color: "#fff", outline: "none", fontFamily: FN.body, marginBottom: 10, direction: "ltr", textAlign: "left" };
       return (
         <div style={{ minHeight: "100vh", background: "#1a1a1a", display: "flex", alignItems: "center", justifyContent: "center", direction: "rtl" }}>
-          <div style={{ textAlign: "center", padding: 40, maxWidth: 340, width: "100%" }}>
+          <form onSubmit={e => { e.preventDefault(); tryLogin(); }} style={{ textAlign: "center", padding: 40, maxWidth: 340, width: "100%" }}>
             <img src={IMG.logo} style={{ width: 90, height: 90, objectFit: "contain", margin: "0 auto 24px", display: "block" }} />
             <div style={{ fontFamily: FN.title, fontSize: 22, color: "#c8a96e", marginBottom: 8 }}>PASEO</div>
-            <div style={{ fontFamily: FN.body, fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 32 }}>הזינו קוד גישה</div>
-            <input type="password" inputMode="numeric" maxLength={4} value={pin} onChange={e => setPin(e.target.value)} onKeyDown={e => e.key === "Enter" && tryLogin()}
-              style={{ width: "100%", padding: "14px 0", fontSize: 28, textAlign: "center", letterSpacing: 12, background: "#232323", border: err ? "2px solid #f87171" : "2px solid #333", borderRadius: 12, color: "#fff", outline: "none", fontFamily: FN.body, direction: "ltr" }}
-              placeholder="••••" autoFocus />
-            <button onClick={tryLogin}
-              style={{ width: "100%", marginTop: 16, padding: 14, background: "#c8a96e", color: "#1a1a1a", border: "none", borderRadius: 12, fontFamily: FN.body, fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
-              כניסה
+            <div style={{ fontFamily: FN.body, fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 28 }}>כניסה לצוות — אותם פרטים כמו ב־CRM</div>
+            <input type="email" autoComplete="username" placeholder="מייל" value={email} onChange={e => setEmail(e.target.value)} style={field} autoFocus />
+            <input type="password" autoComplete="current-password" placeholder="סיסמה" value={password} onChange={e => setPassword(e.target.value)} style={{ ...field, borderColor: err ? "#f87171" : "#333" }} />
+            <button type="submit" disabled={busy}
+              style={{ width: "100%", marginTop: 6, padding: 14, background: "#c8a96e", color: "#1a1a1a", border: "none", borderRadius: 12, fontFamily: FN.body, fontSize: 15, fontWeight: 700, cursor: "pointer", opacity: busy ? 0.6 : 1 }}>
+              {busy ? "מתחבר..." : "כניסה"}
             </button>
-            {err && <div style={{ marginTop: 12, fontSize: 13, color: "#f87171" }}>קוד שגוי</div>}
-          </div>
+            {err && <div style={{ marginTop: 12, fontSize: 13, color: "#f87171" }}>{err}</div>}
+          </form>
         </div>
       );
     }
@@ -3489,7 +3483,7 @@ function App({ onLogout }) {
       const params = new URLSearchParams(window.location.search);
       const encodedData = params.get("p");
       const diagParam = params.get("diag");
-      if (diagParam) return <DiagPage checkId={diagParam.length > 2 ? diagParam : null} />;
+      if (diagParam) return <LoginGate><DiagPage checkId={diagParam.length > 2 ? diagParam : null} /></LoginGate>;
       const [proposal, setProposal] = useState(null);
       const [loading, setLoading] = useState(!!encodedData);
       const [notFound, setNotFound] = useState(false);
@@ -3503,10 +3497,10 @@ function App({ onLogout }) {
               try {
                 if (attempt > 0) await new Promise(r => setTimeout(r, 1500 * attempt));
                 const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 6000));
-                const fetchPromise = supabase.from("proposals").select("data").eq("id", encodedData).maybeSingle();
+                const fetchPromise = supabase.rpc("em_proposal_get", { p_id: encodedData });
                 const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
-                if (!error && data && data.data) {
-                  try { setProposal({ ...parseProposalData(data.data), _proposalId: encodedData }); setLoading(false); return; }
+                if (!error && data) {
+                  try { setProposal({ ...parseProposalData(data), _proposalId: encodedData }); setLoading(false); return; }
                   catch(pe) { setFailReason("שגיאת פענוח נתונים"); console.error("parse err:", pe); break; }
                 }
                 if (!error && !data) { setFailReason("הרשומה לא קיימת במאגר"); break; }
